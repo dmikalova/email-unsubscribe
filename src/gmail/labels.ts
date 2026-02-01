@@ -1,6 +1,6 @@
 // Gmail Label Management
 
-import { getOrCreateLabel, modifyMessageLabels, archiveMessage, type GmailLabel } from './client.ts';
+import { getOrCreateLabel, modifyMessageLabels, archiveMessage } from './client.ts';
 
 export const LABEL_NAMES = {
   SUCCESS: 'Unsubscribed/Success',

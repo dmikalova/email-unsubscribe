@@ -149,12 +149,12 @@ api.get('/domains/:domain', async (c) => {
 
 // Pattern endpoints
 api.get('/patterns', async (c) => {
-  const type = c.req.query('type');
-  const patterns = await getPatterns(type as any);
+  const type = c.req.query('type') as 'button' | 'link' | 'form' | undefined;
+  const patterns = await getPatterns(type);
   return c.json(patterns);
 });
 
-api.get('/patterns/export', async (c) => {
+api.get('/patterns/export', async (_c) => {
   const exported = await exportPatterns();
   await logPatternExported(exported.patterns.length);
   

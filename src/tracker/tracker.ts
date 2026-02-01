@@ -1,9 +1,8 @@
 // Compliance tracker - records unsubscribe attempts and outcomes
 
-import { getConnection, withTransaction } from '../db/index.ts';
-import { markEmailProcessed } from '../scanner/index.ts';
+import { getConnection } from '../db/index.ts';
 import { markSenderUnsubscribed } from '../scanner/tracking.ts';
-import { labelMessageAsSuccess, labelMessageAsFailed, archiveAndLabelSuccess } from '../gmail/index.ts';
+import { labelMessageAsFailed, archiveAndLabelSuccess } from '../gmail/index.ts';
 
 export type UnsubscribeStatus = 'success' | 'failed' | 'uncertain' | 'pending';
 export type UnsubscribeMethod = 'one_click' | 'mailto' | 'browser' | 'manual';
@@ -130,7 +129,7 @@ export async function getUnsubscribeAttempt(id: number): Promise<UnsubscribeAtte
   return rows[0] ?? null;
 }
 
-export async function getFailedAttempts(limit = 50, offset = 0): Promise<UnsubscribeAttempt[]> {
+export function getFailedAttempts(limit = 50, offset = 0): Promise<UnsubscribeAttempt[]> {
   const sql = getConnection();
 
   return sql<UnsubscribeAttempt[]>`
@@ -147,7 +146,7 @@ export async function getFailedAttempts(limit = 50, offset = 0): Promise<Unsubsc
   `;
 }
 
-export async function getRecentAttempts(limit = 20): Promise<UnsubscribeAttempt[]> {
+export function getRecentAttempts(limit = 20): Promise<UnsubscribeAttempt[]> {
   const sql = getConnection();
 
   return sql<UnsubscribeAttempt[]>`
@@ -265,7 +264,7 @@ export async function getStats(): Promise<UnsubscribeStats> {
   return stats;
 }
 
-export async function getHistoryByDomain(domain: string): Promise<UnsubscribeAttempt[]> {
+export function getHistoryByDomain(domain: string): Promise<UnsubscribeAttempt[]> {
   const sql = getConnection();
 
   return sql<UnsubscribeAttempt[]>`
@@ -281,7 +280,7 @@ export async function getHistoryByDomain(domain: string): Promise<UnsubscribeAtt
   `;
 }
 
-export async function getDomainStats(): Promise<{ domain: string; total: number; success: number; failed: number }[]> {
+export function getDomainStats(): Promise<{ domain: string; total: number; success: number; failed: number }[]> {
   const sql = getConnection();
 
   return sql`

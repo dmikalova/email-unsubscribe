@@ -20,7 +20,6 @@ import {
   updateScanState,
   incrementScanStats,
   isEmailProcessed,
-  markEmailProcessed,
   getProcessedEmailIds,
 } from './state.ts';
 import { isAllowed } from './allowlist.ts';

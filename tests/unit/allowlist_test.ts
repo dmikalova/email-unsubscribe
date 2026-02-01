@@ -1,7 +1,7 @@
 // Unit tests for allow list functionality
 
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
-import { isAllowed, matchesAllowPattern } from '../../src/scanner/allowlist.ts';
+import { matchesAllowPattern } from '../../src/scanner/allowlist.ts';
 
 Deno.test('matchesAllowPattern - matches exact domain', () => {
   const result = matchesAllowPattern('newsletter@example.com', 'example.com');

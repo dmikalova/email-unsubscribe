@@ -64,7 +64,7 @@ export function extractUnsubscribeLinksFromHtml(html: string): ExtractedLink[] {
   });
 }
 
-function calculateConfidence(url: string, text: string, fullMatch: string): number {
+function calculateConfidence(url: string, text: string, _fullMatch: string): number {
   let confidence = 0;
 
   // Check URL

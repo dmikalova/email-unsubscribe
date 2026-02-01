@@ -1,6 +1,6 @@
 // RFC 8058 One-Click Unsubscribe Implementation
 
-import { validateUnsubscribeUrl, type ValidationResult } from './validation.ts';
+import { validateUnsubscribeUrl } from './validation.ts';
 
 export interface OneClickResult {
   success: boolean;

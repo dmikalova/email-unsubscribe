@@ -17,13 +17,14 @@ async function main() {
         await rollbackMigration();
         break;
 
-      case 'status':
+      case 'status': {
         const status = await checkMigrations();
         console.log('Migration status:');
         console.log(`  Applied: ${status.applied}`);
         console.log(`  Pending: ${status.pending}`);
         console.log(`  Up to date: ${status.upToDate}`);
         break;
+      }
 
       default:
         console.log('Usage: deno task migrate [up|down|status]');
