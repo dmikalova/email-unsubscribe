@@ -61,7 +61,7 @@ export async function authMiddleware(c: Context, next: Next) {
 
 // Placeholder for session validation
 // In production, this would call the main domain's session validation endpoint
-async function validateSession(token: string): Promise<SessionData | null> {
+function validateSession(token: string): SessionData | null {
   // TODO: Implement actual session validation
   // For now, return a mock session if token exists
   
@@ -89,7 +89,7 @@ const requestCounts = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 100; // requests per window
 const RATE_WINDOW = 60 * 1000; // 1 minute
 
-export async function rateLimitMiddleware(c: Context, next: Next) {
+export function rateLimitMiddleware(c: Context, next: Next) {
   const ip = c.req.header('X-Forwarded-For') || c.req.header('X-Real-IP') || 'unknown';
   const now = Date.now();
 
@@ -115,7 +115,7 @@ export async function rateLimitMiddleware(c: Context, next: Next) {
 }
 
 // CSRF protection middleware
-export async function csrfMiddleware(c: Context, next: Next) {
+export function csrfMiddleware(c: Context, next: Next) {
   // Skip CSRF for GET requests and OAuth routes
   if (c.req.method === 'GET' || c.req.path.startsWith('/oauth/')) {
     return next();

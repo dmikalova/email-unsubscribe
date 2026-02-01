@@ -1,6 +1,6 @@
 // Token storage and retrieval with encryption
 
-import { getConnection, withTransaction } from '../db/index.ts';
+import { getConnection } from '../db/index.ts';
 import { encrypt, decrypt } from './encryption.ts';
 import { refreshAccessToken, type TokenResponse } from './oauth.ts';
 

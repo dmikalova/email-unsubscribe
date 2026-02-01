@@ -1,6 +1,6 @@
 // Browser-based unsubscribe automation using Playwright
 
-import { chromium, type Browser, type Page, type BrowserContext } from 'playwright';
+import { chromium, type Browser, type Page } from 'playwright';
 import { validateUnsubscribeUrl } from './validation.ts';
 import { getPatterns, incrementPatternMatchCount, type Pattern } from './patterns.ts';
 

@@ -2,7 +2,6 @@
 
 const ALGORITHM = 'AES-GCM';
 const IV_LENGTH = 12;
-const TAG_LENGTH = 16;
 
 function getEncryptionKey(): Uint8Array {
   const keyBase64 = Deno.env.get('ENCRYPTION_KEY');
