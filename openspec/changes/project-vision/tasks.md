@@ -101,30 +101,30 @@
 
 ## 9. Compliance Tracker
 
-- [ ] 9.1 Implement unsubscribe attempt recording (success/failure/uncertain)
-- [ ] 9.2 Implement failure categorization (timeout, no match, navigation error, unknown)
-- [ ] 9.3 Implement screenshot storage path management
-- [ ] 9.4 Implement trace storage path management
-- [ ] 9.5 Implement manual retry trigger
-- [ ] 9.6 Implement mark-as-resolved functionality
-- [ ] 9.7 Implement ineffective unsubscribe flagging (new email after successful unsubscribe)
-- [ ] 9.8 Implement 24-hour grace period for confirmation emails
+- [x] 9.1 Implement unsubscribe attempt recording (success/failure/uncertain)
+- [x] 9.2 Implement failure categorization (timeout, no match, navigation error, unknown)
+- [x] 9.3 Implement screenshot storage path management
+- [x] 9.4 Implement trace storage path management
+- [x] 9.5 Implement manual retry trigger
+- [x] 9.6 Implement mark-as-resolved functionality
+- [x] 9.7 Implement ineffective unsubscribe flagging (new email after successful unsubscribe)
+- [x] 9.8 Implement 24-hour grace period for confirmation emails
 
 ## 10. Allow List Management
 
-- [ ] 10.1 Implement add sender/domain to allow list
-- [ ] 10.2 Implement remove from allow list
-- [ ] 10.3 Implement exact email matching
-- [ ] 10.4 Implement domain matching
-- [ ] 10.5 Implement subdomain handling (no implicit match)
-- [ ] 10.6 Implement allow list query for scanner
+- [x] 10.1 Implement add sender/domain to allow list
+- [x] 10.2 Implement remove from allow list
+- [x] 10.3 Implement exact email matching
+- [x] 10.4 Implement domain matching
+- [x] 10.5 Implement subdomain handling (no implicit match)
+- [x] 10.6 Implement allow list query for scanner
 
 ## 11. Audit Logging
 
-- [ ] 11.1 Implement audit log writer
-- [ ] 11.2 Log unsubscribe attempts (sender, URL, method, outcome)
-- [ ] 11.3 Log allow list changes (add/remove, entry, timestamp)
-- [ ] 11.4 Log authentication events (session created, session expired)
+- [x] 11.1 Implement audit log writer
+- [x] 11.2 Log unsubscribe attempts (sender, URL, method, outcome)
+- [x] 11.3 Log allow list changes (add/remove, entry, timestamp)
+- [x] 11.4 Log authentication events (session created, session expired)
 
 ## 12. Web Dashboard - Backend
 
