@@ -1,6 +1,6 @@
 ## Context
 
-This is a greenfield personal project to automate email unsubscription. The system will scan a Gmail inbox, identify emails with unsubscribe options, and automatically complete unsubscribe flows—even multi-step ones requiring browser interaction.
+This is a greenfield personal project to automate email unsubscription. The system will scan a Gmail inbox, identify emails with unsubscribe options, and automatically complete unsubscribe flows - even multi-step ones requiring browser interaction.
 
 **Current state**: Manual unsubscription is tedious and inconsistent. No existing tooling in place.
 
@@ -8,7 +8,7 @@ This is a greenfield personal project to automate email unsubscription. The syst
 
 - Single-user system (personal use only)
 - Must handle sensitive Gmail credentials securely
-- Unsubscribe pages vary wildly—some are one-click, others require forms or multiple steps
+- Unsubscribe pages vary wildly - some are one-click, others require forms or multiple steps
 - Must run in the cloud with minimal maintenance (scheduled or continuous)
 
 **Stakeholders**: Just me (dmikalova)
@@ -26,7 +26,7 @@ This is a greenfield personal project to automate email unsubscription. The syst
 
 **Non-Goals:**
 
-- Multi-user/SaaS support—this is personal-use only
+- Multi-user/SaaS support - this is personal-use only
 - Email client functionality (reading/composing emails)
 - Spam filtering or classification beyond unsubscribe detection
 - Mobile app
@@ -40,7 +40,7 @@ This is a greenfield personal project to automate email unsubscription. The syst
 
 **Rationale**:
 
-- Native TypeScript support—no build step or tsconfig complexity
+- Native TypeScript support - no build step or tsconfig complexity
 - Built-in security model (explicit permissions for network, file, env access)
 - Modern ES modules, no node_modules bloat
 - Good Playwright support via npm compatibility
@@ -88,11 +88,11 @@ This is a greenfield personal project to automate email unsubscription. The syst
 **Rationale**:
 
 - Ultra-lightweight and fast
-- First-class Deno support (also works on Node, Bun, edge runtimes—portable)
+- First-class Deno support (also works on Node, Bun, edge runtimes - portable)
 - Excellent TypeScript support with type-safe routing
 - Simple, Express-like API that's easy to learn
 - Middleware for common needs (CORS, sessions, etc.)
-- Good foundation for future projects—skills transfer across runtimes
+- Good foundation for future projects - skills transfer across runtimes
 
 **Alternatives considered**:
 
@@ -109,7 +109,7 @@ This is a greenfield personal project to automate email unsubscription. The syst
 - Vue.js is simple and approachable with good TypeScript support
 - Headless UI provides unstyled, accessible components (dialogs, menus, dropdowns) without imposing design opinions
 - Tailwind CSS enables rapid styling with utility classes
-- Full control over the look—can apply Material Design-inspired colors, shadows, and spacing
+- Full control over the look - can apply Material Design-inspired colors, shadows, and spacing
 - Lighter than full component libraries like Vuetify
 
 **Styling approach**: Use Tailwind with Material Design color palette and elevation shadows. Headless UI handles interactive component logic (accessibility, keyboard nav) while Tailwind handles appearance.
@@ -144,7 +144,7 @@ This is a greenfield personal project to automate email unsubscription. The syst
 4. Log results; flag failures for review
 5. Iteratively add new patterns as edge cases emerge
 
-**Rationale**: Start simple, evolve based on real-world data. Perfect is the enemy of good—some unsubscribes will fail initially.
+**Rationale**: Start simple, evolve based on real-world data. Perfect is the enemy of good - some unsubscribes will fail initially.
 
 ### Execution Model: Scheduled scans
 
@@ -154,7 +154,7 @@ This is a greenfield personal project to automate email unsubscription. The syst
 
 - Single container deployment
 - Simpler than setting up Gmail push notifications or IMAP IDLE
-- Sufficient for personal use—immediate processing not required
+- Sufficient for personal use - immediate processing not required
 - Easier to manage than Northflank cron jobs
 
 **Alternative considered**:
@@ -180,7 +180,7 @@ This is a greenfield personal project to automate email unsubscription. The syst
 
 ## Migration Plan
 
-N/A—greenfield project. Initial deployment steps:
+N/A - greenfield project. Initial deployment steps:
 
 1. Set up Northflank project and PostgreSQL addon
 2. Create database schema and app-specific user

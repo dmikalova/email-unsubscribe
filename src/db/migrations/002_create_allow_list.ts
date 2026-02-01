@@ -21,8 +21,3 @@ COMMENT ON TABLE allow_list IS 'Senders and domains to exclude from unsubscribe 
 COMMENT ON COLUMN allow_list.type IS 'Whether this is an email address or domain';
 COMMENT ON COLUMN allow_list.value IS 'The email address or domain to allow';
 `;
-
-export const down = `
-DROP TABLE IF EXISTS allow_list;
-DROP TYPE IF EXISTS allow_list_type;
-`;

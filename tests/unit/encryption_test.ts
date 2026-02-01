@@ -1,80 +1,68 @@
 // Unit tests for encryption module
+// Note: These tests require ENCRYPTION_KEY environment variable to be set
 
-import { assertEquals, assertNotEquals, assertRejects } from 'https://deno.land/std@0.208.0/assert/mod.ts';
-import { encrypt, decrypt, deriveKey } from '../../src/gmail/encryption.ts';
+import { assertEquals, assertNotEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+
+// Set a test encryption key (32 bytes base64 encoded)
+const TEST_KEY = btoa('12345678901234567890123456789012');
 
 Deno.test('encryption - encrypts and decrypts data correctly', async () => {
-  const originalData = 'test-oauth-token-12345';
-  const key = await deriveKey('test-encryption-key-for-testing');
+  Deno.env.set('ENCRYPTION_KEY', TEST_KEY);
 
-  const encrypted = await encrypt(originalData, key);
-  const decrypted = await decrypt(encrypted, key);
+  // Dynamic import to use the env var
+  const { encrypt, decrypt } = await import('../../src/gmail/encryption.ts');
+
+  const originalData = 'test-oauth-token-12345';
+  const encrypted = await encrypt(originalData);
+  const decrypted = await decrypt(encrypted);
 
   assertEquals(decrypted, originalData);
 });
 
 Deno.test('encryption - produces different ciphertext for same input (random IV)', async () => {
+  Deno.env.set('ENCRYPTION_KEY', TEST_KEY);
+
+  const { encrypt } = await import('../../src/gmail/encryption.ts');
+
   const originalData = 'test-oauth-token-12345';
-  const key = await deriveKey('test-encryption-key-for-testing');
+  const encrypted1 = await encrypt(originalData);
+  const encrypted2 = await encrypt(originalData);
 
-  const encrypted1 = await encrypt(originalData, key);
-  const encrypted2 = await encrypt(originalData, key);
-
-  assertNotEquals(encrypted1, encrypted2);
-});
-
-Deno.test('encryption - fails with wrong key', async () => {
-  const originalData = 'test-oauth-token-12345';
-  const key1 = await deriveKey('test-encryption-key-1');
-  const key2 = await deriveKey('test-encryption-key-2');
-
-  const encrypted = await encrypt(originalData, key1);
-
-  await assertRejects(
-    () => decrypt(encrypted, key2),
-    Error,
-  );
+  // They should have different ciphertext due to random IV
+  assertNotEquals(Array.from(encrypted1).join(','), Array.from(encrypted2).join(','));
 });
 
 Deno.test('encryption - handles empty string', async () => {
-  const key = await deriveKey('test-encryption-key-for-testing');
+  Deno.env.set('ENCRYPTION_KEY', TEST_KEY);
 
-  const encrypted = await encrypt('', key);
-  const decrypted = await decrypt(encrypted, key);
+  const { encrypt, decrypt } = await import('../../src/gmail/encryption.ts');
+
+  const encrypted = await encrypt('');
+  const decrypted = await decrypt(encrypted);
 
   assertEquals(decrypted, '');
 });
 
 Deno.test('encryption - handles unicode characters', async () => {
-  const originalData = 'test-token-日本語-émoji-🔐';
-  const key = await deriveKey('test-encryption-key-for-testing');
+  Deno.env.set('ENCRYPTION_KEY', TEST_KEY);
 
-  const encrypted = await encrypt(originalData, key);
-  const decrypted = await decrypt(encrypted, key);
+  const { encrypt, decrypt } = await import('../../src/gmail/encryption.ts');
+
+  const originalData = 'test-token-日本語-émoji-🔐';
+  const encrypted = await encrypt(originalData);
+  const decrypted = await decrypt(encrypted);
 
   assertEquals(decrypted, originalData);
 });
 
 Deno.test('encryption - handles long strings', async () => {
-  const originalData = 'a'.repeat(10000);
-  const key = await deriveKey('test-encryption-key-for-testing');
+  Deno.env.set('ENCRYPTION_KEY', TEST_KEY);
 
-  const encrypted = await encrypt(originalData, key);
-  const decrypted = await decrypt(encrypted, key);
+  const { encrypt, decrypt } = await import('../../src/gmail/encryption.ts');
+
+  const originalData = 'a'.repeat(10000);
+  const encrypted = await encrypt(originalData);
+  const decrypted = await decrypt(encrypted);
 
   assertEquals(decrypted, originalData);
-});
-
-Deno.test('deriveKey - produces consistent key for same input', async () => {
-  const key1 = await deriveKey('test-password');
-  const key2 = await deriveKey('test-password');
-
-  // Export keys to compare
-  const exported1 = await crypto.subtle.exportKey('raw', key1);
-  const exported2 = await crypto.subtle.exportKey('raw', key2);
-
-  assertEquals(
-    new Uint8Array(exported1),
-    new Uint8Array(exported2),
-  );
 });

@@ -69,15 +69,15 @@ The application will be available at http://localhost:8000
 
 ## Development Commands
 
-| Command | Description |
-|---------|-------------|
-| `deno task dev` | Start development server with hot reload |
-| `deno task start` | Start production server |
-| `deno task test` | Run all tests |
-| `deno task check` | Type check TypeScript |
-| `deno task lint` | Run linter |
-| `deno task fmt` | Format code |
-| `deno task migrate` | Run database migrations |
+| Command             | Description                              |
+| ------------------- | ---------------------------------------- |
+| `deno task dev`     | Start development server with hot reload |
+| `deno task start`   | Start production server                  |
+| `deno task test`    | Run all tests                            |
+| `deno task check`   | Type check TypeScript                    |
+| `deno task lint`    | Run linter                               |
+| `deno task fmt`     | Format code                              |
+| `deno task migrate` | Run database migrations                  |
 
 ## Running with Docker Compose
 
@@ -88,6 +88,7 @@ docker compose up --build
 ```
 
 This starts:
+
 - Application on port 8000
 - PostgreSQL on port 5432
 
@@ -215,6 +216,7 @@ kill -9 <PID>
 ### OAuth Redirect Mismatch
 
 Ensure `GOOGLE_REDIRECT_URI` exactly matches the URI configured in Google Cloud Console, including:
+
 - Protocol (http vs https)
 - Port number
 - Path
@@ -251,6 +253,7 @@ export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 ### VS Code
 
 Recommended extensions:
+
 - [Deno](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno)
 - [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 

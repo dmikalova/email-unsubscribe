@@ -27,7 +27,3 @@ COMMENT ON TABLE sender_tracking IS 'Tracks sender activity to detect ineffectiv
 COMMENT ON COLUMN sender_tracking.emails_after_unsubscribe IS 'Count of emails received after successful unsubscribe (excluding 24hr grace period)';
 COMMENT ON COLUMN sender_tracking.flagged_ineffective IS 'True if sender continues emailing after unsubscribe grace period';
 `;
-
-export const down = `
-DROP TABLE IF EXISTS sender_tracking;
-`;

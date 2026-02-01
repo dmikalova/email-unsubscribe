@@ -1,7 +1,7 @@
 // Mailto Unsubscribe Implementation
 
 import { sendEmail } from '../gmail/index.ts';
-import { validateMailtoUrl, parseMailtoUrl } from './validation.ts';
+import { parseMailtoUrl, validateMailtoUrl } from './validation.ts';
 
 export interface MailtoResult {
   success: boolean;
@@ -37,7 +37,7 @@ export async function performMailtoUnsubscribe(mailtoUrl: string): Promise<Mailt
     );
 
     console.log(`Mailto unsubscribe sent to ${parsed.to}, message ID: ${result.id}`);
-    
+
     return {
       success: true,
       messageId: result.id,
@@ -45,7 +45,7 @@ export async function performMailtoUnsubscribe(mailtoUrl: string): Promise<Mailt
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error(`Mailto unsubscribe error for ${parsed.to}:`, message);
-    
+
     return {
       success: false,
       error: message,

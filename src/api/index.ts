@@ -1,12 +1,12 @@
 // API module exports
 
-export { api } from './routes.ts';
-export { oauth } from './oauth.ts';
 export {
   authMiddleware,
-  rateLimitMiddleware,
   csrfMiddleware,
   generateCsrfToken,
   getSecureCookieOptions,
+  rateLimitMiddleware,
   type SessionData,
 } from './middleware.ts';
+export { oauth } from './oauth.ts';
+export { api } from './routes.ts';

@@ -1,28 +1,28 @@
 // Main email scanner
 
 import {
-  listMessages,
-  getMessage,
   batchGetMessages,
   getHistory,
+  getMessage,
   getProfile,
+  listMessages,
   type GmailMessage,
 } from '../gmail/index.ts';
+import { isAllowed } from './allowlist.ts';
 import {
-  parseListUnsubscribeHeader,
-  getSender,
   extractDomain,
+  getSender,
+  parseListUnsubscribeHeader,
   type UnsubscribeInfo,
 } from './headers.ts';
 import { extractUnsubscribeLinksFromHtml, getHtmlBodyFromPayload } from './html.ts';
 import {
+  getProcessedEmailIds,
   getScanState,
-  updateScanState,
   incrementScanStats,
   isEmailProcessed,
-  getProcessedEmailIds,
+  updateScanState,
 } from './state.ts';
-import { isAllowed } from './allowlist.ts';
 import { trackSender } from './tracking.ts';
 
 const INITIAL_BACKLOG_LIMIT = 1000;

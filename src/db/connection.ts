@@ -42,6 +42,10 @@ export function getConnection(): postgres.Sql {
     transform: {
       undefined: null,
     },
+    // Set search_path on each new connection so queries find the schema's tables
+    connection: {
+      search_path: `${config.schema}, public`,
+    },
   });
 
   return sql;
@@ -64,9 +68,10 @@ export async function withTransaction<T>(
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      return await connection.begin(async (tx) => {
+      const result = (await connection.begin(async (tx) => {
         return await fn(tx);
-      });
+      })) as T;
+      return result;
     } catch (error) {
       lastError = error as Error;
 
@@ -105,8 +110,7 @@ export async function query<T>(
       lastError = error as Error;
 
       const errorMessage = lastError.message.toLowerCase();
-      const isTransient =
-        errorMessage.includes('connection') || errorMessage.includes('timeout');
+      const isTransient = errorMessage.includes('connection') || errorMessage.includes('timeout');
 
       if (!isTransient || attempt === retries - 1) {
         throw error;

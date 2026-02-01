@@ -1,11 +1,31 @@
 // API Routes for the web dashboard
 
 import { Hono } from '@hono/hono';
-import { getStats, getRecentAttempts, getFailedAttempts, getUnsubscribeAttempt, markAsResolved, incrementRetryCount, getDomainStats, getHistoryByDomain } from '../tracker/index.ts';
-import { getAllowList, addToAllowList, removeFromAllowList } from '../scanner/index.ts';
-import { getIneffectiveSenders, clearIneffectiveFlag } from '../scanner/tracking.ts';
-import { getPatterns, exportPatterns, importPatterns, type PatternExport } from '../unsubscribe/index.ts';
-import { logAllowlistAdd, logAllowlistRemove, logPatternImported, logPatternExported } from '../tracker/audit.ts';
+import { addToAllowList, getAllowList, removeFromAllowList } from '../scanner/index.ts';
+import { clearIneffectiveFlag, getIneffectiveSenders } from '../scanner/tracking.ts';
+import {
+  logAllowlistAdd,
+  logAllowlistRemove,
+  logPatternExported,
+  logPatternImported,
+} from '../tracker/audit.ts';
+import {
+  getDomainStats,
+  getFailedAttempts,
+  getHistoryByDomain,
+  getRecentAttempts,
+  getStats,
+  getUnsubscribeAttempt,
+  incrementRetryCount,
+  markAsResolved,
+} from '../tracker/index.ts';
+import {
+  exportPatterns,
+  getPatterns,
+  importPatterns,
+  type PatternExport,
+  type PatternType,
+} from '../unsubscribe/index.ts';
 
 export const api = new Hono();
 
@@ -34,11 +54,11 @@ api.get('/failed', async (c) => {
 api.get('/failed/:id', async (c) => {
   const id = parseInt(c.req.param('id'));
   const attempt = await getUnsubscribeAttempt(id);
-  
+
   if (!attempt) {
     return c.json({ error: 'Not found' }, 404);
   }
-  
+
   return c.json(attempt);
 });
 
@@ -46,11 +66,11 @@ api.get('/failed/:id', async (c) => {
 api.get('/failed/:id/trace', async (c) => {
   const id = parseInt(c.req.param('id'));
   const attempt = await getUnsubscribeAttempt(id);
-  
+
   if (!attempt || !attempt.tracePath) {
     return c.json({ error: 'Trace not found' }, 404);
   }
-  
+
   try {
     const file = await Deno.readFile(attempt.tracePath);
     return new Response(file, {
@@ -68,15 +88,15 @@ api.get('/failed/:id/trace', async (c) => {
 api.post('/failed/:id/retry', async (c) => {
   const id = parseInt(c.req.param('id'));
   const attempt = await getUnsubscribeAttempt(id);
-  
+
   if (!attempt) {
     return c.json({ error: 'Not found' }, 404);
   }
-  
+
   const retryCount = await incrementRetryCount(id);
-  
+
   // TODO: Queue the retry job
-  
+
   return c.json({ success: true, retryCount });
 });
 
@@ -84,13 +104,13 @@ api.post('/failed/:id/retry', async (c) => {
 api.post('/failed/:id/resolve', async (c) => {
   const id = parseInt(c.req.param('id'));
   const attempt = await getUnsubscribeAttempt(id);
-  
+
   if (!attempt) {
     return c.json({ error: 'Not found' }, 404);
   }
-  
+
   await markAsResolved(id);
-  
+
   return c.json({ success: true });
 });
 
@@ -103,35 +123,35 @@ api.get('/allowlist', async (c) => {
 api.post('/allowlist', async (c) => {
   const body = await c.req.json();
   const { type, value, notes } = body;
-  
+
   if (!type || !value) {
     return c.json({ error: 'type and value are required' }, 400);
   }
-  
+
   if (type !== 'email' && type !== 'domain') {
     return c.json({ error: 'type must be email or domain' }, 400);
   }
-  
+
   const entry = await addToAllowList(type, value, notes);
   await logAllowlistAdd(type, value, c.req.header('X-Forwarded-For'));
-  
+
   return c.json(entry, 201);
 });
 
 api.delete('/allowlist/:id', async (c) => {
   const id = parseInt(c.req.param('id'));
   const entry = await getAllowList().then((list) => list.find((e) => e.id === id));
-  
+
   if (!entry) {
     return c.json({ error: 'Not found' }, 404);
   }
-  
+
   const removed = await removeFromAllowList(id);
-  
+
   if (removed) {
     await logAllowlistRemove(entry.type, entry.value, c.req.header('X-Forwarded-For'));
   }
-  
+
   return c.json({ success: removed });
 });
 
@@ -149,7 +169,7 @@ api.get('/domains/:domain', async (c) => {
 
 // Pattern endpoints
 api.get('/patterns', async (c) => {
-  const type = c.req.query('type') as 'button' | 'link' | 'form' | undefined;
+  const type = c.req.query('type') as PatternType | undefined;
   const patterns = await getPatterns(type);
   return c.json(patterns);
 });
@@ -157,7 +177,7 @@ api.get('/patterns', async (c) => {
 api.get('/patterns/export', async (_c) => {
   const exported = await exportPatterns();
   await logPatternExported(exported.patterns.length);
-  
+
   return new Response(JSON.stringify(exported, null, 2), {
     headers: {
       'Content-Type': 'application/json',
@@ -167,15 +187,15 @@ api.get('/patterns/export', async (_c) => {
 });
 
 api.post('/patterns/import', async (c) => {
-  const body = await c.req.json() as PatternExport;
-  
+  const body = (await c.req.json()) as PatternExport;
+
   if (!body.patterns || !Array.isArray(body.patterns)) {
     return c.json({ error: 'Invalid pattern export format' }, 400);
   }
-  
+
   const imported = await importPatterns(body);
   await logPatternImported(imported);
-  
+
   return c.json({ success: true, imported });
 });
 
@@ -197,7 +217,7 @@ api.get('/digest', async (c) => {
   const recent = await getRecentAttempts(10);
   const failed = await getFailedAttempts(5);
   const ineffective = await getIneffectiveSenders();
-  
+
   return c.json({
     stats,
     recentActivity: recent,
@@ -212,19 +232,19 @@ api.get('/history', async (c) => {
   const offset = parseInt(c.req.query('offset') || '0');
   const status = c.req.query('status');
   const domain = c.req.query('domain');
-  
+
   // For now, use the existing functions
   // In a real implementation, you'd add more filtering to the SQL
   if (domain) {
     const history = await getHistoryByDomain(domain);
     return c.json(history.slice(offset, offset + limit));
   }
-  
+
   if (status === 'failed' || status === 'uncertain') {
     const failed = await getFailedAttempts(limit, offset);
     return c.json(failed);
   }
-  
+
   const recent = await getRecentAttempts(limit);
   return c.json(recent);
 });
@@ -234,7 +254,7 @@ api.get('/health', async (c) => {
   const startTime = Date.now();
   const stats = await getStats();
   const responseTime = Date.now() - startTime;
-  
+
   return c.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -242,12 +262,10 @@ api.get('/health', async (c) => {
     uptime: Math.floor(performance.now() / 1000),
     metrics: {
       responseTimeMs: responseTime,
-      totalProcessed: stats.totalProcessed,
-      successRate: stats.totalProcessed > 0 
-        ? ((stats.totalProcessed - stats.failedCount) / stats.totalProcessed * 100).toFixed(2)
-        : '0.00',
-      failedCount: stats.failedCount,
-      pendingCount: stats.pendingCount,
+      total: stats.total,
+      successRate: stats.successRate.toFixed(2),
+      failed: stats.failed,
+      pending: stats.pending,
     },
   });
 });

@@ -1,50 +1,50 @@
 // Scanner module exports
 
 export {
-  parseListUnsubscribeHeader,
+  extractDomain,
+  extractEmailAddress,
+  getDate,
   getHeader,
   getSender,
-  extractEmailAddress,
-  normalizeEmail,
-  extractDomain,
   getSubject,
-  getDate,
+  normalizeEmail,
+  parseListUnsubscribeHeader,
   type UnsubscribeInfo,
 } from './headers.ts';
 
 export {
-  extractUnsubscribeLinksFromHtml,
   decodeBase64Url,
+  extractUnsubscribeLinksFromHtml,
   getHtmlBodyFromPayload,
   type ExtractedLink,
 } from './html.ts';
 
 export {
+  getProcessedEmailIds,
   getScanState,
-  updateScanState,
   incrementScanStats,
   isEmailProcessed,
   markEmailProcessed,
-  getProcessedEmailIds,
+  updateScanState,
   type ScanState,
 } from './state.ts';
 
 export {
-  isAllowed,
   addToAllowList,
-  removeFromAllowList,
-  getAllowList,
   findInAllowList,
+  getAllowList,
+  isAllowed,
+  removeFromAllowList,
   type AllowListEntry,
 } from './allowlist.ts';
 
 export {
-  trackSender,
+  clearIneffectiveFlag,
+  getIneffectiveSenders,
   getSenderTracking,
   markSenderUnsubscribed,
-  getIneffectiveSenders,
-  clearIneffectiveFlag,
+  trackSender,
   type SenderTracking,
 } from './tracking.ts';
 
-export { scanEmails, isScanInProgress, type ScannedEmail, type ScanResult } from './scanner.ts';
+export { isScanInProgress, scanEmails, type ScannedEmail, type ScanResult } from './scanner.ts';

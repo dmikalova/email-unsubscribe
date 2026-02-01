@@ -23,7 +23,3 @@ COMMENT ON TABLE oauth_tokens IS 'Encrypted OAuth tokens for Gmail API access';
 COMMENT ON COLUMN oauth_tokens.access_token_encrypted IS 'AES-256-GCM encrypted access token';
 COMMENT ON COLUMN oauth_tokens.refresh_token_encrypted IS 'AES-256-GCM encrypted refresh token';
 `;
-
-export const down = `
-DROP TABLE IF EXISTS oauth_tokens;
-`;

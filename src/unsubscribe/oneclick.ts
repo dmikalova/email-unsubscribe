@@ -52,7 +52,7 @@ export async function performOneClickUnsubscribe(url: string): Promise<OneClickR
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error(`One-click unsubscribe error for ${sanitizedUrl}:`, message);
-    
+
     return {
       success: false,
       error: message,
@@ -61,10 +61,7 @@ export async function performOneClickUnsubscribe(url: string): Promise<OneClickR
   }
 }
 
-export function isOneClickSupported(
-  listUnsubscribePost: boolean,
-  httpUrls: string[],
-): boolean {
+export function isOneClickSupported(listUnsubscribePost: boolean, httpUrls: string[]): boolean {
   // One-click requires:
   // 1. List-Unsubscribe-Post header with "List-Unsubscribe=One-Click"
   // 2. At least one HTTP/HTTPS URL in List-Unsubscribe

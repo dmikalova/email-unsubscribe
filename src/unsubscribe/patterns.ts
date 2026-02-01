@@ -2,7 +2,12 @@
 
 import { getConnection } from '../db/index.ts';
 
-export type PatternType = 'button_selector' | 'form_selector' | 'success_text' | 'error_text' | 'preference_center';
+export type PatternType =
+  | 'button_selector'
+  | 'form_selector'
+  | 'success_text'
+  | 'error_text'
+  | 'preference_center';
 
 export interface Pattern {
   id: number;
@@ -27,26 +32,86 @@ export interface PatternInput {
 // Default patterns to seed the database
 export const DEFAULT_PATTERNS: PatternInput[] = [
   // Button selectors
-  { name: 'Unsubscribe button', type: 'button_selector', selector: 'button:has-text("unsubscribe")', priority: 10 },
-  { name: 'Unsubscribe link', type: 'button_selector', selector: 'a:has-text("unsubscribe")', priority: 9 },
-  { name: 'Opt-out button', type: 'button_selector', selector: 'button:has-text("opt out")', priority: 8 },
-  { name: 'Remove me button', type: 'button_selector', selector: 'button:has-text("remove me")', priority: 7 },
-  { name: 'Confirm unsubscribe', type: 'button_selector', selector: 'button:has-text("confirm")', priority: 6 },
+  {
+    name: 'Unsubscribe button',
+    type: 'button_selector',
+    selector: 'button:has-text("unsubscribe")',
+    priority: 10,
+  },
+  {
+    name: 'Unsubscribe link',
+    type: 'button_selector',
+    selector: 'a:has-text("unsubscribe")',
+    priority: 9,
+  },
+  {
+    name: 'Opt-out button',
+    type: 'button_selector',
+    selector: 'button:has-text("opt out")',
+    priority: 8,
+  },
+  {
+    name: 'Remove me button',
+    type: 'button_selector',
+    selector: 'button:has-text("remove me")',
+    priority: 7,
+  },
+  {
+    name: 'Confirm unsubscribe',
+    type: 'button_selector',
+    selector: 'button:has-text("confirm")',
+    priority: 6,
+  },
   { name: 'Yes button', type: 'button_selector', selector: 'button:has-text("yes")', priority: 5 },
   { name: 'Submit input', type: 'button_selector', selector: 'input[type="submit"]', priority: 4 },
-  
+
   // Success text patterns
-  { name: 'Successfully unsubscribed', type: 'success_text', selector: 'successfully unsubscribed', priority: 10 },
-  { name: 'You have been unsubscribed', type: 'success_text', selector: 'you have been unsubscribed', priority: 10 },
-  { name: 'Unsubscribe successful', type: 'success_text', selector: 'unsubscribe successful', priority: 10 },
-  { name: 'Removed from mailing list', type: 'success_text', selector: 'removed from our mailing list', priority: 9 },
-  { name: 'No longer receive', type: 'success_text', selector: 'will no longer receive', priority: 8 },
-  { name: 'Preferences updated', type: 'success_text', selector: 'preferences updated', priority: 7 },
-  
+  {
+    name: 'Successfully unsubscribed',
+    type: 'success_text',
+    selector: 'successfully unsubscribed',
+    priority: 10,
+  },
+  {
+    name: 'You have been unsubscribed',
+    type: 'success_text',
+    selector: 'you have been unsubscribed',
+    priority: 10,
+  },
+  {
+    name: 'Unsubscribe successful',
+    type: 'success_text',
+    selector: 'unsubscribe successful',
+    priority: 10,
+  },
+  {
+    name: 'Removed from mailing list',
+    type: 'success_text',
+    selector: 'removed from our mailing list',
+    priority: 9,
+  },
+  {
+    name: 'No longer receive',
+    type: 'success_text',
+    selector: 'will no longer receive',
+    priority: 8,
+  },
+  {
+    name: 'Preferences updated',
+    type: 'success_text',
+    selector: 'preferences updated',
+    priority: 7,
+  },
+
   // Error text patterns
   { name: 'Link expired', type: 'error_text', selector: 'link has expired', priority: 10 },
   { name: 'Error occurred', type: 'error_text', selector: 'error occurred', priority: 9 },
-  { name: 'Something went wrong', type: 'error_text', selector: 'something went wrong', priority: 9 },
+  {
+    name: 'Something went wrong',
+    type: 'error_text',
+    selector: 'something went wrong',
+    priority: 9,
+  },
   { name: 'Invalid request', type: 'error_text', selector: 'invalid request', priority: 8 },
   { name: 'Try again', type: 'error_text', selector: 'please try again', priority: 7 },
 ];
@@ -70,8 +135,8 @@ export function getPatterns(type?: PatternType): Promise<Pattern[]> {
 
   if (type) {
     return sql<Pattern[]>`
-      SELECT id, name, type, selector, priority, 
-             match_count as "matchCount", 
+      SELECT id, name, type, selector, priority,
+             match_count as "matchCount",
              last_matched_at as "lastMatchedAt",
              is_builtin as "isBuiltin",
              created_at as "createdAt",
@@ -83,8 +148,8 @@ export function getPatterns(type?: PatternType): Promise<Pattern[]> {
   }
 
   return sql<Pattern[]>`
-    SELECT id, name, type, selector, priority, 
-           match_count as "matchCount", 
+    SELECT id, name, type, selector, priority,
+           match_count as "matchCount",
            last_matched_at as "lastMatchedAt",
            is_builtin as "isBuiltin",
            created_at as "createdAt",
@@ -100,8 +165,8 @@ export async function addPattern(input: PatternInput): Promise<Pattern> {
   const rows = await sql<Pattern[]>`
     INSERT INTO patterns (name, type, selector, priority)
     VALUES (${input.name}, ${input.type}, ${input.selector}, ${input.priority ?? 0})
-    RETURNING id, name, type, selector, priority, 
-              match_count as "matchCount", 
+    RETURNING id, name, type, selector, priority,
+              match_count as "matchCount",
               last_matched_at as "lastMatchedAt",
               is_builtin as "isBuiltin",
               created_at as "createdAt",
@@ -116,7 +181,7 @@ export async function deletePattern(id: number): Promise<boolean> {
 
   // Don't delete built-in patterns
   const result = await sql`
-    DELETE FROM patterns 
+    DELETE FROM patterns
     WHERE id = ${id} AND is_builtin = FALSE
   `;
 

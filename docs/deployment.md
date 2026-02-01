@@ -64,18 +64,18 @@ Recommended resources for personal use:
 
 Add the following environment variables:
 
-| Variable | Value | Notes |
-|----------|-------|-------|
-| `PORT` | `8000` | Required |
-| `DATABASE_URL` | `postgresql://...` | From PostgreSQL addon |
-| `DATABASE_SCHEMA` | `email_unsubscribe` | Schema name |
-| `GOOGLE_CLIENT_ID` | Your OAuth client ID | See setup-google.md |
-| `GOOGLE_CLIENT_SECRET` | Your OAuth client secret | Mark as secret |
-| `GOOGLE_REDIRECT_URI` | `https://email-unsubscribe.cddc39.tech/oauth/callback` | Production URL |
-| `ENCRYPTION_KEY` | Your encryption key | Mark as secret |
-| `SESSION_DOMAIN` | `cddc39.tech` | For cookie sharing |
-| `SCREENSHOTS_PATH` | `/app/data/screenshots` | Default |
-| `TRACES_PATH` | `/app/data/traces` | Default |
+| Variable               | Value                                                  | Notes                 |
+| ---------------------- | ------------------------------------------------------ | --------------------- |
+| `PORT`                 | `8000`                                                 | Required              |
+| `DATABASE_URL`         | `postgresql://...`                                     | From PostgreSQL addon |
+| `DATABASE_SCHEMA`      | `email_unsubscribe`                                    | Schema name           |
+| `GOOGLE_CLIENT_ID`     | Your OAuth client ID                                   | See setup-google.md   |
+| `GOOGLE_CLIENT_SECRET` | Your OAuth client secret                               | Mark as secret        |
+| `GOOGLE_REDIRECT_URI`  | `https://email-unsubscribe.cddc39.tech/oauth/callback` | Production URL        |
+| `ENCRYPTION_KEY`       | Your encryption key                                    | Mark as secret        |
+| `SESSION_DOMAIN`       | `cddc39.tech`                                          | For cookie sharing    |
+| `SCREENSHOTS_PATH`     | `/app/data/screenshots`                                | Default               |
+| `TRACES_PATH`          | `/app/data/traces`                                     | Default               |
 
 ### 4. Configure Health Checks
 
@@ -148,6 +148,7 @@ Monitor CPU, memory, and network in the "Metrics" tab.
 ### Alerts (Optional)
 
 Set up alerts for:
+
 - High CPU/memory usage
 - Service health check failures
 - Error rate thresholds
@@ -163,23 +164,23 @@ The repository includes GitHub Actions workflows:
 
 Add these secrets to your GitHub repository:
 
-| Secret | Value |
-|--------|-------|
-| `REGISTRY_URL` | Northflank registry URL |
-| `REGISTRY_USERNAME` | Registry username |
-| `REGISTRY_PASSWORD` | Registry password |
+| Secret               | Value                   |
+| -------------------- | ----------------------- |
+| `REGISTRY_URL`       | Northflank registry URL |
+| `REGISTRY_USERNAME`  | Registry username       |
+| `REGISTRY_PASSWORD`  | Registry password       |
 | `NORTHFLANK_API_KEY` | API key for deployments |
 
 ### Configure GitHub Variables
 
 Add these variables:
 
-| Variable | Value |
-|----------|-------|
-| `IMAGE_NAME` | `email-unsubscribe` |
-| `NORTHFLANK_PROJECT` | Project ID |
-| `NORTHFLANK_SERVICE` | Service ID |
-| `APP_DOMAIN` | `email-unsubscribe.cddc39.tech` |
+| Variable             | Value                           |
+| -------------------- | ------------------------------- |
+| `IMAGE_NAME`         | `email-unsubscribe`             |
+| `NORTHFLANK_PROJECT` | Project ID                      |
+| `NORTHFLANK_SERVICE` | Service ID                      |
+| `APP_DOMAIN`         | `email-unsubscribe.cddc39.tech` |
 
 ## Troubleshooting
 
@@ -202,5 +203,6 @@ Chromium requires significant memory. Increase to 1 GB if you see OOM errors.
 ### Slow Unsubscribe Processing
 
 Browser automation is CPU-intensive. Consider:
+
 - Increasing CPU allocation
 - Adding rate limiting between unsubscribes

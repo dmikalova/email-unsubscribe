@@ -5,11 +5,11 @@ license: MIT
 compatibility: Requires openspec CLI.
 metadata:
   author: openspec
-  version: "1.0"
-  generatedBy: "1.1.1"
+  version: '1.0'
+  generatedBy: '1.1.1'
 ---
 
-Guide the user through their first complete OpenSpec workflow cycle. This is a teaching experience—you'll do real work in their codebase while explaining each step.
+Guide the user through their first complete OpenSpec workflow cycle. This is a teaching experience - you'll do real work in their codebase while explaining each step.
 
 ---
 
@@ -22,6 +22,7 @@ openspec status --json 2>&1 || echo "NOT_INITIALIZED"
 ```
 
 **If not initialized:**
+
 > OpenSpec isn't set up in this project yet. Run `openspec init` first, then come back to `/opsx:onboard`.
 
 Stop here if not initialized.
@@ -35,7 +36,7 @@ Display:
 ```
 ## Welcome to OpenSpec!
 
-I'll walk you through a complete change cycle—from idea to implementation—using a real task in your codebase. Along the way, you'll learn the workflow by doing it.
+I'll walk you through a complete change cycle - from idea to implementation - using a real task in your codebase. Along the way, you'll learn the workflow by doing it.
 
 **What we'll do:**
 1. Pick a small, real task in your codebase
@@ -66,6 +67,7 @@ Scan the codebase for small improvement opportunities. Look for:
 6. **Missing validation** - User input handlers without validation
 
 Also check recent git activity:
+
 ```bash
 git log --oneline -10 2>/dev/null || echo "No git history"
 ```
@@ -101,6 +103,7 @@ Which task interests you? (Pick a number or describe your own)
 ```
 
 **If nothing found:** Fall back to asking what the user wants to build:
+
 > I didn't find obvious quick wins in your codebase. What's something small you've been meaning to add or fix?
 
 ### Scope Guardrail
@@ -110,7 +113,7 @@ If the user picks or describes something too large (major feature, multi-day wor
 ```
 That's a valuable task, but it's probably larger than ideal for your first OpenSpec run-through.
 
-For learning the workflow, smaller is better—it lets you see the full cycle without getting stuck in implementation details.
+For learning the workflow, smaller is better - it lets you see the full cycle without getting stuck in implementation details.
 
 **Options:**
 1. **Slice it smaller** - What's the smallest useful piece of [their task]? Maybe just [specific slice]?
@@ -120,7 +123,7 @@ For learning the workflow, smaller is better—it lets you see the full cycle wi
 What would you prefer?
 ```
 
-Let the user override if they insist—this is a soft guardrail.
+Let the user override if they insist - this is a soft guardrail.
 
 ---
 
@@ -129,10 +132,11 @@ Let the user override if they insist—this is a soft guardrail.
 Once a task is selected, briefly demonstrate explore mode:
 
 ```
-Before we create a change, let me quickly show you **explore mode**—it's how you think through problems before committing to a direction.
+Before we create a change, let me quickly show you **explore mode** - it's how you think through problems before committing to a direction.
 ```
 
 Spend 1-2 minutes investigating the relevant code:
+
 - Read the file(s) involved
 - Draw a quick ASCII diagram if it helps
 - Note any considerations
@@ -140,13 +144,13 @@ Spend 1-2 minutes investigating the relevant code:
 ```
 ## Quick Exploration
 
-[Your brief analysis—what you found, any considerations]
+[Your brief analysis - what you found, any considerations]
 
 ┌─────────────────────────────────────────┐
 │   [Optional: ASCII diagram if helpful]  │
 └─────────────────────────────────────────┘
 
-Explore mode (`/opsx:explore`) is for this kind of thinking—investigating before implementing. You can use it anytime you need to think through a problem.
+Explore mode (`/opsx:explore`) is for this kind of thinking - investigating before implementing. You can use it anytime you need to think through a problem.
 
 Now let's create a change to hold our work.
 ```
@@ -158,33 +162,38 @@ Now let's create a change to hold our work.
 ## Phase 4: Create the Change
 
 **EXPLAIN:**
+
 ```
 ## Creating a Change
 
-A "change" in OpenSpec is a container for all the thinking and planning around a piece of work. It lives in `openspec/changes/<name>/` and holds your artifacts—proposal, specs, design, tasks.
+A "change" in OpenSpec is a container for all the thinking and planning around a piece of work. It lives in `openspec/changes/<name>/` and holds your artifacts - proposal, specs, design, tasks.
 
 Let me create one for our task.
 ```
 
 **DO:** Create the change with a derived kebab-case name:
+
 ```bash
 openspec new change "<derived-name>"
 ```
 
 **SHOW:**
+
 ```
 Created: `openspec/changes/<name>/`
 
 The folder structure:
 ```
+
 openspec/changes/<name>/
-├── proposal.md    ← Why we're doing this (empty, we'll fill it)
-├── design.md      ← How we'll build it (empty)
-├── specs/         ← Detailed requirements (empty)
-└── tasks.md       ← Implementation checklist (empty)
+├── proposal.md ← Why we're doing this (empty, we'll fill it)
+├── design.md ← How we'll build it (empty)
+├── specs/ ← Detailed requirements (empty)
+└── tasks.md ← Implementation checklist (empty)
+
 ```
 
-Now let's fill in the first artifact—the proposal.
+Now let's fill in the first artifact - the proposal.
 ```
 
 ---
@@ -192,6 +201,7 @@ Now let's fill in the first artifact—the proposal.
 ## Phase 5: Proposal
 
 **EXPLAIN:**
+
 ```
 ## The Proposal
 
@@ -236,13 +246,15 @@ Does this capture the intent? I can adjust before we save it.
 **PAUSE** - Wait for user approval/feedback.
 
 After approval, save the proposal:
+
 ```bash
 openspec instructions proposal --change "<name>" --json
 ```
+
 Then write the content to `openspec/changes/<name>/proposal.md`.
 
 ```
-Proposal saved. This is your "why" document—you can always come back and refine it as understanding evolves.
+Proposal saved. This is your "why" document - you can always come back and refine it as understanding evolves.
 
 Next up: specs.
 ```
@@ -252,6 +264,7 @@ Next up: specs.
 ## Phase 6: Specs
 
 **EXPLAIN:**
+
 ```
 ## Specs
 
@@ -261,6 +274,7 @@ For a small task like this, we might only need one spec file.
 ```
 
 **DO:** Create the spec file:
+
 ```bash
 mkdir -p openspec/changes/<name>/specs/<capability-name>
 ```
@@ -286,7 +300,7 @@ Here's the spec:
 
 ---
 
-This format—WHEN/THEN/AND—makes requirements testable. You can literally read them as test cases.
+This format - WHEN/THEN/AND - makes requirements testable. You can literally read them as test cases.
 ```
 
 Save to `openspec/changes/<name>/specs/<capability>/spec.md`.
@@ -296,12 +310,13 @@ Save to `openspec/changes/<name>/specs/<capability>/spec.md`.
 ## Phase 7: Design
 
 **EXPLAIN:**
+
 ```
 ## Design
 
-The design captures **how** we'll build it—technical decisions, tradeoffs, approach.
+The design captures **how** we'll build it - technical decisions, tradeoffs, approach.
 
-For small changes, this might be brief. That's fine—not every change needs deep design discussion.
+For small changes, this might be brief. That's fine - not every change needs deep design discussion.
 ```
 
 **DO:** Draft design.md:
@@ -341,10 +356,11 @@ Save to `openspec/changes/<name>/design.md`.
 ## Phase 8: Tasks
 
 **EXPLAIN:**
+
 ```
 ## Tasks
 
-Finally, we break the work into implementation tasks—checkboxes that drive the apply phase.
+Finally, we break the work into implementation tasks - checkboxes that drive the apply phase.
 
 These should be small, clear, and in logical order.
 ```
@@ -379,6 +395,7 @@ Save to `openspec/changes/<name>/tasks.md`.
 ## Phase 9: Apply (Implementation)
 
 **EXPLAIN:**
+
 ```
 ## Implementation
 
@@ -393,7 +410,7 @@ Now we implement each task, checking them off as we go. I'll announce each one a
 4. Mark complete in tasks.md: `- [ ]` → `- [x]`
 5. Brief status: "✓ Task N complete"
 
-Keep narration light—don't over-explain every line of code.
+Keep narration light - don't over-explain every line of code.
 
 After all tasks:
 
@@ -405,7 +422,7 @@ All tasks done:
 - [x] Task 2
 - [x] ...
 
-The change is implemented! One more step—let's archive it.
+The change is implemented! One more step - let's archive it.
 ```
 
 ---
@@ -413,20 +430,23 @@ The change is implemented! One more step—let's archive it.
 ## Phase 10: Archive
 
 **EXPLAIN:**
+
 ```
 ## Archiving
 
 When a change is complete, we archive it. This moves it from `openspec/changes/` to `openspec/changes/archive/YYYY-MM-DD-<name>/`.
 
-Archived changes become your project's decision history—you can always find them later to understand why something was built a certain way.
+Archived changes become your project's decision history - you can always find them later to understand why something was built a certain way.
 ```
 
 **DO:**
+
 ```bash
 openspec archive "<name>"
 ```
 
 **SHOW:**
+
 ```
 Archived to: `openspec/changes/archive/YYYY-MM-DD-<name>/`
 
@@ -451,7 +471,7 @@ You just completed a full OpenSpec cycle:
 7. **Apply** - Implemented the work
 8. **Archive** - Preserved the record
 
-This same rhythm works for any size change—a small fix or a major feature.
+This same rhythm works for any size change - a small fix or a major feature.
 
 ---
 
@@ -521,9 +541,9 @@ Exit gracefully.
 ## Guardrails
 
 - **Follow the EXPLAIN → DO → SHOW → PAUSE pattern** at key transitions (after explore, after proposal draft, after tasks, after archive)
-- **Keep narration light** during implementation—teach without lecturing
-- **Don't skip phases** even if the change is small—the goal is teaching the workflow
+- **Keep narration light** during implementation - teach without lecturing
+- **Don't skip phases** even if the change is small - the goal is teaching the workflow
 - **Pause for acknowledgment** at marked points, but don't over-pause
-- **Handle exits gracefully**—never pressure the user to continue
-- **Use real codebase tasks**—don't simulate or use fake examples
-- **Adjust scope gently**—guide toward smaller tasks but respect user choice
+- **Handle exits gracefully** - never pressure the user to continue
+- **Use real codebase tasks** - don't simulate or use fake examples
+- **Adjust scope gently** - guide toward smaller tasks but respect user choice

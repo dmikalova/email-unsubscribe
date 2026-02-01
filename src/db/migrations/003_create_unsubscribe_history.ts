@@ -45,10 +45,3 @@ COMMENT ON TABLE unsubscribe_history IS 'Record of all unsubscribe attempts';
 COMMENT ON COLUMN unsubscribe_history.screenshot_path IS 'Path to screenshot captured during attempt';
 COMMENT ON COLUMN unsubscribe_history.trace_path IS 'Path to Playwright trace file for debugging';
 `;
-
-export const down = `
-DROP TABLE IF EXISTS unsubscribe_history;
-DROP TYPE IF EXISTS failure_reason;
-DROP TYPE IF EXISTS unsubscribe_method;
-DROP TYPE IF EXISTS unsubscribe_status;
-`;

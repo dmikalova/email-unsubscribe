@@ -61,8 +61,8 @@ export function getAuditLog(
 
   if (action && since) {
     return sql<AuditLogEntry[]>`
-      SELECT id, action, details, 
-             ip_address as "ipAddress", 
+      SELECT id, action, details,
+             ip_address as "ipAddress",
              user_agent as "userAgent",
              created_at as "createdAt"
       FROM audit_log
@@ -74,8 +74,8 @@ export function getAuditLog(
 
   if (action) {
     return sql<AuditLogEntry[]>`
-      SELECT id, action, details, 
-             ip_address as "ipAddress", 
+      SELECT id, action, details,
+             ip_address as "ipAddress",
              user_agent as "userAgent",
              created_at as "createdAt"
       FROM audit_log
@@ -87,8 +87,8 @@ export function getAuditLog(
 
   if (since) {
     return sql<AuditLogEntry[]>`
-      SELECT id, action, details, 
-             ip_address as "ipAddress", 
+      SELECT id, action, details,
+             ip_address as "ipAddress",
              user_agent as "userAgent",
              created_at as "createdAt"
       FROM audit_log
@@ -99,8 +99,8 @@ export function getAuditLog(
   }
 
   return sql<AuditLogEntry[]>`
-    SELECT id, action, details, 
-           ip_address as "ipAddress", 
+    SELECT id, action, details,
+           ip_address as "ipAddress",
            user_agent as "userAgent",
            created_at as "createdAt"
     FROM audit_log

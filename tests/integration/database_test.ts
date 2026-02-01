@@ -10,7 +10,7 @@ const runIntegrationTests = !!DATABASE_URL;
 if (runIntegrationTests) {
   // Dynamic imports to avoid errors when database is not available
   const { runMigrations, closeConnection } = await import('../../src/db/index.ts');
-  const { addToAllowList, removeFromAllowList, getAllowList, isInAllowList } = await import('../../src/scanner/allowlist.ts');
+  const { addToAllowList, removeFromAllowList, isAllowed } = await import('../../src/scanner/allowlist.ts');
   const { recordUnsubscribeAttempt, getUnsubscribeAttempt, markAsResolved, getStats, getFailedAttempts } = await import('../../src/tracker/tracker.ts');
   const { logScanStarted, logScanCompleted, getAuditLog } = await import('../../src/tracker/audit.ts');
 
@@ -28,15 +28,13 @@ if (runIntegrationTests) {
   Deno.test({
     name: 'allowlist - add and retrieve entry',
     async fn() {
-      const pattern = `test-${Date.now()}@example.com`;
-      await addToAllowList(pattern, 'Test integration');
-      
-      const list = await getAllowList();
-      const entry = list.find(e => e.pattern === pattern);
-      
+      const value = `test-${Date.now()}@example.com`;
+      const entry = await addToAllowList('email', value, 'Test integration');
+
       assertExists(entry);
-      assertEquals(entry.reason, 'Test integration');
-      
+      assertEquals(entry.value, value.toLowerCase());
+      assertEquals(entry.type, 'email');
+
       // Cleanup
       await removeFromAllowList(entry.id);
     },
@@ -47,15 +45,14 @@ if (runIntegrationTests) {
   Deno.test({
     name: 'allowlist - check if in allow list',
     async fn() {
-      const pattern = `allowed-${Date.now()}@example.com`;
-      await addToAllowList(pattern, 'Test');
-      
-      const isAllowed = await isInAllowList(pattern);
-      assertEquals(isAllowed, true);
-      
-      const list = await getAllowList();
-      const entry = list.find(e => e.pattern === pattern);
-      if (entry) await removeFromAllowList(entry.id);
+      const value = `allowed-${Date.now()}@example.com`;
+      const entry = await addToAllowList('email', value, 'Test');
+
+      const allowed = await isAllowed(value);
+      assertEquals(allowed, true);
+
+      // Cleanup
+      await removeFromAllowList(entry.id);
     },
     sanitizeOps: false,
     sanitizeResources: false,
@@ -65,22 +62,22 @@ if (runIntegrationTests) {
   Deno.test({
     name: 'tracker - record and retrieve attempt',
     async fn() {
-      const id = await recordUnsubscribeAttempt({
+      const attempt = await recordUnsubscribeAttempt({
         emailId: `test-email-${Date.now()}`,
         sender: 'test@example.com',
         senderDomain: 'example.com',
-        subject: 'Test Email',
-        method: 'one-click',
-        url: 'https://example.com/unsubscribe',
+        method: 'one_click',
+        unsubscribeUrl: 'https://example.com/unsubscribe',
         status: 'success',
       });
-      
-      assertExists(id);
-      
-      const attempt = await getUnsubscribeAttempt(id);
+
       assertExists(attempt);
-      assertEquals(attempt.sender, 'test@example.com');
-      assertEquals(attempt.status, 'success');
+      assertExists(attempt.id);
+
+      const retrieved = await getUnsubscribeAttempt(attempt.id);
+      assertExists(retrieved);
+      assertEquals(retrieved.sender, 'test@example.com');
+      assertEquals(retrieved.status, 'success');
     },
     sanitizeOps: false,
     sanitizeResources: false,
@@ -89,21 +86,21 @@ if (runIntegrationTests) {
   Deno.test({
     name: 'tracker - mark as resolved',
     async fn() {
-      const id = await recordUnsubscribeAttempt({
+      const attempt = await recordUnsubscribeAttempt({
         emailId: `test-email-${Date.now()}`,
         sender: 'failed@example.com',
         senderDomain: 'example.com',
-        subject: 'Failed Test',
         method: 'browser',
-        url: 'https://example.com/unsubscribe',
+        unsubscribeUrl: 'https://example.com/unsubscribe',
         status: 'failed',
-        errorMessage: 'Test error',
+        failureReason: 'timeout',
+        failureDetails: 'Test error',
       });
-      
-      await markAsResolved(id);
-      
-      const attempt = await getUnsubscribeAttempt(id);
-      assertEquals(attempt?.resolved, true);
+
+      await markAsResolved(attempt.id);
+
+      const resolved = await getUnsubscribeAttempt(attempt.id);
+      assertEquals(resolved?.status, 'success');
     },
     sanitizeOps: false,
     sanitizeResources: false,
@@ -113,11 +110,11 @@ if (runIntegrationTests) {
     name: 'tracker - get stats',
     async fn() {
       const stats = await getStats();
-      
+
       assertExists(stats);
-      assertEquals(typeof stats.totalProcessed, 'number');
-      assertEquals(typeof stats.successCount, 'number');
-      assertEquals(typeof stats.failedCount, 'number');
+      assertEquals(typeof stats.total, 'number');
+      assertEquals(typeof stats.success, 'number');
+      assertEquals(typeof stats.failed, 'number');
     },
     sanitizeOps: false,
     sanitizeResources: false,
@@ -131,16 +128,16 @@ if (runIntegrationTests) {
         emailId: `test-failed-${Date.now()}`,
         sender: 'fail@example.com',
         senderDomain: 'example.com',
-        subject: 'Failed',
         method: 'browser',
-        url: 'https://example.com/unsubscribe',
+        unsubscribeUrl: 'https://example.com/unsubscribe',
         status: 'failed',
-        errorMessage: 'Test failure',
+        failureReason: 'timeout',
+        failureDetails: 'Test failure',
       });
-      
-      const failed = await getFailedAttempts(10, 0);
-      
-      assertEquals(Array.isArray(failed), true);
+
+      const failed = getFailedAttempts(10, 0);
+
+      assertEquals(Array.isArray(await failed), true);
     },
     sanitizeOps: false,
     sanitizeResources: false,
@@ -151,10 +148,10 @@ if (runIntegrationTests) {
     name: 'audit - log scan events',
     async fn() {
       await logScanStarted();
-      await logScanCompleted(10, 5);
-      
-      const logs = await getAuditLog(10);
-      
+      await logScanCompleted(10, 5, 0);
+
+      const logs = await getAuditLog({ limit: 10 });
+
       assertEquals(Array.isArray(logs), true);
       assertEquals(logs.length >= 2, true);
     },

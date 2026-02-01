@@ -17,14 +17,11 @@ const UNSUBSCRIBE_PATTERNS = [
   /click[- ]?here[- ]?to[- ]?unsubscribe/i,
 ];
 
-const HIGH_CONFIDENCE_PATTERNS = [
-  /\bunsubscribe\b/i,
-  /\bopt[- ]?out\b/i,
-];
+const HIGH_CONFIDENCE_PATTERNS = [/\bunsubscribe\b/i, /\bopt[- ]?out\b/i];
 
 export function extractUnsubscribeLinksFromHtml(html: string): ExtractedLink[] {
   const links: ExtractedLink[] = [];
-  
+
   // Simple regex-based link extraction
   // Match <a> tags with href
   const linkRegex = /<a\s+[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
@@ -106,10 +103,10 @@ function stripHtmlTags(html: string): string {
 export function decodeBase64Url(data: string): string {
   // Convert URL-safe base64 to standard base64
   const base64 = data.replace(/-/g, '+').replace(/_/g, '/');
-  
+
   // Add padding if needed
   const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-  
+
   return atob(padded);
 }
 

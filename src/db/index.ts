@@ -1,9 +1,9 @@
 // Database module exports
 
-export { getConnection, closeConnection, withTransaction, query, getConfig } from './connection.ts';
+export { closeConnection, getConfig, getConnection, query, withTransaction } from './connection.ts';
 export {
-  runMigrations,
-  rollbackMigration,
   checkMigrations,
   getAppliedMigrations,
+  rollbackMigration,
+  runMigrations,
 } from './migrate.ts';

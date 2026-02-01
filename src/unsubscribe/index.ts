@@ -1,43 +1,39 @@
 // Unsubscribe module exports
 
 export {
-  validateUnsubscribeUrl,
-  validateMailtoUrl,
   parseMailtoUrl,
+  validateMailtoUrl,
+  validateUnsubscribeUrl,
   type ValidationResult,
 } from './validation.ts';
 
 export {
-  performOneClickUnsubscribe,
   isOneClickSupported,
+  performOneClickUnsubscribe,
   type OneClickResult,
 } from './oneclick.ts';
 
-export {
-  performMailtoUnsubscribe,
-  hasMailtoOption,
-  type MailtoResult,
-} from './mailto.ts';
+export { hasMailtoOption, performMailtoUnsubscribe, type MailtoResult } from './mailto.ts';
 
 export {
-  performBrowserUnsubscribe,
-  getBrowser,
   closeBrowser,
-  type BrowserResult,
+  getBrowser,
+  performBrowserUnsubscribe,
   type BrowserOptions,
+  type BrowserResult,
 } from './browser.ts';
 
 export {
-  getPatterns,
   addPattern,
-  deletePattern,
-  incrementPatternMatchCount,
-  exportPatterns,
-  importPatterns,
-  seedDefaultPatterns,
   DEFAULT_PATTERNS,
+  deletePattern,
+  exportPatterns,
+  getPatterns,
+  importPatterns,
+  incrementPatternMatchCount,
+  seedDefaultPatterns,
   type Pattern,
+  type PatternExport,
   type PatternInput,
   type PatternType,
-  type PatternExport,
 } from './patterns.ts';

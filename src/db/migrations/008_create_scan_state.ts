@@ -27,7 +27,3 @@ COMMENT ON COLUMN scan_state.last_history_id IS 'Gmail history ID for incrementa
 COMMENT ON COLUMN scan_state.last_email_id IS 'Last processed email ID';
 COMMENT ON COLUMN scan_state.is_initial_backlog_complete IS 'Whether initial 1000 email backlog has been processed';
 `;
-
-export const down = `
-DROP TABLE IF EXISTS scan_state;
-`;
