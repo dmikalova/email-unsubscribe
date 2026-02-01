@@ -65,7 +65,7 @@ export async function seedDefaultPatterns(): Promise<void> {
   console.log('Default patterns seeded');
 }
 
-export async function getPatterns(type?: PatternType): Promise<Pattern[]> {
+export function getPatterns(type?: PatternType): Promise<Pattern[]> {
   const sql = getConnection();
 
   if (type) {

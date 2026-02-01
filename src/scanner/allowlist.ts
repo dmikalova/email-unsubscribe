@@ -56,7 +56,7 @@ export async function removeFromAllowList(id: number): Promise<boolean> {
   return result.count > 0;
 }
 
-export async function getAllowList(): Promise<AllowListEntry[]> {
+export function getAllowList(): Promise<AllowListEntry[]> {
   const sql = getConnection();
 
   return sql<AllowListEntry[]>`

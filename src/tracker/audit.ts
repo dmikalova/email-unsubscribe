@@ -48,7 +48,7 @@ export async function log(input: LogInput): Promise<void> {
   `;
 }
 
-export async function getAuditLog(
+export function getAuditLog(
   options: {
     action?: AuditAction;
     limit?: number;

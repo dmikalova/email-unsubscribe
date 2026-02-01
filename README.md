@@ -1,6 +1,6 @@
 # Email Unsubscribe
 
-Automated email unsubscribe system that connects to Gmail via OAuth and automatically processes unsubscribe requests. Built for personal use to automatically unsubscribe from *everything* while maintaining an allow list for important senders.
+Automated email unsubscribe system that connects to Gmail via OAuth and automatically processes unsubscribe requests. Built for personal use to automatically unsubscribe from _everything_ while maintaining an allow list for important senders.
 
 ## Features
 

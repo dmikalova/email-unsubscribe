@@ -107,7 +107,7 @@ export async function markSenderUnsubscribed(sender: string): Promise<void> {
   `;
 }
 
-export async function getIneffectiveSenders(): Promise<SenderTracking[]> {
+export function getIneffectiveSenders(): Promise<SenderTracking[]> {
   const sql = getConnection();
 
   return sql<SenderTracking[]>`
