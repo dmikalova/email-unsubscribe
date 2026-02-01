@@ -60,44 +60,44 @@
 
 ## 5. Unsubscribe Automation - URL Validation
 
-- [ ] 5.1 Implement URL scheme validation (HTTP/HTTPS only)
-- [ ] 5.2 Implement private IP rejection (SSRF prevention)
-- [ ] 5.3 Implement URL sanitization utility
+- [x] 5.1 Implement URL scheme validation (HTTP/HTTPS only)
+- [x] 5.2 Implement private IP rejection (SSRF prevention)
+- [x] 5.3 Implement URL sanitization utility
 
 ## 6. Unsubscribe Automation - One-Click & Mailto
 
-- [ ] 6.1 Implement RFC 8058 one-click POST request
-- [ ] 6.2 Handle one-click success (2xx response)
-- [ ] 6.3 Implement fallback to browser on one-click failure
-- [ ] 6.4 Implement mailto unsubscribe (send email via Gmail API)
-- [ ] 6.5 Handle mailto with subject parameter
+- [x] 6.1 Implement RFC 8058 one-click POST request
+- [x] 6.2 Handle one-click success (2xx response)
+- [x] 6.3 Implement fallback to browser on one-click failure
+- [x] 6.4 Implement mailto unsubscribe (send email via Gmail API)
+- [x] 6.5 Handle mailto with subject parameter
 
 ## 7. Unsubscribe Automation - Browser Automation
 
-- [ ] 7.1 Set up Playwright with headless Chromium
-- [ ] 7.2 Implement page navigation with timeout handling
-- [ ] 7.3 Implement button detection pattern matching
-- [ ] 7.4 Implement form detection and filling
-- [ ] 7.5 Implement multi-step flow handling
-- [ ] 7.6 Implement success text detection heuristics
-- [ ] 7.7 Implement error text detection heuristics
-- [ ] 7.8 Implement preference center detection
-- [ ] 7.9 Implement screenshot capture on all attempts
-- [ ] 7.10 Implement Playwright trace recording on failure
-- [ ] 7.11 Implement trace file cleanup (30-day retention)
-- [ ] 7.12 Implement configurable timeout handling
-- [ ] 7.13 Implement navigation error handling
+- [x] 7.1 Set up Playwright with headless Chromium
+- [x] 7.2 Implement page navigation with timeout handling
+- [x] 7.3 Implement button detection pattern matching
+- [x] 7.4 Implement form detection and filling
+- [x] 7.5 Implement multi-step flow handling
+- [x] 7.6 Implement success text detection heuristics
+- [x] 7.7 Implement error text detection heuristics
+- [x] 7.8 Implement preference center detection
+- [x] 7.9 Implement screenshot capture on all attempts
+- [x] 7.10 Implement Playwright trace recording on failure
+- [x] 7.11 Implement trace file cleanup (30-day retention)
+- [x] 7.12 Implement configurable timeout handling
+- [x] 7.13 Implement navigation error handling
 
 ## 8. Pattern Management
 
-- [ ] 8.1 Create default unsubscribe button patterns
-- [ ] 8.2 Create default form field patterns
-- [ ] 8.3 Create default success text patterns
-- [ ] 8.4 Create default error text patterns
-- [ ] 8.5 Implement pattern matching engine
-- [ ] 8.6 Implement pattern match count tracking
-- [ ] 8.7 Implement pattern export to JSON
-- [ ] 8.8 Implement pattern import from JSON (merge, avoid duplicates)
+- [x] 8.1 Create default unsubscribe button patterns
+- [x] 8.2 Create default form field patterns
+- [x] 8.3 Create default success text patterns
+- [x] 8.4 Create default error text patterns
+- [x] 8.5 Implement pattern matching engine
+- [x] 8.6 Implement pattern match count tracking
+- [x] 8.7 Implement pattern export to JSON
+- [x] 8.8 Implement pattern import from JSON (merge, avoid duplicates)
 
 ## 9. Compliance Tracker
 
