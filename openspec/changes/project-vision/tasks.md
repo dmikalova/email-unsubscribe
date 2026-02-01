@@ -27,19 +27,19 @@
 
 ## 3. Gmail Connection
 
-- [ ] 3.1 Create Google OAuth client configuration
-- [ ] 3.2 Implement OAuth authorization flow (redirect to Google, handle callback)
-- [ ] 3.3 Implement secure token storage (encrypt before storing)
-- [ ] 3.4 Implement token retrieval and decryption
-- [ ] 3.5 Implement automatic token refresh on expiry
-- [ ] 3.6 Handle refresh token invalidation (alert and require re-auth)
-- [ ] 3.7 Create Gmail API client wrapper
-- [ ] 3.8 Implement rate limit handling with exponential backoff
-- [ ] 3.9 Implement batch request helper for fetching multiple emails
-- [ ] 3.10 Add quota awareness logging
-- [ ] 3.11 Implement Gmail label creation (Unsubscribed/Success, Unsubscribed/Failed)
-- [ ] 3.12 Implement email labeling after processing
-- [ ] 3.13 Implement email archiving after successful unsubscribe
+- [x] 3.1 Create Google OAuth client configuration
+- [x] 3.2 Implement OAuth authorization flow (redirect to Google, handle callback)
+- [x] 3.3 Implement secure token storage (encrypt before storing)
+- [x] 3.4 Implement token retrieval and decryption
+- [x] 3.5 Implement automatic token refresh on expiry
+- [x] 3.6 Handle refresh token invalidation (alert and require re-auth)
+- [x] 3.7 Create Gmail API client wrapper
+- [x] 3.8 Implement rate limit handling with exponential backoff
+- [x] 3.9 Implement batch request helper for fetching multiple emails
+- [x] 3.10 Add quota awareness logging
+- [x] 3.11 Implement Gmail label creation (Unsubscribed/Success, Unsubscribed/Failed)
+- [x] 3.12 Implement email labeling after processing
+- [x] 3.13 Implement email archiving after successful unsubscribe
 
 ## 4. Email Scanner
 
