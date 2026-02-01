@@ -43,20 +43,20 @@
 
 ## 4. Email Scanner
 
-- [ ] 4.1 Implement List-Unsubscribe header parser
-- [ ] 4.2 Implement List-Unsubscribe-Post header detection (RFC 8058)
-- [ ] 4.3 Implement mailto: link extraction from headers
-- [ ] 4.4 Implement HTML body unsubscribe link extraction
-- [ ] 4.5 Implement sender extraction and normalization
-- [ ] 4.6 Implement domain extraction for grouping
-- [ ] 4.7 Implement scan position tracking (store last email ID)
-- [ ] 4.8 Implement resume-from-position logic
-- [ ] 4.9 Implement initial backlog limit (1000 emails)
-- [ ] 4.10 Implement allow list checking before processing
-- [ ] 4.11 Implement idempotency check (skip already processed emails)
-- [ ] 4.12 Implement concurrent scan protection (mutex/lock)
-- [ ] 4.13 Create scheduled scan runner (node-cron equivalent for Deno)
-- [ ] 4.14 Implement ineffective unsubscribe detection (email after 24hr grace period)
+- [x] 4.1 Implement List-Unsubscribe header parser
+- [x] 4.2 Implement List-Unsubscribe-Post header detection (RFC 8058)
+- [x] 4.3 Implement mailto: link extraction from headers
+- [x] 4.4 Implement HTML body unsubscribe link extraction
+- [x] 4.5 Implement sender extraction and normalization
+- [x] 4.6 Implement domain extraction for grouping
+- [x] 4.7 Implement scan position tracking (store last email ID)
+- [x] 4.8 Implement resume-from-position logic
+- [x] 4.9 Implement initial backlog limit (1000 emails)
+- [x] 4.10 Implement allow list checking before processing
+- [x] 4.11 Implement idempotency check (skip already processed emails)
+- [x] 4.12 Implement concurrent scan protection (mutex/lock)
+- [x] 4.13 Create scheduled scan runner (node-cron equivalent for Deno)
+- [x] 4.14 Implement ineffective unsubscribe detection (email after 24hr grace period)
 
 ## 5. Unsubscribe Automation - URL Validation
 
