@@ -128,32 +128,32 @@
 
 ## 12. Web Dashboard - Backend
 
-- [ ] 12.1 Set up Hono application structure
-- [ ] 12.2 Implement session validation middleware (check main domain session)
-- [ ] 12.3 Implement redirect to cddc39.tech for unauthenticated users
-- [ ] 12.4 Implement secure cookie settings (Secure, HttpOnly, SameSite=Strict)
-- [ ] 12.5 Implement session expiration handling
-- [ ] 12.6 Implement CSRF token generation and validation
-- [ ] 12.7 Implement rate limiting middleware
-- [ ] 12.8 Create API endpoint: GET /api/stats (dashboard stats)
-- [ ] 12.9 Create API endpoint: GET /api/recent (recent activity)
-- [ ] 12.10 Create API endpoint: GET /api/digest (weekly digest data)
-- [ ] 12.11 Create API endpoint: GET /api/failed (failed unsubscribes list)
-- [ ] 12.12 Create API endpoint: GET /api/failed/:id (failure details with screenshot)
-- [ ] 12.13 Create API endpoint: GET /api/failed/:id/trace (download trace file)
-- [ ] 12.14 Create API endpoint: POST /api/failed/:id/retry (retry unsubscribe)
-- [ ] 12.15 Create API endpoint: POST /api/failed/:id/resolve (mark resolved)
-- [ ] 12.16 Create API endpoint: GET /api/allowlist (list entries)
-- [ ] 12.17 Create API endpoint: POST /api/allowlist (add entry)
-- [ ] 12.18 Create API endpoint: DELETE /api/allowlist/:id (remove entry)
-- [ ] 12.19 Create API endpoint: GET /api/history (unsubscribe history with filtering)
-- [ ] 12.20 Create API endpoint: GET /api/domains (domain grouping stats)
-- [ ] 12.21 Create API endpoint: GET /api/domains/:domain (senders in domain)
-- [ ] 12.22 Create API endpoint: GET /api/patterns (list patterns)
-- [ ] 12.23 Create API endpoint: GET /api/patterns/export (export JSON)
-- [ ] 12.24 Create API endpoint: POST /api/patterns/import (import JSON)
-- [ ] 12.25 Create API endpoint: GET /api/ineffective (ineffective unsubscribe flags)
-- [ ] 12.26 Implement health check endpoint: GET /health
+- [x] 12.1 Set up Hono application structure
+- [x] 12.2 Implement session validation middleware (check main domain session)
+- [x] 12.3 Implement redirect to cddc39.tech for unauthenticated users
+- [x] 12.4 Implement secure cookie settings (Secure, HttpOnly, SameSite=Strict)
+- [x] 12.5 Implement session expiration handling
+- [x] 12.6 Implement CSRF token generation and validation
+- [x] 12.7 Implement rate limiting middleware
+- [x] 12.8 Create API endpoint: GET /api/stats (dashboard stats)
+- [x] 12.9 Create API endpoint: GET /api/recent (recent activity)
+- [x] 12.10 Create API endpoint: GET /api/digest (weekly digest data)
+- [x] 12.11 Create API endpoint: GET /api/failed (failed unsubscribes list)
+- [x] 12.12 Create API endpoint: GET /api/failed/:id (failure details with screenshot)
+- [x] 12.13 Create API endpoint: GET /api/failed/:id/trace (download trace file)
+- [x] 12.14 Create API endpoint: POST /api/failed/:id/retry (retry unsubscribe)
+- [x] 12.15 Create API endpoint: POST /api/failed/:id/resolve (mark resolved)
+- [x] 12.16 Create API endpoint: GET /api/allowlist (list entries)
+- [x] 12.17 Create API endpoint: POST /api/allowlist (add entry)
+- [x] 12.18 Create API endpoint: DELETE /api/allowlist/:id (remove entry)
+- [x] 12.19 Create API endpoint: GET /api/history (unsubscribe history with filtering)
+- [x] 12.20 Create API endpoint: GET /api/domains (domain grouping stats)
+- [x] 12.21 Create API endpoint: GET /api/domains/:domain (senders in domain)
+- [x] 12.22 Create API endpoint: GET /api/patterns (list patterns)
+- [x] 12.23 Create API endpoint: GET /api/patterns/export (export JSON)
+- [x] 12.24 Create API endpoint: POST /api/patterns/import (import JSON)
+- [x] 12.25 Create API endpoint: GET /api/ineffective (ineffective unsubscribe flags)
+- [x] 12.26 Implement health check endpoint: GET /health
 
 ## 13. Web Dashboard - Frontend
 
