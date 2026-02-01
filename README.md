@@ -1,22 +1,23 @@
 # Email Unsubscribe
 
-Automated email unsubscribe system that connects to Gmail via OAuth and automatically processes unsubscribe requests.
+Automated email unsubscribe system that connects to Gmail via OAuth and automatically processes unsubscribe requests. Built for personal use to automatically unsubscribe from *everything* while maintaining an allow list for important senders.
 
 ## Features
 
-- 📧 Gmail integration via OAuth
-- 🔗 Automatic unsubscribe link detection (RFC 8058 one-click, mailto, browser-based)
-- ✅ Sender allow list to preserve important subscriptions
-- 🔍 Failed flow debugging with screenshots and Playwright traces
-- 📊 Web dashboard for monitoring and management
-- 🔄 Pattern sharing for common unsubscribe flows
+- 📧 **Gmail Integration** - OAuth-based Gmail connection for secure email access
+- 🔗 **Smart Unsubscribe Detection** - Parses RFC 8058 one-click headers, mailto links, and HTML unsubscribe links
+- 🤖 **Browser Automation** - Uses Playwright to handle complex unsubscribe flows
+- ✅ **Allow List** - Preserve subscriptions from important senders with pattern matching
+- 🔍 **Debug Tools** - Screenshots and Playwright traces for failed unsubscribe flows
+- 📊 **Web Dashboard** - Monitor progress, view failures, manage allow list
+- 🔄 **Pattern Sharing** - Reusable automation patterns for common unsubscribe pages
 
 ## Tech Stack
 
-- **Runtime**: Deno
-- **Web Framework**: Hono
-- **Browser Automation**: Playwright
-- **Frontend**: Vue.js + Tailwind CSS + Headless UI
+- **Runtime**: [Deno](https://deno.land/) 2.0+
+- **Web Framework**: [Hono](https://hono.dev/)
+- **Browser Automation**: [Playwright](https://playwright.dev/)
+- **Frontend**: Vue.js 3 + Tailwind CSS
 - **Database**: PostgreSQL
 
 ## Quick Start
