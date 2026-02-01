@@ -157,22 +157,22 @@
 
 ## 13. Web Dashboard - Frontend
 
-- [ ] 13.1 Set up Vue.js project with TypeScript
-- [ ] 13.2 Configure Tailwind CSS
-- [ ] 13.3 Install and configure Headless UI
-- [ ] 13.4 Define Material Design-inspired color palette and shadows
-- [ ] 13.5 Create app layout component (navigation, content area)
-- [ ] 13.6 Create dashboard home page (stats overview, digest, recent activity)
-- [ ] 13.7 Create failed unsubscribes page (list with filtering)
-- [ ] 13.8 Create failure detail view (screenshot, error details, trace download, retry/resolve actions)
-- [ ] 13.9 Create allow list management page (list, add form, remove action)
-- [ ] 13.10 Create unsubscribe history page (filterable list)
-- [ ] 13.11 Create domain grouping view (domain list, expandable sender details)
-- [ ] 13.12 Create pattern management page (list, export button, import upload)
-- [ ] 13.13 Create ineffective unsubscribes page (flagged senders with details)
-- [ ] 13.14 Implement CSRF token handling in API requests
-- [ ] 13.15 Implement error handling and user feedback (toasts/alerts)
-- [ ] 13.16 Add loading states for async operations
+- [x] 13.1 Set up Vue.js project with TypeScript
+- [x] 13.2 Configure Tailwind CSS
+- [x] 13.3 Install and configure Headless UI
+- [x] 13.4 Define Material Design-inspired color palette and shadows
+- [x] 13.5 Create app layout component (navigation, content area)
+- [x] 13.6 Create dashboard home page (stats overview, digest, recent activity)
+- [x] 13.7 Create failed unsubscribes page (list with filtering)
+- [x] 13.8 Create failure detail view (screenshot, error details, trace download, retry/resolve actions)
+- [x] 13.9 Create allow list management page (list, add form, remove action)
+- [x] 13.10 Create unsubscribe history page (filterable list)
+- [x] 13.11 Create domain grouping view (domain list, expandable sender details)
+- [x] 13.12 Create pattern management page (list, export button, import upload)
+- [x] 13.13 Create ineffective unsubscribes page (flagged senders with details)
+- [x] 13.14 Implement CSRF token handling in API requests
+- [x] 13.15 Implement error handling and user feedback (toasts/alerts)
+- [x] 13.16 Add loading states for async operations
 
 ## 14. Container Deployment
 

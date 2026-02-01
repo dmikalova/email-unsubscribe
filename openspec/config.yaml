@@ -1,19 +1,43 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Project context
 context: |
-  Tech stack: TypeScript, Deno, Vite, Vitest
-  We use conventional commits
-  Domain: email unsubscribe automation
+  # Tech Stack
+  - Runtime: Deno 2.0+ with TypeScript (native support, no build step)
+  - Web Framework: Hono (lightweight, portable across runtimes)
+  - Browser Automation: Playwright (headless Chromium, screenshots, traces)
+  - Frontend: Vue.js + Tailwind CSS + Headless UI (Material Design-inspired styling)
+  - Build/Dev: Vite
+  - Testing: Vitest + Playwright for E2E
+  - Database: PostgreSQL (dedicated schema on shared Northflank instance)
+  - Authentication: Google OAuth 2.0 (shared for Gmail API and dashboard auth)
+  
+  # Conventions
+  - We use conventional commits
+  - Single-user system (personal use only, not multi-tenant/SaaS)
+  - Pattern-based unsubscribe automation with iterative improvement
+  - Failed flows surface with screenshots for debugging
+  
+  # Domain: Email Unsubscribe Automation
+  - Connects to Gmail via OAuth to scan inbox
+  - Extracts unsubscribe links from headers (List-Unsubscribe) and body
+  - Automates unsubscribe flows via browser (one-click, mailto, multi-step forms)
+  - Maintains allow list of senders to preserve
+  - Tracks compliance and surfaces failures for pattern improvement
+  - Web dashboard at email-unsubscribe.cddc39.tech
+  
+  # Deployment
+  - Containerized on Northflank PaaS
+  - CI/CD via GitHub Actions
+  - Secure credential management via environment variables
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+# Per-artifact rules
+rules:
+  spec:
+    - Focus on single-user personal use case
+    - Consider browser automation edge cases and failure modes
+    - Include screenshot/trace capture for debugging failed flows
+  tasks:
+    - Break tasks into chunks of max 2 hours
+    - Include test coverage for each feature
+    - Consider both happy path and error handling
