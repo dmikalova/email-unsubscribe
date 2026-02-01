@@ -1,5 +1,5 @@
 # Build stage - install dependencies
-FROM denoland/deno:2.0.0 as builder
+FROM denoland/deno:2.6.7 as builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN deno check src/**/*.ts
 
 # Production stage
-FROM denoland/deno:2.0.0
+FROM denoland/deno:2.6.7
 
 # Install Chromium for Playwright and curl for healthcheck
 RUN apt-get update && apt-get install -y \
