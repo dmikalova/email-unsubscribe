@@ -84,7 +84,7 @@ Deno.test('extractUnsubscribeLinksFromHtml - handles empty HTML', () => {
 
 Deno.test('extractUnsubscribeLinksFromHtml - handles malformed HTML', () => {
   const html = '<a href="https://example.com/unsubscribe">Unsubscribe';
-  
+
   const links = extractUnsubscribeLinksFromHtml(html);
   assertEquals(links.length >= 0, true); // Should not throw
 });
@@ -100,7 +100,7 @@ Deno.test('extractUnsubscribeLinksFromHtml - deduplicates links', () => {
   `;
 
   const links = extractUnsubscribeLinksFromHtml(html);
-  const uniqueUrls = new Set(links.map(l => l.url));
+  const uniqueUrls = new Set(links.map((l) => l.url));
 
   assertEquals(uniqueUrls.size, links.length);
 });

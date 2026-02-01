@@ -3,10 +3,10 @@
 
 import { app } from './app.ts';
 import { closeConnection, runMigrations } from './db/index.ts';
-import { closeBrowser } from './unsubscribe/index.ts';
-import { seedDefaultPatterns } from './unsubscribe/patterns.ts';
 import { initializeLabels } from './gmail/labels.ts';
 import { hasValidTokens } from './gmail/tokens.ts';
+import { closeBrowser } from './unsubscribe/index.ts';
+import { seedDefaultPatterns } from './unsubscribe/patterns.ts';
 
 const port = parseInt(Deno.env.get('PORT') || '8000');
 
@@ -85,9 +85,11 @@ async function initialize() {
 }
 
 // Start the server
-initialize().then(() => {
-  Deno.serve({ port }, app.fetch);
-}).catch((error) => {
-  log('error', 'Failed to start server', { error: String(error) });
-  Deno.exit(1);
-});
+initialize()
+  .then(() => {
+    Deno.serve({ port }, app.fetch);
+  })
+  .catch((error) => {
+    log('error', 'Failed to start server', { error: String(error) });
+    Deno.exit(1);
+  });

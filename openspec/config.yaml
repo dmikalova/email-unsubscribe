@@ -30,6 +30,11 @@ context: |
   - Containerized on Northflank PaaS
   - CI/CD via GitHub Actions
   - Secure credential management via environment variables
+  
+  # Database Migrations
+  - Migrations are additive-only: never drop tables or columns
+  - No down migrations - data preservation is paramount
+  - Schema changes should be backward-compatible
 
 # Per-artifact rules
 rules:

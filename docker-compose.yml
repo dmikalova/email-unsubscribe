@@ -1,29 +1,38 @@
-version: '3.8'
-
 services:
   app:
     build: .
     ports:
       - "8000:8000"
     environment:
-      - PORT=8000
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/email_unsubscribe
       - DATABASE_SCHEMA=email_unsubscribe
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/email_unsubscribe
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_REDIRECT_URI=http://localhost:8000/oauth/callback
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - NODE_ENV=development
+      - PLAYWRIGHT_WS_ENDPOINT=ws://playwright:3000
+      - PORT=8000
+      - SCREENSHOTS_PATH=/app/data/screenshots
       - SESSION_DOMAIN=localhost
       - SKIP_AUTH=true
       - SKIP_CSRF=true
-      - SCREENSHOTS_PATH=/app/data/screenshots
       - TRACES_PATH=/app/data/traces
     volumes:
       - ./data:/app/data
     depends_on:
       db:
         condition: service_healthy
+      playwright:
+        condition: service_started
+    restart: unless-stopped
+
+  playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile.playwright
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped
 
   db:

@@ -1,0 +1,14 @@
+# Development overrides - automatically merged with docker-compose.yml
+# Enables hot reload by mounting source code and running dev task
+
+services:
+  app:
+    build:
+      context: .
+      target: builder  # Use builder stage which has all deps cached
+    volumes:
+      - ./src:/app/src:ro
+      - ./deno.jsonc:/app/deno.jsonc:ro
+      - ./data:/app/data
+    command: ["deno", "task", "dev"]
+    restart: "no"

@@ -19,10 +19,13 @@ function getEncryptionKey(): Uint8Array {
 
 async function getCryptoKey(): Promise<CryptoKey> {
   const keyBytes = getEncryptionKey();
-  return await crypto.subtle.importKey('raw', keyBytes, { name: ALGORITHM }, false, [
-    'encrypt',
-    'decrypt',
-  ]);
+  return await crypto.subtle.importKey(
+    'raw',
+    keyBytes.buffer as ArrayBuffer,
+    { name: ALGORITHM },
+    false,
+    ['encrypt', 'decrypt'],
+  );
 }
 
 export async function encrypt(plaintext: string): Promise<Uint8Array> {

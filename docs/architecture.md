@@ -4,27 +4,40 @@ This document describes the architecture of the Email Unsubscribe application.
 
 ## System Overview
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Web Browser                             │
-│                   (Vue.js Dashboard)                         │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Hono Web Server                          │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │  REST API   │  │   OAuth     │  │   Static Files      │  │
-│  │  Endpoints  │  │   Handler   │  │   (Dashboard)       │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-└───────────┬─────────────┬───────────────────────────────────┘
-            │             │
-    ┌───────┴───────┐     │
-    ▼               ▼     ▼
-┌────────┐    ┌──────────────┐    ┌─────────────────────────┐
-│ Gmail  │    │  PostgreSQL  │    │       Playwright        │
-│  API   │    │   Database   │    │   (Browser Automation)  │
-└────────┘    └──────────────┘    └─────────────────────────┘
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#BBDEFB', 'primaryTextColor': '#1565C0', 'primaryBorderColor': '#1976D2', 'lineColor': '#757575', 'secondaryColor': '#C8E6C9', 'tertiaryColor': '#FFF3E0'}}}%%
+flowchart LR
+    subgraph Browser["Browser"]
+        Vue[Vue.js]
+    end
+
+    subgraph Server["Hono Server"]
+        API[REST API]
+        OAuth[OAuth]
+        Static[Static]
+    end
+
+    Gmail[Gmail API]
+    DB[(PostgreSQL)]
+    PW[Playwright]
+
+    Vue --> Server
+    API --> Gmail & DB & PW
+    OAuth --> Gmail & DB
+
+    %% Material Blue 100/700
+    classDef browser fill:#BBDEFB,stroke:#1976D2,color:#0D47A1
+    %% Material Deep Purple 100/700
+    classDef server fill:#D1C4E9,stroke:#512DA8,color:#311B92
+    %% Material Teal 100/700
+    classDef external fill:#B2DFDB,stroke:#00796B,color:#004D40
+    %% Material Amber 100/700
+    classDef database fill:#FFECB3,stroke:#FFA000,color:#FF6F00
+
+    class Vue browser
+    class API,OAuth,Static server
+    class Gmail,PW external
+    class DB database
 ```
 
 ## Core Components
@@ -67,31 +80,56 @@ This document describes the architecture of the Email Unsubscribe application.
 
 ### Email Processing Flow
 
-```
-1. User initiates scan via dashboard
-2. Scanner fetches recent emails from Gmail
-3. For each email:
-   a. Check if sender is in allow list → Skip if yes
-   b. Extract unsubscribe links (headers + body)
-   c. Validate URLs (SSRF prevention)
-   d. Attempt unsubscribe:
-      - Try one-click POST first (RFC 8058)
-      - Fall back to browser automation
-   e. Record attempt in database
-   f. Label email in Gmail
-4. Return summary to dashboard
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#BBDEFB', 'primaryTextColor': '#1565C0', 'primaryBorderColor': '#1976D2', 'lineColor': '#757575'}}}%%
+flowchart TD
+    A([Start]) --> B[Fetch emails]
+    B --> C{Each email}
+    C --> D{Allow listed?}
+    D -->|Yes| C
+    D -->|No| E[Extract links]
+    E --> F[Validate URLs]
+    F --> G{One-click?}
+    G -->|Success| H[Record]
+    G -->|Failed| I[Browser]
+    I --> H
+    H --> J[Label email]
+    J --> C
+    C -->|Done| K([Complete])
+
+    %% Material Green 100/700 - start/end
+    classDef start fill:#C8E6C9,stroke:#388E3C,color:#1B5E20
+    %% Material Blue 100/700 - process
+    classDef process fill:#BBDEFB,stroke:#1976D2,color:#0D47A1
+    %% Material Orange 100/700 - decision
+    classDef decision fill:#FFE0B2,stroke:#F57C00,color:#E65100
+
+    class A,K start
+    class B,E,F,H,I,J process
+    class C,D,G decision
 ```
 
 ### Authentication Flow
 
-```
-1. User clicks "Connect Gmail"
-2. Redirect to Google OAuth consent
-3. User grants permissions
-4. Google redirects with auth code
-5. Exchange code for tokens
-6. Encrypt and store refresh token
-7. Redirect to dashboard
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'actorBkg': '#BBDEFB', 'actorBorder': '#1976D2', 'actorTextColor': '#0D47A1', 'signalColor': '#757575', 'signalTextColor': '#212121', 'noteBkgColor': '#FFF9C4', 'noteBorderColor': '#FBC02D', 'noteTextColor': '#F57F17', 'activationBkgColor': '#E1BEE7', 'activationBorderColor': '#7B1FA2'}}}%%
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant A as App
+    participant G as Google
+    participant DB as Database
+
+    U->>A: Connect Gmail
+    A->>G: Redirect to consent
+    U->>G: Grant permissions
+    G->>A: Auth code
+    A->>G: Exchange for tokens
+    G-->>A: Tokens
+    A->>DB: Encrypt & store
+    A-->>U: Dashboard
+
+    Note over A,DB: AES-256-GCM encryption
 ```
 
 ## Database Schema
@@ -100,25 +138,52 @@ The application uses a dedicated `email_unsubscribe` schema in PostgreSQL:
 
 ### Core Tables
 
-| Table | Purpose |
-|-------|---------|
-| `oauth_tokens` | Encrypted OAuth refresh tokens |
-| `allow_list` | Senders to preserve |
-| `unsubscribe_history` | All unsubscribe attempts |
-| `sender_tracking` | Per-sender statistics |
-| `processed_emails` | Emails already processed |
-| `audit_log` | Action audit trail |
-| `patterns` | Reusable automation patterns |
-| `scan_state` | Scan pagination state |
+| Table                 | Purpose                        |
+| --------------------- | ------------------------------ |
+| `oauth_tokens`        | Encrypted OAuth refresh tokens |
+| `allow_list`          | Senders to preserve            |
+| `unsubscribe_history` | All unsubscribe attempts       |
+| `sender_tracking`     | Per-sender statistics          |
+| `processed_emails`    | Emails already processed       |
+| `audit_log`           | Action audit trail             |
+| `patterns`            | Reusable automation patterns   |
+| `scan_state`          | Scan pagination state          |
 
 ### Key Relationships
 
-```
-unsubscribe_history
-  └── sender_tracking (by domain)
-  
-processed_emails
-  └── unsubscribe_history (by email_id)
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#E3F2FD', 'primaryTextColor': '#1565C0', 'primaryBorderColor': '#1976D2', 'lineColor': '#757575', 'tertiaryColor': '#FFF3E0'}}}%%
+erDiagram
+    oauth_tokens {
+        int id PK
+        text user_id UK
+        bytea access_token
+        bytea refresh_token
+    }
+
+    unsubscribe_history {
+        int id PK
+        text email_id
+        text sender
+        text sender_domain
+        enum status
+    }
+
+    sender_tracking {
+        int id PK
+        text sender UK
+        text sender_domain
+        int email_count
+    }
+
+    processed_emails {
+        int id PK
+        text email_id UK
+        timestamp processed_at
+    }
+
+    unsubscribe_history }o--|| sender_tracking : "tracks"
+    unsubscribe_history ||--o| processed_emails : "marks"
 ```
 
 ## Security Considerations
@@ -126,6 +191,7 @@ processed_emails
 ### SSRF Prevention
 
 All URLs are validated before processing:
+
 - Block private IP ranges (10.x, 192.168.x, etc.)
 - Block localhost and 127.x addresses
 - Only allow HTTP/HTTPS protocols
@@ -153,19 +219,19 @@ All URLs are validated before processing:
 
 ### Rate Limits
 
-| Operation | Limit | Reason |
-|-----------|-------|--------|
-| Gmail API | 250 quota units/second | Google quota |
-| One-click requests | 10/minute | Avoid rate limiting |
-| Browser automation | 1 concurrent | Resource constraints |
+| Operation          | Limit                  | Reason               |
+| ------------------ | ---------------------- | -------------------- |
+| Gmail API          | 250 quota units/second | Google quota         |
+| One-click requests | 10/minute              | Avoid rate limiting  |
+| Browser automation | 1 concurrent           | Resource constraints |
 
 ### Resource Usage
 
-| Component | CPU | Memory | Notes |
-|-----------|-----|--------|-------|
-| Web server | Low | ~50 MB | Deno is lightweight |
+| Component  | CPU  | Memory  | Notes                |
+| ---------- | ---- | ------- | -------------------- |
+| Web server | Low  | ~50 MB  | Deno is lightweight  |
 | Playwright | High | ~200 MB | Per browser instance |
-| PostgreSQL | Low | Varies | Shared instance |
+| PostgreSQL | Low  | Varies  | Shared instance      |
 
 ## Error Handling
 
@@ -195,6 +261,7 @@ All URLs are validated before processing:
 ### Custom Allow List Rules
 
 Support patterns:
+
 - `example.com` - Match domain
 - `*.example.com` - Match subdomains
 - `user@example.com` - Match exact sender

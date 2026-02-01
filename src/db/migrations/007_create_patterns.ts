@@ -35,8 +35,3 @@ COMMENT ON COLUMN patterns.priority IS 'Higher priority patterns are tried first
 COMMENT ON COLUMN patterns.match_count IS 'Number of times this pattern has matched';
 COMMENT ON COLUMN patterns.is_builtin IS 'Built-in patterns cannot be deleted';
 `;
-
-export const down = `
-DROP TABLE IF EXISTS patterns;
-DROP TYPE IF EXISTS pattern_type;
-`;

@@ -1,7 +1,7 @@
 // Token storage and retrieval with encryption
 
 import { getConnection } from '../db/index.ts';
-import { encrypt, decrypt } from './encryption.ts';
+import { decrypt, encrypt } from './encryption.ts';
 import { refreshAccessToken, type TokenResponse } from './oauth.ts';
 
 export interface StoredTokens {
@@ -59,7 +59,7 @@ export async function getTokens(userId: string = DEFAULT_USER_ID): Promise<Store
       expires_at: Date;
     }[]
   >`
-    SELECT user_id, access_token_encrypted, refresh_token_encrypted, 
+    SELECT user_id, access_token_encrypted, refresh_token_encrypted,
            token_type, scope, expires_at
     FROM oauth_tokens
     WHERE user_id = ${userId}

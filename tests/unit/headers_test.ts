@@ -1,75 +1,69 @@
 // Unit tests for email header parsing
 
-import { assertEquals, assertExists } from 'https://deno.land/std@0.208.0/assert/mod.ts';
-import { parseUnsubscribeHeaders, extractOneClickUrl } from '../../src/scanner/headers.ts';
+import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import type { GmailHeader } from '../../src/gmail/client.ts';
+import { parseListUnsubscribeHeader } from '../../src/scanner/headers.ts';
 
-Deno.test('parseUnsubscribeHeaders - parses HTTP URL', () => {
-  const headers = {
-    'list-unsubscribe': '<https://example.com/unsubscribe?id=123>',
-  };
+function makeHeaders(headers: Record<string, string>): GmailHeader[] {
+  return Object.entries(headers).map(([name, value]) => ({ name, value }));
+}
 
-  const result = parseUnsubscribeHeaders(headers);
+Deno.test('parseListUnsubscribeHeader - parses HTTP URL', () => {
+  const headers = makeHeaders({
+    'List-Unsubscribe': '<https://example.com/unsubscribe?id=123>',
+  });
 
-  assertEquals(result.length, 1);
-  assertEquals(result[0].type, 'http');
-  assertEquals(result[0].url, 'https://example.com/unsubscribe?id=123');
+  const result = parseListUnsubscribeHeader(headers);
+
+  assertEquals(result.httpUrls.length, 1);
+  assertEquals(result.httpUrls[0], 'https://example.com/unsubscribe?id=123');
 });
 
-Deno.test('parseUnsubscribeHeaders - parses mailto URL', () => {
-  const headers = {
-    'list-unsubscribe': '<mailto:unsubscribe@example.com>',
-  };
+Deno.test('parseListUnsubscribeHeader - parses mailto URL', () => {
+  const headers = makeHeaders({
+    'List-Unsubscribe': '<mailto:unsubscribe@example.com>',
+  });
 
-  const result = parseUnsubscribeHeaders(headers);
+  const result = parseListUnsubscribeHeader(headers);
 
-  assertEquals(result.length, 1);
-  assertEquals(result[0].type, 'mailto');
-  assertEquals(result[0].url, 'mailto:unsubscribe@example.com');
+  assertEquals(result.mailtoUrl, 'mailto:unsubscribe@example.com');
 });
 
-Deno.test('parseUnsubscribeHeaders - parses multiple URLs', () => {
-  const headers = {
-    'list-unsubscribe': '<https://example.com/unsubscribe>, <mailto:unsubscribe@example.com>',
-  };
+Deno.test('parseListUnsubscribeHeader - parses multiple URLs', () => {
+  const headers = makeHeaders({
+    'List-Unsubscribe': '<https://example.com/unsubscribe>, <mailto:unsubscribe@example.com>',
+  });
 
-  const result = parseUnsubscribeHeaders(headers);
+  const result = parseListUnsubscribeHeader(headers);
 
-  assertEquals(result.length, 2);
-  assertEquals(result[0].type, 'http');
-  assertEquals(result[1].type, 'mailto');
+  assertEquals(result.httpUrls.length, 1);
+  assertEquals(result.mailtoUrl, 'mailto:unsubscribe@example.com');
 });
 
-Deno.test('parseUnsubscribeHeaders - handles empty headers', () => {
-  const result = parseUnsubscribeHeaders({});
-  assertEquals(result.length, 0);
+Deno.test('parseListUnsubscribeHeader - handles empty headers', () => {
+  const result = parseListUnsubscribeHeader([]);
+  assertEquals(result.httpUrls.length, 0);
+  assertEquals(result.mailtoUrl, null);
 });
 
-Deno.test('parseUnsubscribeHeaders - handles malformed URLs', () => {
-  const headers = {
-    'list-unsubscribe': 'not a valid url',
-  };
+Deno.test('parseListUnsubscribeHeader - detects one-click support', () => {
+  const headers = makeHeaders({
+    'List-Unsubscribe': '<https://example.com/unsubscribe?id=123>',
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  });
 
-  const result = parseUnsubscribeHeaders(headers);
-  assertEquals(result.length, 0);
+  const result = parseListUnsubscribeHeader(headers);
+
+  assertEquals(result.listUnsubscribePost, true);
+  assertEquals(result.oneClickUrl, 'https://example.com/unsubscribe?id=123');
 });
 
-Deno.test('extractOneClickUrl - extracts one-click POST URL', () => {
-  const headers = {
-    'list-unsubscribe': '<https://example.com/unsubscribe?id=123>',
-    'list-unsubscribe-post': 'List-Unsubscribe=One-Click',
-  };
+Deno.test('parseListUnsubscribeHeader - returns null oneClickUrl without post header', () => {
+  const headers = makeHeaders({
+    'List-Unsubscribe': '<https://example.com/unsubscribe?id=123>',
+  });
 
-  const result = extractOneClickUrl(headers);
-
-  assertExists(result);
-  assertEquals(result, 'https://example.com/unsubscribe?id=123');
-});
-
-Deno.test('extractOneClickUrl - returns null without post header', () => {
-  const headers = {
-    'list-unsubscribe': '<https://example.com/unsubscribe?id=123>',
-  };
-
-  const result = extractOneClickUrl(headers);
-  assertEquals(result, null);
+  const result = parseListUnsubscribeHeader(headers);
+  assertEquals(result.oneClickUrl, null);
+  assertEquals(result.listUnsubscribePost, false);
 });

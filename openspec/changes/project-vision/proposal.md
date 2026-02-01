@@ -1,6 +1,6 @@
 ## Why
 
-Email subscriptions accumulate over time and most go unread. Manually unsubscribing is tedious—each email has a different unsubscribe flow, some requiring multiple clicks or form submissions. I want an automated system that aggressively unsubscribes me from everything by default, with explicit opt-in for the few subscriptions I actually want to keep.
+Email subscriptions accumulate over time and most go unread. Manually unsubscribing is tedious - each email has a different unsubscribe flow, some requiring multiple clicks or form submissions. I want an automated system that aggressively unsubscribes me from everything by default, with explicit opt-in for the few subscriptions I actually want to keep.
 
 ## What Changes
 

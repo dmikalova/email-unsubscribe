@@ -1,33 +1,44 @@
 // Gmail module exports
 
-export { getOAuthConfig, getAuthorizationUrl, exchangeCodeForTokens, refreshAccessToken } from './oauth.ts';
-export { encrypt, decrypt } from './encryption.ts';
-export { storeTokens, getTokens, getValidAccessToken, deleteTokens, hasValidTokens } from './tokens.ts';
 export {
-  listMessages,
-  getMessage,
-  batchGetMessages,
-  listLabels,
-  createLabel,
-  getOrCreateLabel,
-  modifyMessageLabels,
   archiveMessage,
-  sendEmail,
+  batchGetMessages,
+  createLabel,
   getHistory,
+  getMessage,
+  getOrCreateLabel,
   getProfile,
-  type GmailMessage,
-  type GmailMessagePayload,
+  listLabels,
+  listMessages,
+  modifyMessageLabels,
+  sendEmail,
   type GmailHeader,
   type GmailLabel,
-  type ListMessagesResponse,
+  type GmailMessage,
+  type GmailMessagePayload,
   type HistoryResponse,
+  type ListMessagesResponse,
 } from './client.ts';
+export { decrypt, encrypt } from './encryption.ts';
 export {
-  LABEL_NAMES,
-  initializeLabels,
+  archiveAndLabelSuccess,
   getLabelId,
-  labelMessageAsSuccess,
+  initializeLabels,
+  LABEL_NAMES,
   labelMessageAsFailed,
   labelMessageAsPending,
-  archiveAndLabelSuccess,
+  labelMessageAsSuccess,
 } from './labels.ts';
+export {
+  exchangeCodeForTokens,
+  getAuthorizationUrl,
+  getOAuthConfig,
+  refreshAccessToken,
+} from './oauth.ts';
+export {
+  deleteTokens,
+  getTokens,
+  getValidAccessToken,
+  hasValidTokens,
+  storeTokens,
+} from './tokens.ts';
