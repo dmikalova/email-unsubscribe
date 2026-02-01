@@ -228,3 +228,42 @@ api.get('/history', async (c) => {
   const recent = await getRecentAttempts(limit);
   return c.json(recent);
 });
+
+// Health check endpoint with metrics
+api.get('/health', async (c) => {
+  const startTime = Date.now();
+  const stats = await getStats();
+  const responseTime = Date.now() - startTime;
+  
+  return c.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    uptime: Math.floor(performance.now() / 1000),
+    metrics: {
+      responseTimeMs: responseTime,
+      totalProcessed: stats.totalProcessed,
+      successRate: stats.totalProcessed > 0 
+        ? ((stats.totalProcessed - stats.failedCount) / stats.totalProcessed * 100).toFixed(2)
+        : '0.00',
+      failedCount: stats.failedCount,
+      pendingCount: stats.pendingCount,
+    },
+  });
+});
+
+// Readiness check (for Kubernetes/container orchestration)
+api.get('/ready', async (c) => {
+  try {
+    // Check database connectivity
+    await getStats();
+    return c.json({ ready: true });
+  } catch {
+    return c.json({ ready: false, error: 'Database unavailable' }, 503);
+  }
+});
+
+// Liveness check
+api.get('/live', (c) => {
+  return c.json({ alive: true });
+});
