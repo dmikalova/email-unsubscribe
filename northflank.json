@@ -1,0 +1,58 @@
+{
+  "apiVersion": "v1.2",
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "Subdomain",
+          "spec": {
+            "name": "email-unsubscribe",
+            "domain": "cddc39.tech"
+          }
+        },
+        {
+          "kind": "Project",
+          "ref": "project",
+          "spec": {
+            "name": "email-unsubscribe",
+            "color": "#DBFE87",
+            "networking": {
+              "tailscale": {
+                "authKeyTags": [],
+                "enabled": false
+              },
+              "allowedIngressProjects": []
+            },
+            "region": "us-west"
+          }
+        },
+        {
+          "kind": "Workflow",
+          "spec": {
+            "type": "sequential",
+            "context": {
+              "projectId": "${refs.project.id}"
+            },
+            "steps": []
+          }
+        }
+      ]
+    }
+  },
+  "name": "app",
+  "description": "",
+  "options": {
+    "autorun": true,
+    "concurrencyPolicy": "queue"
+  },
+  "gitops": {
+    "repoUrl": "https://github.com/dmikalova/email-unsubscribe",
+    "vcsService": "github",
+    "accountLogin": "dmikalova",
+    "branch": "main",
+    "filePath": "/northflank.json"
+  },
+  "$schema": "https://api.northflank.com/v1/schemas/template"
+}
