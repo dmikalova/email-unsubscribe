@@ -12,18 +12,18 @@
 
 ## 2. Database Schema & Persistence
 
-- [ ] 2.1 Set up database migration framework
-- [ ] 2.2 Create migration: oauth_tokens table (encrypted access/refresh tokens, expiry)
-- [ ] 2.3 Create migration: allow_list table (type, value, created_at)
-- [ ] 2.4 Create migration: unsubscribe_history table (sender, url, status, failure_reason, screenshot_path, trace_path, attempted_at)
-- [ ] 2.5 Create migration: sender_tracking table (sender, domain, first_seen, last_seen, unsubscribed_at, emails_after_unsubscribe)
-- [ ] 2.6 Create migration: processed_emails table (email_id, processed_at) for idempotency
-- [ ] 2.7 Create migration: audit_log table (action, details, timestamp)
-- [ ] 2.8 Create migration: patterns table (name, selector, type, match_count)
-- [ ] 2.9 Create migration: scan_state table (last_email_id, last_scan_at)
-- [ ] 2.10 Implement database connection pooling module
-- [ ] 2.11 Implement transaction wrapper utility
-- [ ] 2.12 Implement retry logic for transient database errors
+- [x] 2.1 Set up database migration framework
+- [x] 2.2 Create migration: oauth_tokens table (encrypted access/refresh tokens, expiry)
+- [x] 2.3 Create migration: allow_list table (type, value, created_at)
+- [x] 2.4 Create migration: unsubscribe_history table (sender, url, status, failure_reason, screenshot_path, trace_path, attempted_at)
+- [x] 2.5 Create migration: sender_tracking table (sender, domain, first_seen, last_seen, unsubscribed_at, emails_after_unsubscribe)
+- [x] 2.6 Create migration: processed_emails table (email_id, processed_at) for idempotency
+- [x] 2.7 Create migration: audit_log table (action, details, timestamp)
+- [x] 2.8 Create migration: patterns table (name, selector, type, match_count)
+- [x] 2.9 Create migration: scan_state table (last_email_id, last_scan_at)
+- [x] 2.10 Implement database connection pooling module
+- [x] 2.11 Implement transaction wrapper utility
+- [x] 2.12 Implement retry logic for transient database errors
 
 ## 3. Gmail Connection
 
