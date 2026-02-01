@@ -41,7 +41,7 @@ jobs:
           # Trigger Northflank deployment via webhook or API
           # Northflank automatically detects new images when configured
           echo "Deployment triggered for image: ${{ vars.REGISTRY_URL }}/${{ vars.IMAGE_NAME }}:${{ github.sha }}"
-          
+
           # If using Northflank API for deployment:
           # curl -X POST \
           #   -H "Authorization: Bearer ${{ secrets.NORTHFLANK_API_KEY }}" \
@@ -54,7 +54,7 @@ jobs:
           # Wait for service to be healthy
           echo "Waiting for deployment to complete..."
           sleep 30
-          
+
           # Check health endpoint
           # curl -f https://${{ vars.APP_DOMAIN }}/api/health || exit 1
           echo "Deployment verification placeholder - configure with actual health check"

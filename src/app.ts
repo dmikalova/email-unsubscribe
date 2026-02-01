@@ -1,7 +1,7 @@
 // Hono Application Setup
 
 import { Hono } from '@hono/hono';
-import { api, oauth, authMiddleware, rateLimitMiddleware, csrfMiddleware } from './api/index.ts';
+import { api, authMiddleware, csrfMiddleware, oauth, rateLimitMiddleware } from './api/index.ts';
 
 export const app = new Hono();
 
@@ -25,7 +25,7 @@ app.route('/api', api);
 app.get('/screenshots/:filename', async (c) => {
   const filename = c.req.param('filename');
   const screenshotsDir = Deno.env.get('SCREENSHOTS_PATH') || './data/screenshots';
-  
+
   try {
     const file = await Deno.readFile(`${screenshotsDir}/${filename}`);
     return new Response(file, {

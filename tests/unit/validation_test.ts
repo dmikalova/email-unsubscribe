@@ -16,7 +16,11 @@ Deno.test('validateUnsubscribeUrl - accepts valid HTTP URL', () => {
 Deno.test('validateUnsubscribeUrl - rejects localhost URLs (SSRF prevention)', () => {
   const result = validateUnsubscribeUrl('http://localhost/unsubscribe');
   assertEquals(result.valid, false);
-  assertEquals(result.reason?.includes('private') || result.reason?.includes('localhost'), true);
+  assertEquals(
+    result.error?.toLowerCase().includes('blocked') ||
+      result.error?.toLowerCase().includes('local'),
+    true,
+  );
 });
 
 Deno.test('validateUnsubscribeUrl - rejects 127.0.0.1 (SSRF prevention)', () => {

@@ -1,14 +1,22 @@
 // Browser-based unsubscribe automation using Playwright
 
 import { chromium, type Browser, type Page } from 'playwright';
-import { validateUnsubscribeUrl } from './validation.ts';
 import { getPatterns, incrementPatternMatchCount, type Pattern } from './patterns.ts';
+import { validateUnsubscribeUrl } from './validation.ts';
 
 export interface BrowserResult {
   success: boolean;
   uncertain: boolean;
   error?: string;
-  errorCategory?: 'timeout' | 'no_button_found' | 'navigation_error' | 'form_error' | 'captcha_detected' | 'login_required' | 'network_error' | 'unknown';
+  errorCategory?:
+    | 'timeout'
+    | 'no_button_found'
+    | 'navigation_error'
+    | 'form_error'
+    | 'captcha_detected'
+    | 'login_required'
+    | 'network_error'
+    | 'unknown';
   screenshotPath?: string;
   tracePath?: string;
   matchedPattern?: string;
@@ -27,10 +35,17 @@ let browser: Browser | null = null;
 
 export async function getBrowser(headless = true): Promise<Browser> {
   if (!browser) {
-    browser = await chromium.launch({
-      headless,
-      args: ['--disable-dev-shm-usage', '--no-sandbox'],
-    });
+    const wsEndpoint = Deno.env.get('PLAYWRIGHT_WS_ENDPOINT');
+    if (wsEndpoint) {
+      // Connect to remote Playwright server
+      browser = await chromium.connect(wsEndpoint);
+    } else {
+      // Launch locally (for development)
+      browser = await chromium.launch({
+        headless,
+        args: ['--disable-dev-shm-usage', '--no-sandbox'],
+      });
+    }
   }
   return browser;
 }
@@ -216,10 +231,9 @@ export async function performBrowserUnsubscribe(
       matchedPattern,
       screenshotPath,
     };
-
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    
+
     // Categorize error
     let errorCategory: BrowserResult['errorCategory'] = 'unknown';
     if (message.includes('timeout') || message.includes('Timeout')) {
@@ -235,7 +249,6 @@ export async function performBrowserUnsubscribe(
       errorCategory,
       screenshotPath,
     };
-
   } finally {
     // Save trace on failure
     if (page) {
@@ -351,7 +364,7 @@ function detectCaptcha(content: string): boolean {
     'cf-turnstile',
     'captcha',
     'verify you are human',
-    'verify you\'re human',
+    "verify you're human",
   ];
 
   const lower = content.toLowerCase();

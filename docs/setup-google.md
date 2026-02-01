@@ -51,7 +51,7 @@ This guide walks through setting up Google OAuth for the Email Unsubscribe appli
 3. Select "Web application"
 4. Configure the client:
    - **Name**: Email Unsubscribe Web Client
-   - **Authorized JavaScript origins**: 
+   - **Authorized JavaScript origins**:
      - `http://localhost:8000` (development)
      - `https://email-unsubscribe.cddc39.tech` (production)
    - **Authorized redirect URIs**:

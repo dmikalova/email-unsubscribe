@@ -1,6 +1,6 @@
 // Database migration framework
 
-import { getConnection, getConfig } from './connection.ts';
+import { getConfig, getConnection } from './connection.ts';
 
 interface Migration {
   id: string;

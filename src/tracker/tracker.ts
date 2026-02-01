@@ -1,12 +1,13 @@
 // Compliance tracker - records unsubscribe attempts and outcomes
 
 import { getConnection } from '../db/index.ts';
+import { archiveAndLabelSuccess, labelMessageAsFailed } from '../gmail/index.ts';
+import { markEmailProcessed } from '../scanner/state.ts';
 import { markSenderUnsubscribed } from '../scanner/tracking.ts';
-import { labelMessageAsFailed, archiveAndLabelSuccess } from '../gmail/index.ts';
 
 export type UnsubscribeStatus = 'success' | 'failed' | 'uncertain' | 'pending';
 export type UnsubscribeMethod = 'one_click' | 'mailto' | 'browser' | 'manual';
-export type FailureReason = 
+export type FailureReason =
   | 'timeout'
   | 'no_button_found'
   | 'navigation_error'
@@ -47,7 +48,9 @@ export interface RecordAttemptInput {
   tracePath?: string;
 }
 
-export async function recordUnsubscribeAttempt(input: RecordAttemptInput): Promise<UnsubscribeAttempt> {
+export async function recordUnsubscribeAttempt(
+  input: RecordAttemptInput,
+): Promise<UnsubscribeAttempt> {
   const sql = getConnection();
 
   const rows = await sql<UnsubscribeAttempt[]>`
@@ -199,7 +202,7 @@ export async function updateAttemptStatus(
 
   await sql`
     UPDATE unsubscribe_history
-    SET 
+    SET
       status = ${status},
       failure_reason = COALESCE(${details?.failureReason ?? null}, failure_reason),
       failure_details = COALESCE(${details?.failureDetails ?? null}, failure_details),
@@ -240,7 +243,7 @@ export async function getStats(): Promise<UnsubscribeStats> {
   for (const row of rows) {
     const count = parseInt(row.count);
     stats.total += count;
-    
+
     switch (row.status) {
       case 'success':
         stats.success = count;
@@ -280,11 +283,13 @@ export function getHistoryByDomain(domain: string): Promise<UnsubscribeAttempt[]
   `;
 }
 
-export function getDomainStats(): Promise<{ domain: string; total: number; success: number; failed: number }[]> {
+export function getDomainStats(): Promise<
+  { domain: string; total: number; success: number; failed: number }[]
+> {
   const sql = getConnection();
 
   return sql`
-    SELECT 
+    SELECT
       sender_domain as domain,
       COUNT(*)::int as total,
       COUNT(*) FILTER (WHERE status = 'success')::int as success,

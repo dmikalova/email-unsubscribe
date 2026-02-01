@@ -2,26 +2,20 @@
 
 // Private IP ranges to block (SSRF prevention)
 const PRIVATE_IP_RANGES = [
-  /^127\./,                    // Loopback
-  /^10\./,                     // Class A private
+  /^127\./, // Loopback
+  /^10\./, // Class A private
   /^172\.(1[6-9]|2[0-9]|3[01])\./, // Class B private
-  /^192\.168\./,               // Class C private
-  /^169\.254\./,               // Link-local
-  /^0\./,                      // Current network
+  /^192\.168\./, // Class C private
+  /^169\.254\./, // Link-local
+  /^0\./, // Current network
   /^100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\./, // Carrier-grade NAT
-  /^::1$/,                     // IPv6 loopback
-  /^fe80:/i,                   // IPv6 link-local
-  /^fc00:/i,                   // IPv6 unique local
-  /^fd00:/i,                   // IPv6 unique local
+  /^::1$/, // IPv6 loopback
+  /^fe80:/i, // IPv6 link-local
+  /^fc00:/i, // IPv6 unique local
+  /^fd00:/i, // IPv6 unique local
 ];
 
-const BLOCKED_HOSTNAMES = [
-  'localhost',
-  'localhost.localdomain',
-  '0.0.0.0',
-  '[::]',
-  '[::1]',
-];
+const BLOCKED_HOSTNAMES = ['localhost', 'localhost.localdomain', '0.0.0.0', '[::]', '[::1]'];
 
 export interface ValidationResult {
   valid: boolean;
@@ -107,10 +101,10 @@ function sanitizeUrl(url: URL): string {
   // Normalize path
   // Remove double slashes (except in protocol)
   let path = url.pathname.replace(/\/+/g, '/');
-  
+
   // Remove path traversal attempts
   path = path.replace(/\.\./g, '');
-  
+
   url.pathname = path;
 
   return url.toString();
@@ -135,16 +129,18 @@ export function validateMailtoUrl(url: string): ValidationResult {
   return { valid: true, sanitizedUrl: url };
 }
 
-export function parseMailtoUrl(url: string): { to: string; subject?: string; body?: string } | null {
+export function parseMailtoUrl(
+  url: string,
+): { to: string; subject?: string; body?: string } | null {
   if (!url.startsWith('mailto:')) {
     return null;
   }
 
   const withoutScheme = url.slice(7);
   const queryStart = withoutScheme.indexOf('?');
-  
+
   const to = queryStart > -1 ? withoutScheme.slice(0, queryStart) : withoutScheme;
-  
+
   let subject: string | undefined;
   let body: string | undefined;
 

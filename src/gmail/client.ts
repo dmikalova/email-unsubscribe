@@ -46,7 +46,9 @@ async function rateLimitedFetch(url: string, options: RequestInit = {}): Promise
   const timeSinceLastRequest = now - lastRequestTime;
 
   if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-    await new Promise((resolve) => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+    await new Promise((resolve) =>
+      setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest),
+    );
   }
 
   lastRequestTime = Date.now();
@@ -231,10 +233,7 @@ export async function sendEmail(
     body,
   ].join('\r\n');
 
-  const encodedMessage = btoa(message)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+  const encodedMessage = btoa(message).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
   const response = await gmailFetch('/messages/send', {
     method: 'POST',

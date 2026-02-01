@@ -15,7 +15,3 @@ CREATE INDEX idx_processed_emails_processed_at ON processed_emails(processed_at)
 
 COMMENT ON TABLE processed_emails IS 'Track which emails have been processed to ensure idempotency';
 `;
-
-export const down = `
-DROP TABLE IF EXISTS processed_emails;
-`;

@@ -36,8 +36,3 @@ CREATE INDEX idx_audit_log_details ON audit_log USING GIN (details);
 
 COMMENT ON TABLE audit_log IS 'Audit trail for significant system events';
 `;
-
-export const down = `
-DROP TABLE IF EXISTS audit_log;
-DROP TYPE IF EXISTS audit_action;
-`;

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -12,29 +12,31 @@
           extend: {
             colors: {
               primary: {
-                50: '#eff6ff',
-                100: '#dbeafe',
-                200: '#bfdbfe',
-                300: '#93c5fd',
-                400: '#60a5fa',
-                500: '#3b82f6',
-                600: '#2563eb',
-                700: '#1d4ed8',
-                800: '#1e40af',
-                900: '#1e3a8a',
+                50: '#fce4ec',
+                100: '#f8bbd9',
+                200: '#f48fb1',
+                300: '#f06292',
+                400: '#ec407a',
+                500: '#e91e63',
+                600: '#d81b60',
+                700: '#c2185b',
+                800: '#ad1457',
+                900: '#880e4f',
               },
             },
             boxShadow: {
-              'material': '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+              material: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
               'material-lg': '0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12)',
               'material-xl': '0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10)',
             },
           },
         },
-      }
+      };
     </script>
     <style>
-      [v-cloak] { display: none; }
+      [v-cloak] {
+        display: none;
+      }
     </style>
   </head>
   <body class="bg-gray-100 min-h-screen">
@@ -44,11 +46,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex items-center justify-between h-16">
             <div class="flex items-center">
-              <span class="text-xl font-semibold">📧 Email Unsubscribe</span>
+              <span class="text-xl font-semibold">Email Unsubscribe</span>
             </div>
             <div class="flex space-x-4">
-              <button 
-                v-for="tab in tabs" 
+              <button
+                v-for="tab in tabs"
                 :key="tab.id"
                 @click="currentTab = tab.id"
                 :class="[
@@ -83,21 +85,40 @@
             </div>
             <div class="bg-white rounded-lg shadow-material p-6">
               <div class="text-sm font-medium text-gray-500">Success Rate</div>
-              <div class="text-3xl font-bold text-primary-600">{{ stats.successRate.toFixed(1) }}%</div>
+              <div class="text-3xl font-bold text-primary-600">
+                {{ stats.successRate.toFixed(1) }}%
+              </div>
             </div>
           </div>
 
           <!-- Recent Activity -->
           <div class="bg-white rounded-lg shadow-material p-6">
             <h2 class="text-lg font-semibold mb-4">Recent Activity</h2>
-            <div class="overflow-x-auto">
+            <div v-if="recentActivity.length === 0" class="text-center py-12">
+              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              <p class="text-gray-500">No unsubscribe activity yet</p>
+              <p class="text-gray-400 text-sm mt-1">
+                Activity will appear here once emails are processed
+              </p>
+            </div>
+            <div v-else class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sender</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Sender
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Method
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Status
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Time
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -107,7 +128,9 @@
                     <td class="px-4 py-3">
                       <span :class="statusClass(item.status)">{{ item.status }}</span>
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">{{ formatTime(item.attemptedAt) }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">
+                      {{ formatTime(item.attemptedAt) }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -119,25 +142,57 @@
         <div v-if="currentTab === 'failed'">
           <div class="bg-white rounded-lg shadow-material p-6">
             <h2 class="text-lg font-semibold mb-4">Failed Unsubscribes</h2>
-            <div class="overflow-x-auto">
+            <div v-if="failedAttempts.length === 0" class="text-center py-12">
+              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="text-gray-500">No failed unsubscribes</p>
+              <p class="text-gray-400 text-sm mt-1">Failed attempts will appear here for review</p>
+            </div>
+            <div v-else class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sender</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Retries</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Sender
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Reason
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Retries
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                   <tr v-for="item in failedAttempts" :key="item.id" class="hover:bg-gray-50">
                     <td class="px-4 py-3 text-sm text-gray-900">{{ item.sender }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-500">{{ item.failureReason || 'Unknown' }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">
+                      {{ item.failureReason || 'Unknown' }}
+                    </td>
                     <td class="px-4 py-3 text-sm text-gray-500">{{ item.retryCount }}</td>
                     <td class="px-4 py-3 text-sm">
-                      <button @click="viewDetails(item)" class="text-primary-600 hover:text-primary-800 mr-2">View</button>
-                      <button @click="retryUnsubscribe(item.id)" class="text-yellow-600 hover:text-yellow-800 mr-2">Retry</button>
-                      <button @click="markResolved(item.id)" class="text-green-600 hover:text-green-800">Resolve</button>
+                      <button
+                        @click="viewDetails(item)"
+                        class="text-primary-600 hover:text-primary-800 mr-2"
+                      >
+                        View
+                      </button>
+                      <button
+                        @click="retryUnsubscribe(item.id)"
+                        class="text-yellow-600 hover:text-yellow-800 mr-2"
+                      >
+                        Retry
+                      </button>
+                      <button
+                        @click="markResolved(item.id)"
+                        class="text-green-600 hover:text-green-800"
+                      >
+                        Resolve
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -151,18 +206,38 @@
           <div class="bg-white rounded-lg shadow-material p-6">
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-lg font-semibold">Allow List</h2>
-              <button @click="showAddModal = true" class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">
+              <button
+                @click="showAddModal = true"
+                class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
+              >
                 Add Entry
               </button>
             </div>
-            <div class="overflow-x-auto">
+            <div v-if="allowList.length === 0" class="text-center py-12">
+              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <p class="text-gray-500">No allowed senders yet</p>
+              <p class="text-gray-400 text-sm mt-1">
+                Add emails or domains you want to keep receiving
+              </p>
+            </div>
+            <div v-else class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Type
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Value
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Notes
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -171,7 +246,12 @@
                     <td class="px-4 py-3 text-sm text-gray-900 font-mono">{{ item.value }}</td>
                     <td class="px-4 py-3 text-sm text-gray-500">{{ item.notes || '-' }}</td>
                     <td class="px-4 py-3 text-sm">
-                      <button @click="removeFromAllowList(item.id)" class="text-red-600 hover:text-red-800">Remove</button>
+                      <button
+                        @click="removeFromAllowList(item.id)"
+                        class="text-red-600 hover:text-red-800"
+                      >
+                        Remove
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -184,14 +264,31 @@
         <div v-if="currentTab === 'domains'">
           <div class="bg-white rounded-lg shadow-material p-6">
             <h2 class="text-lg font-semibold mb-4">Domain Statistics</h2>
-            <div class="overflow-x-auto">
+            <div v-if="domainStats.length === 0" class="text-center py-12">
+              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+              </svg>
+              <p class="text-gray-500">No domain statistics yet</p>
+              <p class="text-gray-400 text-sm mt-1">
+                Statistics will appear as emails are processed
+              </p>
+            </div>
+            <div v-else class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Domain</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Success</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Failed</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Domain
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Total
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Success
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Failed
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -213,30 +310,54 @@
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-lg font-semibold">Patterns</h2>
               <div class="space-x-2">
-                <button @click="exportPatterns" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">
+                <button
+                  @click="exportPatterns"
+                  class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
+                >
                   Export
                 </button>
-                <label class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 cursor-pointer">
+                <label
+                  class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 cursor-pointer"
+                >
                   Import
-                  <input type="file" @change="importPatterns" accept=".json" class="hidden">
+                  <input type="file" @change="importPatterns" accept=".json" class="hidden" />
                 </label>
               </div>
             </div>
-            <div class="overflow-x-auto">
+            <div v-if="patterns.length === 0" class="text-center py-12">
+              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+              </svg>
+              <p class="text-gray-500">No patterns configured</p>
+              <p class="text-gray-400 text-sm mt-1">
+                Import patterns to help identify unsubscribe buttons
+              </p>
+            </div>
+            <div v-else class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Selector</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Match Count</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Name
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Type
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Selector
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      Match Count
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                   <tr v-for="item in patterns" :key="item.id" class="hover:bg-gray-50">
                     <td class="px-4 py-3 text-sm text-gray-900">{{ item.name }}</td>
                     <td class="px-4 py-3 text-sm text-gray-500">{{ item.type }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-500 font-mono truncate max-w-xs">{{ item.selector }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500 font-mono truncate max-w-xs">
+                      {{ item.selector }}
+                    </td>
                     <td class="px-4 py-3 text-sm text-gray-500">{{ item.matchCount }}</td>
                   </tr>
                 </tbody>
@@ -247,7 +368,10 @@
       </main>
 
       <!-- Add Allow List Modal -->
-      <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div
+        v-if="showAddModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+      >
         <div class="bg-white rounded-lg shadow-material-xl p-6 w-96">
           <h3 class="text-lg font-semibold mb-4">Add to Allow List</h3>
           <div class="space-y-4">
@@ -260,57 +384,101 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
-              <input v-model="newEntry.value" type="text" class="w-full border rounded-md px-3 py-2" 
-                     :placeholder="newEntry.type === 'email' ? 'user@example.com' : 'example.com'">
+              <input
+                v-model="newEntry.value"
+                type="text"
+                class="w-full border rounded-md px-3 py-2"
+                :placeholder="newEntry.type === 'email' ? 'user@example.com' : 'example.com'"
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
-              <input v-model="newEntry.notes" type="text" class="w-full border rounded-md px-3 py-2">
+              <input
+                v-model="newEntry.notes"
+                type="text"
+                class="w-full border rounded-md px-3 py-2"
+              />
             </div>
             <div class="flex justify-end space-x-2">
-              <button @click="showAddModal = false" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-              <button @click="addToAllowList" class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">Add</button>
+              <button
+                @click="showAddModal = false"
+                class="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                @click="addToAllowList"
+                class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
+              >
+                Add
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Detail Modal -->
-      <div v-if="selectedItem" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div
+        v-if="selectedItem"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+      >
         <div class="bg-white rounded-lg shadow-material-xl p-6 w-2/3 max-h-[80vh] overflow-y-auto">
           <h3 class="text-lg font-semibold mb-4">Unsubscribe Details</h3>
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div><span class="font-medium">Sender:</span> {{ selectedItem.sender }}</div>
             <div><span class="font-medium">Domain:</span> {{ selectedItem.senderDomain }}</div>
             <div><span class="font-medium">Method:</span> {{ selectedItem.method }}</div>
-            <div><span class="font-medium">Status:</span> <span :class="statusClass(selectedItem.status)">{{ selectedItem.status }}</span></div>
-            <div><span class="font-medium">Failure Reason:</span> {{ selectedItem.failureReason || 'N/A' }}</div>
+            <div>
+              <span class="font-medium">Status:</span>
+              <span :class="statusClass(selectedItem.status)">{{ selectedItem.status }}</span>
+            </div>
+            <div>
+              <span class="font-medium">Failure Reason:</span> {{ selectedItem.failureReason ||
+              'N/A' }}
+            </div>
             <div><span class="font-medium">Retries:</span> {{ selectedItem.retryCount }}</div>
           </div>
           <div v-if="selectedItem.failureDetails" class="mb-4">
             <span class="font-medium">Details:</span>
-            <pre class="bg-gray-100 p-2 rounded mt-1 text-sm">{{ selectedItem.failureDetails }}</pre>
+            <pre class="bg-gray-100 p-2 rounded mt-1 text-sm">
+{{ selectedItem.failureDetails }}</pre
+            >
           </div>
           <div v-if="selectedItem.screenshotPath" class="mb-4">
             <span class="font-medium">Screenshot:</span>
             <div class="mt-2 border rounded">
-              <img :src="'/screenshots/' + selectedItem.id + '.png'" alt="Screenshot" class="max-w-full">
+              <img
+                :src="'/screenshots/' + selectedItem.id + '.png'"
+                alt="Screenshot"
+                class="max-w-full"
+              />
             </div>
           </div>
           <div class="flex justify-end space-x-2">
-            <a v-if="selectedItem.tracePath" :href="'/api/failed/' + selectedItem.id + '/trace'" 
-               class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">
+            <a
+              v-if="selectedItem.tracePath"
+              :href="'/api/failed/' + selectedItem.id + '/trace'"
+              class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
+            >
               Download Trace
             </a>
-            <button @click="selectedItem = null" class="px-4 py-2 text-gray-600 hover:text-gray-800">Close</button>
+            <button
+              @click="selectedItem = null"
+              class="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Toast Notifications -->
       <div class="fixed bottom-4 right-4 space-y-2">
-        <div v-for="toast in toasts" :key="toast.id" 
-             :class="['px-4 py-2 rounded-md shadow-material text-white', toast.type === 'success' ? 'bg-green-600' : 'bg-red-600']">
+        <div
+          v-for="toast in toasts"
+          :key="toast.id"
+          :class="['px-4 py-2 rounded-md shadow-material text-white', toast.type === 'success' ? 'bg-green-600' : 'bg-red-600']"
+        >
           {{ toast.message }}
         </div>
       </div>
@@ -330,7 +498,14 @@
             { id: 'patterns', label: 'Patterns' },
           ];
 
-          const stats = ref({ total: 0, success: 0, failed: 0, uncertain: 0, pending: 0, successRate: 0 });
+          const stats = ref({
+            total: 0,
+            success: 0,
+            failed: 0,
+            uncertain: 0,
+            pending: 0,
+            successRate: 0,
+          });
           const recentActivity = ref([]);
           const failedAttempts = ref([]);
           const allowList = ref([]);
@@ -345,7 +520,7 @@
             const id = Date.now();
             toasts.value.push({ id, message, type });
             setTimeout(() => {
-              toasts.value = toasts.value.filter(t => t.id !== id);
+              toasts.value = toasts.value.filter((t) => t.id !== id);
             }, 3000);
           };
 
@@ -505,13 +680,29 @@
           });
 
           return {
-            currentTab, tabs, stats, recentActivity, failedAttempts,
-            allowList, domainStats, patterns, selectedItem, showAddModal,
-            newEntry, toasts, statusClass, formatTime, viewDetails,
-            retryUnsubscribe, markResolved, addToAllowList, removeFromAllowList,
-            exportPatterns, importPatterns
+            currentTab,
+            tabs,
+            stats,
+            recentActivity,
+            failedAttempts,
+            allowList,
+            domainStats,
+            patterns,
+            selectedItem,
+            showAddModal,
+            newEntry,
+            toasts,
+            statusClass,
+            formatTime,
+            viewDetails,
+            retryUnsubscribe,
+            markResolved,
+            addToAllowList,
+            removeFromAllowList,
+            exportPatterns,
+            importPatterns,
           };
-        }
+        },
       }).mount('#app');
     </script>
   </body>

@@ -1,6 +1,6 @@
 // CLI for running database migrations
 
-import { runMigrations, rollbackMigration, checkMigrations, closeConnection } from './index.ts';
+import { checkMigrations, closeConnection, rollbackMigration, runMigrations } from './index.ts';
 
 const command = Deno.args[0];
 

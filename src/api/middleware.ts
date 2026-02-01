@@ -26,8 +26,10 @@ export async function authMiddleware(c: Context, next: Next) {
   }
 
   // Get session cookie from main domain
-  const sessionCookie = c.req.header('Cookie')?.split(';')
-    .find(c => c.trim().startsWith('session='));
+  const sessionCookie = c.req
+    .header('Cookie')
+    ?.split(';')
+    .find((c) => c.trim().startsWith('session='));
 
   if (!sessionCookie) {
     // Redirect to main domain login
@@ -64,7 +66,7 @@ export async function authMiddleware(c: Context, next: Next) {
 function validateSession(token: string): SessionData | null {
   // TODO: Implement actual session validation
   // For now, return a mock session if token exists
-  
+
   // Example: Call main domain's session endpoint
   // const response = await fetch(`https://${SESSION_DOMAIN}/api/session/validate`, {
   //   headers: { Authorization: `Bearer ${token}` }
@@ -89,12 +91,12 @@ const requestCounts = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 100; // requests per window
 const RATE_WINDOW = 60 * 1000; // 1 minute
 
-export function rateLimitMiddleware(c: Context, next: Next) {
+export async function rateLimitMiddleware(c: Context, next: Next) {
   const ip = c.req.header('X-Forwarded-For') || c.req.header('X-Real-IP') || 'unknown';
   const now = Date.now();
 
   let entry = requestCounts.get(ip);
-  
+
   if (!entry || entry.resetAt < now) {
     entry = { count: 0, resetAt: now + RATE_WINDOW };
     requestCounts.set(ip, entry);
@@ -111,31 +113,36 @@ export function rateLimitMiddleware(c: Context, next: Next) {
   c.header('X-RateLimit-Remaining', Math.max(0, RATE_LIMIT - entry.count).toString());
   c.header('X-RateLimit-Reset', Math.ceil(entry.resetAt / 1000).toString());
 
-  return next();
+  await next();
 }
 
 // CSRF protection middleware
-export function csrfMiddleware(c: Context, next: Next) {
+export async function csrfMiddleware(c: Context, next: Next) {
   // Skip CSRF for GET requests and OAuth routes
   if (c.req.method === 'GET' || c.req.path.startsWith('/oauth/')) {
-    return next();
+    await next();
+    return;
   }
 
   const csrfToken = c.req.header('X-CSRF-Token');
-  const cookieToken = c.req.header('Cookie')?.split(';')
-    .find(c => c.trim().startsWith('csrf='))
-    ?.split('=')[1]?.trim();
+  const cookieToken = c.req
+    .header('Cookie')
+    ?.split(';')
+    .find((c) => c.trim().startsWith('csrf='))
+    ?.split('=')[1]
+    ?.trim();
 
   // In development, skip CSRF if configured
   if (Deno.env.get('SKIP_CSRF') === 'true') {
-    return next();
+    await next();
+    return;
   }
 
   if (!csrfToken || !cookieToken || csrfToken !== cookieToken) {
     return c.json({ error: 'Invalid CSRF token' }, 403);
   }
 
-  return next();
+  await next();
 }
 
 // Generate CSRF token
@@ -146,7 +153,7 @@ export function generateCsrfToken(): string {
 // Secure cookie settings
 export function getSecureCookieOptions() {
   const isProduction = Deno.env.get('NODE_ENV') === 'production';
-  
+
   return {
     httpOnly: true,
     secure: isProduction,
