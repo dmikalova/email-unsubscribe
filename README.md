@@ -66,14 +66,22 @@ deno task migrate:create <name>
 ## Documentation
 
 - [Google OAuth Setup](docs/setup-google.md)
-- [Northflank Deployment](docs/deployment.md)
+- [Deployment Guide](docs/deployment.md)
 - [Architecture Overview](docs/architecture.md)
 - [Local Development](docs/development.md)
 
 ## Deployment
 
-The application is deployed on [Northflank](https://northflank.com). See [docs/deployment.md](docs/deployment.md) for configuration details.
+The application is deployed on [Google Cloud Run](https://cloud.google.com/run) with [Supabase](https://supabase.com) for PostgreSQL. Cloud Run scales to zero when idle, minimizing costs for personal use.
 
-## License
+**Key features:**
 
-MIT
+- Scale-to-zero serverless containers
+- Automatic PR preview environments
+- Infrastructure managed in a separate repo via Terramate
+
+See [docs/deployment.md](docs/deployment.md) for configuration details.
+
+### Deployment Contract
+
+The [`deploy.config.ts`](deploy.config.ts) file defines this application's runtime requirements in a platform-agnostic format. Infrastructure tooling consumes this contract to provision appropriate resources.
