@@ -1,5 +1,5 @@
 # Playwright browser server - exposes browsers via WebSocket
-FROM mcr.microsoft.com/playwright:v1.49.0-noble
+FROM mcr.microsoft.com/playwright:v1.58.1-noble
 
 # Create data directories owned by the built-in pwuser
 RUN mkdir -p /app/data/screenshots /app/data/traces && \
