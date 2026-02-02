@@ -95,8 +95,18 @@
           <div class="bg-white rounded-lg shadow-material p-6">
             <h2 class="text-lg font-semibold mb-4">Recent Activity</h2>
             <div v-if="recentActivity.length === 0" class="text-center py-12">
-              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              <svg
+                class="w-16 h-16 mx-auto mb-4 text-primary-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
               </svg>
               <p class="text-gray-500">No unsubscribe activity yet</p>
               <p class="text-gray-400 text-sm mt-1">
@@ -107,18 +117,10 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Sender
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Method
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Status
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Time
-                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Sender</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Method</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Time</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -143,8 +145,18 @@
           <div class="bg-white rounded-lg shadow-material p-6">
             <h2 class="text-lg font-semibold mb-4">Failed Unsubscribes</h2>
             <div v-if="failedAttempts.length === 0" class="text-center py-12">
-              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                class="w-16 h-16 mx-auto mb-4 text-primary-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <p class="text-gray-500">No failed unsubscribes</p>
               <p class="text-gray-400 text-sm mt-1">Failed attempts will appear here for review</p>
@@ -153,18 +165,10 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Sender
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Reason
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Retries
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Actions
-                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Sender</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Reason</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Retries</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -214,8 +218,18 @@
               </button>
             </div>
             <div v-if="allowList.length === 0" class="text-center py-12">
-              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              <svg
+                class="w-16 h-16 mx-auto mb-4 text-primary-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
               </svg>
               <p class="text-gray-500">No allowed senders yet</p>
               <p class="text-gray-400 text-sm mt-1">
@@ -226,18 +240,10 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Type
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Value
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Notes
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Actions
-                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Value</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Notes</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -265,8 +271,18 @@
           <div class="bg-white rounded-lg shadow-material p-6">
             <h2 class="text-lg font-semibold mb-4">Domain Statistics</h2>
             <div v-if="domainStats.length === 0" class="text-center py-12">
-              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+              <svg
+                class="w-16 h-16 mx-auto mb-4 text-primary-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                />
               </svg>
               <p class="text-gray-500">No domain statistics yet</p>
               <p class="text-gray-400 text-sm mt-1">
@@ -277,18 +293,10 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Domain
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Total
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Success
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Failed
-                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Domain</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Total</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Success</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Failed</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -325,8 +333,18 @@
               </div>
             </div>
             <div v-if="patterns.length === 0" class="text-center py-12">
-              <svg class="w-16 h-16 mx-auto mb-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+              <svg
+                class="w-16 h-16 mx-auto mb-4 text-primary-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+                />
               </svg>
               <p class="text-gray-500">No patterns configured</p>
               <p class="text-gray-400 text-sm mt-1">
@@ -337,15 +355,9 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Name
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Type
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      Selector
-                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Selector</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
                       Match Count
                     </th>
