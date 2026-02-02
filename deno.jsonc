@@ -7,13 +7,19 @@
   // Available tasks: deno task <name>
   "tasks": {
     // Development with hot reload
-    "dev": "deno run --allow-net --allow-env --allow-read --allow-write --allow-sys --allow-run --watch src/main.ts",
+    "dev": "deno run -P --watch src/main.ts",
     // Production start
-    "start": "deno run --allow-net --allow-env --allow-read --allow-write --allow-sys --allow-run src/main.ts",
-    // Run all tests
-    "test": "deno test --allow-net --allow-env --allow-read --allow-write --allow-sys --allow-run tests/",
+    "start": "deno run -P src/main.ts",
+    // Run unit tests only (default, no external deps required)
+    "test": "deno test -P tests/unit/",
+    // Run unit tests only (explicit alias)
+    "test:unit": "deno test -P tests/unit/",
+    // Run integration tests (requires running PostgreSQL)
+    "test:integration": "deno test -P tests/integration/",
+    // Run all tests (unit + integration, requires PostgreSQL)
+    "test:all": "deno test -P tests/",
     // Run tests with coverage report
-    "test:coverage": "deno test --allow-net --allow-env --allow-read --allow-write --allow-sys --allow-run --coverage=coverage tests/",
+    "test:coverage": "deno test -P --coverage=coverage tests/unit/",
     // Lint TypeScript files
     "lint": "deno lint",
     // Format all files
@@ -21,9 +27,30 @@
     // Type-check without running
     "check": "deno check src/**/*.ts",
     // Run database migrations (additive-only, no down migrations)
-    "migrate": "deno run --allow-net --allow-env --allow-read src/db/cli.ts up",
+    "migrate": "deno run -P src/db/cli.ts",
     // Check migration status
-    "migrate:status": "deno run --allow-net --allow-env --allow-read src/db/cli.ts status",
+    "migrate:status": "deno run -P src/db/cli.ts status",
+    // Decrypt all sops-encrypted secret files to .json (removes .sops from filename)
+    "secrets:decrypt": "for f in secrets/*.sops.json; do sops -d \"$f\" > \"${f%.sops.json}.json\"; done",
+    // Encrypt all .json secret files to .sops.json
+    "secrets:encrypt": "for f in secrets/*.json; do sops -e \"$f\" > \"${f%.json}.sops.json\"; done",
+  },
+
+  // Default permissions for run, test, bench
+  "permissions": {
+    "default": {
+      "env": true,
+      "net": true,
+      "read": true,
+      "run": true,
+      "sys": true,
+      "write": true,
+    },
+  },
+
+  // Test configuration
+  "test": {
+    "include": ["tests/"],
   },
 
   // Import map for dependencies

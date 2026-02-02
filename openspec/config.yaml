@@ -9,15 +9,15 @@ context: |
   - Frontend: Vue.js + Tailwind CSS + Headless UI (Material Design-inspired styling)
   - Build/Dev: Vite
   - Testing: Vitest + Playwright for E2E
-  - Database: PostgreSQL (dedicated schema on shared Northflank instance)
+  - Database: PostgreSQL (Supabase with Supavisor connection pooler)
   - Authentication: Google OAuth 2.0 (shared for Gmail API and dashboard auth)
-  
+
   # Conventions
   - We use conventional commits
   - Single-user system (personal use only, not multi-tenant/SaaS)
   - Pattern-based unsubscribe automation with iterative improvement
   - Failed flows surface with screenshots for debugging
-  
+
   # Domain: Email Unsubscribe Automation
   - Connects to Gmail via OAuth to scan inbox
   - Extracts unsubscribe links from headers (List-Unsubscribe) and body
@@ -25,12 +25,12 @@ context: |
   - Maintains allow list of senders to preserve
   - Tracks compliance and surfaces failures for pattern improvement
   - Web dashboard at email-unsubscribe.cddc39.tech
-  
+
   # Deployment
-  - Containerized on Northflank PaaS
-  - CI/CD via GitHub Actions
+  - Google Cloud Run (serverless, scale-to-zero)
+  - CI/CD via GitHub Actions calling Dagger workflows
   - Secure credential management via environment variables
-  
+
   # Database Migrations
   - Migrations are additive-only: never drop tables or columns
   - No down migrations - data preservation is paramount

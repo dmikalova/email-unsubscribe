@@ -1,208 +1,181 @@
-# Northflank Deployment Guide
+# Deployment Guide
 
-This guide covers deploying the Email Unsubscribe application to Northflank.
+This guide covers deploying the Email Unsubscribe application to Google Cloud Run with Supabase for PostgreSQL.
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    GitHub Actions                            │
+│  (calls reusable Dagger workflow from infra repo)           │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  Google Cloud Run                            │
+│  - Scale to zero when idle                                  │
+│  - Source deploys via Buildpacks                            │
+│  - Secrets from Secret Manager                              │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Supabase                                  │
+│  - Managed PostgreSQL                                       │
+│  - Supavisor connection pooler                              │
+│  - Separate prod/preview projects                           │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## Prerequisites
 
-- [Northflank account](https://northflank.com)
-- GitHub repository with the application code
-- PostgreSQL addon (shared or dedicated)
+- Google Cloud project with Cloud Run enabled
+- Supabase project (production + preview)
+- GitHub repository with Workload Identity Federation configured
 
-## Project Setup
+## Environment Variables
 
-### 1. Create a New Project
+### Required Secrets (via Secret Manager)
 
-1. Log in to Northflank
-2. Click "Create Project"
-3. Name it "email-unsubscribe"
+| Secret                 | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `DATABASE_URL`         | Supabase pooler connection string (port 6543) |
+| `GOOGLE_CLIENT_ID`     | OAuth 2.0 client ID for Gmail API             |
+| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 client secret                       |
+| `ENCRYPTION_KEY`       | 32-byte hex key for encrypting OAuth tokens   |
 
-### 2. Connect GitHub Repository
+### Optional Configuration
 
-1. Go to "Git" in your project
-2. Click "Connect Git"
-3. Authorize Northflank for your GitHub account
-4. Select the `email-unsubscribe` repository
+| Variable            | Default             | Description                                  |
+| ------------------- | ------------------- | -------------------------------------------- |
+| `PORT`              | `8000`              | HTTP server port                             |
+| `LOG_LEVEL`         | `info`              | Logging verbosity (debug, info, warn, error) |
+| `DATABASE_SCHEMA`   | `email_unsubscribe` | PostgreSQL schema name                       |
+| `DATABASE_POOL_MAX` | `10`                | Maximum database connections                 |
 
-## Database Setup
+## Deployment Contract
 
-### Option A: Shared PostgreSQL (Recommended for Personal Use)
+The [`deploy.config.ts`](../deploy.config.ts) file defines this application's runtime requirements:
 
-If you have an existing PostgreSQL addon:
+- Runtime: Deno 2.0+
+- Entry point: `src/main.ts`
+- Health check: `/health` returning HTTP 200
+- Resources: 256MB min, 512MB recommended
 
-1. Create a new database `email_unsubscribe` in your shared instance
-2. The application uses the `email_unsubscribe` schema (separate from other apps)
+Infrastructure tooling in the separate infra repo consumes this contract.
 
-### Option B: Dedicated PostgreSQL Addon
-
-1. Go to "Addons" → "Create Addon"
-2. Select "PostgreSQL"
-3. Choose your plan (the smallest is fine for personal use)
-4. Name it "email-unsubscribe-db"
-5. Click "Create"
-
-## Service Configuration
-
-### 1. Create the Service
-
-1. Go to "Services" → "Create Service"
-2. Select "Combined" (build and run)
-3. Configure:
-   - **Name**: email-unsubscribe
-   - **Type**: Deployment
-   - **Git branch**: main
-   - **Dockerfile path**: `/Dockerfile`
-
-### 2. Configure Resources
-
-Recommended resources for personal use:
-
-- **CPU**: 0.2 vCPU
-- **Memory**: 512 MB (1 GB recommended for Chromium)
-- **Instances**: 1
-
-### 3. Configure Environment Variables
-
-Add the following environment variables:
-
-| Variable               | Value                                                  | Notes                 |
-| ---------------------- | ------------------------------------------------------ | --------------------- |
-| `PORT`                 | `8000`                                                 | Required              |
-| `DATABASE_URL`         | `postgresql://...`                                     | From PostgreSQL addon |
-| `DATABASE_SCHEMA`      | `email_unsubscribe`                                    | Schema name           |
-| `GOOGLE_CLIENT_ID`     | Your OAuth client ID                                   | See setup-google.md   |
-| `GOOGLE_CLIENT_SECRET` | Your OAuth client secret                               | Mark as secret        |
-| `GOOGLE_REDIRECT_URI`  | `https://email-unsubscribe.cddc39.tech/oauth/callback` | Production URL        |
-| `ENCRYPTION_KEY`       | Your encryption key                                    | Mark as secret        |
-| `SESSION_DOMAIN`       | `cddc39.tech`                                          | For cookie sharing    |
-| `SCREENSHOTS_PATH`     | `/app/data/screenshots`                                | Default               |
-| `TRACES_PATH`          | `/app/data/traces`                                     | Default               |
-
-### 4. Configure Health Checks
-
-1. Go to service settings → "Health Checks"
-2. Add HTTP health check:
-   - **Path**: `/api/health`
-   - **Port**: `8000`
-   - **Interval**: `30s`
-   - **Timeout**: `10s`
-
-### 5. Configure Networking
-
-1. Go to "Networking" → "Ports"
-2. Add port `8000` (HTTP)
-3. Enable public networking
-
-## Custom Domain Setup
-
-### 1. Add Domain
-
-1. Go to "Networking" → "Domains"
-2. Click "Add Domain"
-3. Enter: `email-unsubscribe.cddc39.tech`
-
-### 2. Configure DNS
-
-Add a CNAME record in your DNS provider:
-
-```
-email-unsubscribe.cddc39.tech CNAME your-service.northflank.app
-```
-
-### 3. Enable TLS
-
-Northflank automatically provisions TLS certificates via Let's Encrypt.
-
-## Persistent Storage (Optional)
-
-For persistent screenshots and traces:
-
-1. Go to "Volumes" → "Create Volume"
-2. Create volume:
-   - **Name**: data
-   - **Size**: 1 GB
-3. Mount to service at `/app/data`
-
-## Deployment
+## CI/CD Pipeline
 
 ### Automatic Deployment
 
-Northflank automatically deploys on push to main branch.
+The application is automatically deployed via GitHub Actions:
 
-### Manual Deployment
+1. **Pull Request** → Deploys to preview environment (`app-pr-{N}`)
+2. **Merge to main** → Deploys to production
+3. **PR Close** → Cleans up preview environment
 
-1. Go to "Deployments"
-2. Click "Create Deployment"
-3. Select the latest build
-4. Click "Deploy"
+### Workflow File
+
+See [`.github/workflows/ci.yaml`](../.github/workflows/ci.yaml) which calls a reusable Dagger workflow from the infra repo.
+
+## Environments
+
+### Production
+
+- **URL**: Cloud Run service URL (or custom domain when configured)
+- **Database**: Supabase production project
+- **Scaling**: 0-1 instances (scale to zero when idle)
+
+### Preview (PR environments)
+
+- **URL**: `https://app-pr-{N}-{hash}.run.app`
+- **Database**: Shared Supabase preview project
+- **Lifecycle**: Created on PR open, deleted on PR close
+- **Scaling**: Scale to zero when idle (no cost)
+
+## Database Connection
+
+The application connects to Supabase via the Supavisor connection pooler:
+
+```
+postgresql://postgres.[project-ref]:[password]@aws-0-us-west-1.pooler.supabase.com:6543/postgres?sslmode=require
+```
+
+Key configuration:
+
+- Port `6543` for pooler (not `5432` for direct connection)
+- SSL mode `require` for encrypted connections
+- Transaction mode pooling for serverless compatibility
+
+## Health Checks
+
+Cloud Run uses the `/health` endpoint for liveness probes:
+
+```bash
+curl https://your-service.run.app/health
+# {"status":"ok","timestamp":"2025-01-01T00:00:00.000Z"}
+```
 
 ## Monitoring
 
 ### Logs
 
-View application logs in "Logs" tab. Logs are in JSON format for easy parsing.
+Application logs are automatically captured by Cloud Logging. View in Google Cloud Console:
+
+```bash
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=email-unsubscribe"
+```
 
 ### Metrics
 
-Monitor CPU, memory, and network in the "Metrics" tab.
+Monitor via Cloud Run metrics in Google Cloud Console:
 
-### Alerts (Optional)
+- Request latency
+- Instance count
+- Memory/CPU utilization
 
-Set up alerts for:
+## Rollback
 
-- High CPU/memory usage
-- Service health check failures
-- Error rate thresholds
+Cloud Run maintains revision history. To rollback:
 
-## CI/CD Integration
+```bash
+# List revisions
+gcloud run revisions list --service email-unsubscribe
 
-The repository includes GitHub Actions workflows:
+# Route traffic to previous revision
+gcloud run services update-traffic email-unsubscribe --to-revisions=email-unsubscribe-00005-abc=100
+```
 
-- **CI** (`ci.yml`): Runs on all PRs and pushes
-- **Deploy** (`deploy.yml`): Deploys to Northflank on main branch
+Each revision is labeled with its git SHA for traceability.
 
-### Configure GitHub Secrets
+## Cost Optimization
 
-Add these secrets to your GitHub repository:
+Cloud Run scales to zero when idle, meaning you only pay for actual usage:
 
-| Secret               | Value                   |
-| -------------------- | ----------------------- |
-| `REGISTRY_URL`       | Northflank registry URL |
-| `REGISTRY_USERNAME`  | Registry username       |
-| `REGISTRY_PASSWORD`  | Registry password       |
-| `NORTHFLANK_API_KEY` | API key for deployments |
+- **Idle**: $0 (no instances running)
+- **Active**: ~$0.00002400 per vCPU-second
 
-### Configure GitHub Variables
-
-Add these variables:
-
-| Variable             | Value                           |
-| -------------------- | ------------------------------- |
-| `IMAGE_NAME`         | `email-unsubscribe`             |
-| `NORTHFLANK_PROJECT` | Project ID                      |
-| `NORTHFLANK_SERVICE` | Service ID                      |
-| `APP_DOMAIN`         | `email-unsubscribe.cddc39.tech` |
+For a personal app with sporadic usage, monthly costs are typically under $1.
 
 ## Troubleshooting
 
-### Container Won't Start
+### Cold Start Issues
 
-1. Check logs for error messages
-2. Verify environment variables are set
-3. Ensure database is accessible
+Deno has fast cold starts (~300-800ms). If cold starts are problematic:
 
-### Database Connection Failed
+1. Set `min_instances=1` in Cloud Run (adds ~$5/month)
+2. Or accept occasional cold starts for personal use
 
-1. Verify DATABASE_URL is correct
-2. Check if the database schema exists
-3. Run migrations manually if needed
+### Database Connection Errors
 
-### Out of Memory
+If you see "too many connections" errors:
 
-Chromium requires significant memory. Increase to 1 GB if you see OOM errors.
+1. Ensure you're using the pooler endpoint (port 6543)
+2. Reduce `DATABASE_POOL_MAX` if needed
+3. Check Supabase dashboard for connection limits
 
-### Slow Unsubscribe Processing
+### Preview Environment Not Created
 
-Browser automation is CPU-intensive. Consider:
-
-- Increasing CPU allocation
-- Adding rate limiting between unsubscribes
+1. Check GitHub Actions logs for the PR
+2. Verify Workload Identity Federation is configured
+3. Ensure the infra repo's reusable workflow is accessible

@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Deno
+.deno/
+
+# Environment
+.env
+.env.*
+.envrc
+
+# Unencrypted secrets - these should never be committed
+# Encrypted *.sops.json files ARE safe to commit
+secrets/*.json
+!secrets/*.sops.json
+!secrets/*.sops.json.example
+
+# Data
+data/
+*.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+coverage/
+
+# Logs
+*.log

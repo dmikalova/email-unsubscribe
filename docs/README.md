@@ -50,4 +50,4 @@ See `.env.example` for required variables.
 
 ## Deployment
 
-The application is deployed on Northflank. See [docs/deployment.md](docs/deployment.md) for details.
+The application is deployed on Google Cloud Run with Supabase for PostgreSQL. See [deployment.md](deployment.md) for details.

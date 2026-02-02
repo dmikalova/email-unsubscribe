@@ -7,6 +7,8 @@ This guide covers setting up and running the Email Unsubscribe application local
 - [Deno](https://deno.land/) v2.0 or later
 - [Docker](https://www.docker.com/) and Docker Compose
 - [Google Cloud Project](./setup-google.md) with Gmail API enabled
+- [direnv](https://direnv.net/) for automatic environment loading
+- [SOPS](https://github.com/mozilla/sops) and [age](https://github.com/FiloSottile/age) for secrets
 
 ## Quick Start
 
@@ -17,41 +19,75 @@ git clone https://github.com/dmikalova/email-unsubscribe.git
 cd email-unsubscribe
 ```
 
-### 2. Set Up Environment Variables
+### 2. Set Up SOPS and age
+
+Install the tools:
 
 ```bash
-cp .env.example .env
+brew install sops age direnv
 ```
 
-Edit `.env` with your credentials:
+Generate an age key (if you don't have one):
 
 ```bash
-# Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/email_unsubscribe
-DATABASE_SCHEMA=email_unsubscribe
-
-# Google OAuth (see docs/setup-google.md)
-GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-client-secret
-GOOGLE_REDIRECT_URI=http://localhost:8000/oauth/callback
-
-# Security
-ENCRYPTION_KEY=your-32-character-encryption-key
-
-# Development settings
-SKIP_AUTH=true
-SKIP_CSRF=true
+mkdir -p ~/.age
+age-keygen -o ~/.age/key.txt
 ```
 
-### 3. Start PostgreSQL
-
-Using Docker Compose:
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
 
 ```bash
-docker compose up db -d
+export SOPS_AGE_KEY_FILE=~/.age/key.txt
+eval "$(direnv hook zsh)"  # or bash
 ```
 
-Or use an existing PostgreSQL instance.
+### 3. Configure SOPS
+
+Get your age public key and update `.sops.yaml`:
+
+```bash
+age-keygen -y ~/.age/key.txt
+# Copy the output (age1...) and replace the placeholder in .sops.yaml
+```
+
+### 4. Create Secrets File
+
+```bash
+sops secrets/google.sops.json
+```
+
+Add your secrets (see `secrets/google.sops.json.example` for format):
+
+```json
+{
+  "GOOGLE_CLIENT_ID": "your-client-id.apps.googleusercontent.com",
+  "GOOGLE_CLIENT_SECRET": "your-client-secret",
+  "ENCRYPTION_KEY": "your-32-byte-hex-encryption-key"
+}
+```
+
+### 5. Allow direnv
+
+```bash
+direnv allow
+```
+
+This automatically loads secrets from SOPS when you `cd` into the project.
+
+### 6. Start PostgreSQL
+
+For local development, you can use Docker to run PostgreSQL:
+
+```bash
+docker run --name postgres-dev \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=email_unsubscribe \
+  -p 5432:5432 \
+  -d postgres:16-alpine
+```
+
+Or use an existing PostgreSQL instance, or connect to your Supabase preview database.
 
 ### 4. Run Database Migrations
 
@@ -79,18 +115,16 @@ The application will be available at http://localhost:8000
 | `deno task fmt`     | Format code                              |
 | `deno task migrate` | Run database migrations                  |
 
-## Running with Docker Compose
+## PR Preview Environments
 
-For a full local environment including the application:
+When you open a pull request, a preview environment is automatically deployed:
 
-```bash
-docker compose up --build
-```
+1. **Automatic deployment**: PR triggers CI workflow → deploys to `app-pr-{N}`
+2. **Preview URL**: Posted as a comment on the PR
+3. **Shared database**: Uses Supabase preview project (not production)
+4. **Auto-cleanup**: Deleted when PR is closed/merged
 
-This starts:
-
-- Application on port 8000
-- PostgreSQL on port 5432
+This lets you test changes in a production-like environment before merging.
 
 ## Project Structure
 
@@ -111,9 +145,9 @@ email-unsubscribe/
 │   └── integration/     # Integration tests
 ├── docs/                # Documentation
 ├── openspec/            # Project specifications
+├── deploy.config.ts     # Deployment contract
 ├── deno.json            # Deno configuration
-├── Dockerfile           # Container build
-└── docker-compose.yml   # Local development setup
+└── .github/workflows/   # CI/CD workflows
 ```
 
 ## Working with the Codebase
