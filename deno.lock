@@ -1,11 +1,33 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/assert@1": "1.0.18",
+    "jsr:@std/dotenv@0.225": "0.225.6",
+    "jsr:@std/internal@^1.0.12": "1.0.12",
+    "npm:@dmikalova/mklv-config@1": "1.1.0",
     "npm:hono@4": "4.11.7",
     "npm:playwright@1": "1.58.1",
     "npm:postgres@3": "3.4.8"
   },
+  "jsr": {
+    "@std/assert@1.0.18": {
+      "integrity": "270245e9c2c13b446286de475131dc688ca9abcd94fc5db41d43a219b34d1c78",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/dotenv@0.225.6": {
+      "integrity": "1d6f9db72f565bd26790fa034c26e45ecb260b5245417be76c2279e5734c421b"
+    },
+    "@std/internal@1.0.12": {
+      "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
+    }
+  },
   "npm": {
+    "@dmikalova/mklv-config@1.1.0": {
+      "integrity": "sha512-ZeVpgO0VF/cbXz5CyVBVXXj3AUZuujmSQixjX6MMqU3eCIu8uHNK+QGmEUdjXEtTunwoRtHpMwRlz/4uq/4hBg==",
+      "tarball": "https://npm.pkg.github.com/download/@dmikalova/mklv-config/1.1.0/95e30ce9ddce16ada6dbbedec1cd36e0638001e5"
+    },
     "fsevents@2.3.2": {
       "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
       "os": ["darwin"],
@@ -70,6 +92,7 @@
     "dependencies": [
       "jsr:@std/assert@1",
       "jsr:@std/dotenv@0.225",
+      "npm:@dmikalova/mklv-config@1",
       "npm:hono@4",
       "npm:playwright@1",
       "npm:postgres@3"
