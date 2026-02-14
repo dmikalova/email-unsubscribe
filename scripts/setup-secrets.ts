@@ -204,7 +204,7 @@ async function main() {
   }
 
   // Load existing secrets
-  let secrets = (await decryptSecrets()) ?? {};
+  const secrets = (await decryptSecrets()) ?? {};
 
   console.log(colors.blue('Enter your secrets:\n'));
 
