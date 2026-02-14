@@ -84,4 +84,4 @@ See [docs/deployment.md](docs/deployment.md) for configuration details.
 
 ### Deployment Contract
 
-The [`deploy.config.ts`](deploy.config.ts) file defines this application's runtime requirements in a platform-agnostic format. Infrastructure tooling consumes this contract to provision appropriate resources.
+The [`deploy.config.ts`](mklv.config.mts) file defines this application's runtime requirements in a platform-agnostic format. Infrastructure tooling consumes this contract to provision appropriate resources.
