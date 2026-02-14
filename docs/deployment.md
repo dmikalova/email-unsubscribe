@@ -55,7 +55,7 @@ This guide covers deploying the Email Unsubscribe application to Google Cloud Ru
 
 ## Deployment Contract
 
-The [`deploy.config.ts`](../deploy.config.ts) file defines this application's runtime requirements:
+The [`deploy.config.ts`](../mklv.config.mts) file defines this application's runtime requirements:
 
 - Runtime: Deno 2.0+
 - Entry point: `src/main.ts`

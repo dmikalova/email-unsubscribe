@@ -1,39 +1,24 @@
 # CI/CD Pipeline
 #
-# This workflow calls a reusable Dagger pipeline from the infra repo.
+# Calls the reusable Dagger pipeline from github-meta.
 # All CI/CD logic is centralized there - this file just triggers it.
 #
-# The reusable workflow handles:
+# The workflow handles:
 # - Linting and type checking
 # - Running tests
-# - Deploying to Cloud Run (production or preview)
-# - Cleaning up preview environments
+# - Building container with `deno compile`
+# - Publishing to GHCR
+# - Deploying to Cloud Run
 
-name: CI
+name: CI/CD
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, closed]
 
 jobs:
-  # Main CI/CD pipeline - lint, test, deploy
-  ci:
-    # Don't run CI on PR close - only cleanup
-    if: github.event.action != 'closed'
-    uses: dmikalova/infra/.github/workflows/dagger.yaml@main
-    with:
-      contract-path: deploy.config.ts
-      environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
-      pr-number: ${{ github.event.pull_request.number || '' }}
-    secrets: inherit
-
-  # Cleanup preview environment when PR is closed
-  cleanup:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    uses: dmikalova/infra/.github/workflows/dagger-cleanup.yaml@main
-    with:
-      pr-number: ${{ github.event.pull_request.number }}
+  pipeline:
+    uses: dmikalova/github-meta/.github/workflows/deno-cloudrun.yaml@main
     secrets: inherit
