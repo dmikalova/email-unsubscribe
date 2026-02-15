@@ -1,4 +1,4 @@
-import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertEquals } from '@std/assert';
 import { app } from '../../src/app.ts';
 
 Deno.test('health check returns 200 OK with status and timestamp', async () => {

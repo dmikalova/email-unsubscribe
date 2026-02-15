@@ -2,8 +2,13 @@
 
 import { type Context, type Next } from 'hono';
 
-const SESSION_DOMAIN = Deno.env.get('SESSION_DOMAIN') || 'cddc39.tech';
-const AUTH_REDIRECT_URL = `https://${SESSION_DOMAIN}/login`;
+function getSessionDomain(): string {
+  return Deno.env.get('SESSION_DOMAIN') || 'cddc39.tech';
+}
+
+function getAuthRedirectUrl(): string {
+  return `https://${getSessionDomain()}/login`;
+}
 
 export interface SessionData {
   userId: string;
@@ -33,13 +38,13 @@ export async function authMiddleware(c: Context, next: Next) {
 
   if (!sessionCookie) {
     // Redirect to main domain login
-    return c.redirect(AUTH_REDIRECT_URL);
+    return c.redirect(getAuthRedirectUrl());
   }
 
   const sessionToken = sessionCookie.split('=')[1]?.trim();
 
   if (!sessionToken) {
-    return c.redirect(AUTH_REDIRECT_URL);
+    return c.redirect(getAuthRedirectUrl());
   }
 
   // Validate session with main domain
@@ -47,12 +52,12 @@ export async function authMiddleware(c: Context, next: Next) {
   const session = await validateSession(sessionToken);
 
   if (!session) {
-    return c.redirect(AUTH_REDIRECT_URL);
+    return c.redirect(getAuthRedirectUrl());
   }
 
   // Check session expiration
   if (new Date(session.expiresAt) < new Date()) {
-    return c.redirect(AUTH_REDIRECT_URL);
+    return c.redirect(getAuthRedirectUrl());
   }
 
   // Set user in context
