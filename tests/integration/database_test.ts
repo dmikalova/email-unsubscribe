@@ -1,7 +1,7 @@
 // Integration tests for database operations
 // These tests require a running PostgreSQL instance
 
-import { assertEquals, assertExists } from 'std/assert';
+import { assertEquals, assertExists } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 
 // Skip tests if DATABASE_URL is not set
 const DATABASE_URL = Deno.env.get('DATABASE_URL');
@@ -10,9 +10,17 @@ const runIntegrationTests = !!DATABASE_URL;
 if (runIntegrationTests) {
   // Dynamic imports to avoid errors when database is not available
   const { runMigrations, closeConnection } = await import('../../src/db/index.ts');
-  const { addToAllowList, removeFromAllowList, isAllowed } = await import('../../src/scanner/allowlist.ts');
-  const { recordUnsubscribeAttempt, getUnsubscribeAttempt, markAsResolved, getStats, getFailedAttempts } = await import('../../src/tracker/tracker.ts');
-  const { logScanStarted, logScanCompleted, getAuditLog } = await import('../../src/tracker/audit.ts');
+  const { addToAllowList, removeFromAllowList, isAllowed } =
+    await import('../../src/scanner/allowlist.ts');
+  const {
+    recordUnsubscribeAttempt,
+    getUnsubscribeAttempt,
+    markAsResolved,
+    getStats,
+    getFailedAttempts,
+  } = await import('../../src/tracker/tracker.ts');
+  const { logScanStarted, logScanCompleted, getAuditLog } =
+    await import('../../src/tracker/audit.ts');
 
   // Setup: Run migrations before tests
   Deno.test({

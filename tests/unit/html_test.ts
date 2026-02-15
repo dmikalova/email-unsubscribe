@@ -1,6 +1,6 @@
 // Unit tests for HTML link extraction
 
-import { assertEquals } from 'std/assert';
+import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { extractUnsubscribeLinksFromHtml } from '../../src/scanner/html.ts';
 
 Deno.test('extractUnsubscribeLinksFromHtml - finds unsubscribe link by text', () => {
