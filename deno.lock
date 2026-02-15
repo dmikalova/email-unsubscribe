@@ -1,14 +1,13 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@std/assert@1": "1.0.18",
-    "jsr:@std/dotenv@0.225": "0.225.6",
+    "jsr:@std/assert@^1.0.18": "1.0.18",
+    "jsr:@std/dotenv@~0.225.6": "0.225.6",
     "jsr:@std/internal@^1.0.12": "1.0.12",
-    "npm:@dmikalova/mklv-config@*": "1.1.0",
-    "npm:@dmikalova/mklv-config@1": "1.1.0",
-    "npm:hono@4": "4.11.7",
-    "npm:playwright@1": "1.58.1",
-    "npm:postgres@3": "3.4.8"
+    "npm:@dmikalova/mklv-config@^1.6.2": "1.6.2",
+    "npm:hono@^4.11.9": "4.11.9",
+    "npm:playwright@^1.58.2": "1.58.2",
+    "npm:postgres@^3.4.8": "3.4.8"
   },
   "jsr": {
     "@std/assert@1.0.18": {
@@ -25,24 +24,24 @@
     }
   },
   "npm": {
-    "@dmikalova/mklv-config@1.1.0": {
-      "integrity": "sha512-ZeVpgO0VF/cbXz5CyVBVXXj3AUZuujmSQixjX6MMqU3eCIu8uHNK+QGmEUdjXEtTunwoRtHpMwRlz/4uq/4hBg==",
-      "tarball": "https://npm.pkg.github.com/download/@dmikalova/mklv-config/1.1.0/95e30ce9ddce16ada6dbbedec1cd36e0638001e5"
+    "@dmikalova/mklv-config@1.6.2": {
+      "integrity": "sha512-UzYdKOuRZ7I4UYwUZ66Mzbo5408+GVox19FPwIwQgJAbsHxHwOA5jhHYgbr2j6wRtosw2bscPOYjHyw+GwP+Iw==",
+      "tarball": "https://npm.pkg.github.com/download/@dmikalova/mklv-config/1.6.2/62d01580c2d72901210083b2a933c0b191d8df71"
     },
     "fsevents@2.3.2": {
       "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
       "os": ["darwin"],
       "scripts": true
     },
-    "hono@4.11.7": {
-      "integrity": "sha512-l7qMiNee7t82bH3SeyUCt9UF15EVmaBvsppY2zQtrbIhl/yzBTny+YUxsVjSjQ6gaqaeVtZmGocom8TzBlA4Yw=="
+    "hono@4.11.9": {
+      "integrity": "sha512-Eaw2YTGM6WOxA6CXbckaEvslr2Ne4NFsKrvc0v97JD5awbmeBLO5w9Ho9L9kmKonrwF9RJlW6BxT1PVv/agBHQ=="
     },
-    "playwright-core@1.58.1": {
-      "integrity": "sha512-bcWzOaTxcW+VOOGBCQgnaKToLJ65d6AqfLVKEWvexyS3AS6rbXl+xdpYRMGSRBClPvyj44njOWoxjNdL/H9UNg==",
+    "playwright-core@1.58.2": {
+      "integrity": "sha512-yZkEtftgwS8CsfYo7nm0KE8jsvm6i/PTgVtB8DL726wNf6H2IMsDuxCpJj59KDaxCtSnrWan2AeDqM7JBaultg==",
       "bin": true
     },
-    "playwright@1.58.1": {
-      "integrity": "sha512-+2uTZHxSCcxjvGc5C891LrS1/NlxglGxzrC4seZiVjcYVQfUa87wBL6rTDqzGjuoWNjnBzRqKmF6zRYGMvQUaQ==",
+    "playwright@1.58.2": {
+      "integrity": "sha512-vA30H8Nvkq/cPBnNw4Q8TWz1EJyqgpuinBcHET0YVJVFldr8JDNiU9LaWAE1KqSkRYazuaBhTpB5ZzShOezQ6A==",
       "dependencies": [
         "playwright-core"
       ],
@@ -91,12 +90,12 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/assert@1",
-      "jsr:@std/dotenv@0.225",
-      "npm:@dmikalova/mklv-config@1",
-      "npm:hono@4",
-      "npm:playwright@1",
-      "npm:postgres@3"
+      "jsr:@std/assert@^1.0.18",
+      "jsr:@std/dotenv@~0.225.6",
+      "npm:@dmikalova/mklv-config@^1.6.2",
+      "npm:hono@^4.11.9",
+      "npm:playwright@^1.58.2",
+      "npm:postgres@^3.4.8"
     ]
   }
 }
