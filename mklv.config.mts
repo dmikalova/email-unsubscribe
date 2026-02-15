@@ -7,11 +7,14 @@
 
 import { defineConfig } from '@dmikalova/mklv-config';
 
-export default defineConfig({
-  name: 'email-unsubscribe',
-  entrypoint: 'src/main.ts',
-  runtime: {
-    port: 8000,
-    healthCheckPath: '/health',
+export default defineConfig(
+  {
+    name: 'email-unsubscribe',
+    entrypoint: 'src/main.ts',
+    runtime: {
+      port: 8000,
+      healthCheckPath: '/health',
+    },
   },
-}, import.meta);
+  import.meta,
+);

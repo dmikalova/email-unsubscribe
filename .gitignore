@@ -30,8 +30,9 @@ data/
 Thumbs.db
 
 # Build
-dist/
+app
 coverage/
+dist/
 
 # Logs
 *.log
