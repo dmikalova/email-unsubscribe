@@ -3,7 +3,6 @@
   "specifiers": {
     "jsr:@std/assert@^1.0.18": "1.0.18",
     "jsr:@std/internal@^1.0.12": "1.0.12",
-    "npm:@dmikalova/mklv-config@1": "1.6.22",
     "npm:hono@4": "4.11.9",
     "npm:playwright@1": "1.58.2",
     "npm:postgres@3": "3.4.8"
@@ -20,10 +19,6 @@
     }
   },
   "npm": {
-    "@dmikalova/mklv-config@1.6.22": {
-      "integrity": "sha512-fULQ23f7MMO+CCwtYsUwejFoU+Zp8u3dMlEGZxpe1UPP8EI1OPyqk3hkSQMkrtCpab8JReIIQ+azSg8fFmL6Pw==",
-      "tarball": "https://npm.pkg.github.com/download/@dmikalova/mklv-config/1.6.22/28f5575f16a95debdbf5f20e3fc19891c48af7fe"
-    },
     "fsevents@2.3.2": {
       "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
       "os": ["darwin"],
