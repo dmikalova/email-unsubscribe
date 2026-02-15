@@ -1,7 +1,7 @@
 // Unit tests for encryption module
 // Note: These tests require ENCRYPTION_KEY environment variable to be set
 
-import { assertEquals, assertNotEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertEquals, assertNotEquals } from '@std/assert';
 
 // Set a test encryption key (32 bytes base64 encoded)
 const TEST_KEY = btoa('12345678901234567890123456789012');

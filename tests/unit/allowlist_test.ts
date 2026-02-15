@@ -2,7 +2,7 @@
 // Unit tests for allow list functionality
 // Note: These are mostly placeholder tests since allow list requires database
 
-import { assertEquals, assertThrows } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertEquals, assertThrows } from '@std/assert';
 
 // Test the extractDomain function from headers.ts which is used by allow list
 import type { GmailHeader } from '../../src/gmail/client.ts';
