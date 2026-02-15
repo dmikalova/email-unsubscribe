@@ -1,6 +1,6 @@
 // Unit tests for URL validation
 
-import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertEquals } from 'std/assert';
 import { validateUnsubscribeUrl } from '../../src/unsubscribe/validation.ts';
 
 Deno.test('validateUnsubscribeUrl - accepts valid HTTPS URL', () => {
