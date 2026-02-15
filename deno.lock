@@ -4,6 +4,7 @@
     "jsr:@std/assert@1": "1.0.18",
     "jsr:@std/dotenv@0.225": "0.225.6",
     "jsr:@std/internal@^1.0.12": "1.0.12",
+    "npm:@dmikalova/mklv-config@*": "1.1.0",
     "npm:@dmikalova/mklv-config@1": "1.1.0",
     "npm:hono@4": "4.11.7",
     "npm:playwright@1": "1.58.1",
