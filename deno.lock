@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "npm:@dmikalova/mklv-config@*": "1.6.18",
     "npm:@dmikalova/mklv-config@1": "1.6.18",
     "npm:hono@4": "4.11.9",
     "npm:playwright@1": "1.58.2",
