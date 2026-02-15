@@ -1,6 +1,6 @@
 // API Routes for the web dashboard
 
-import { Hono } from '@hono/hono';
+import { Hono } from 'npm:hono@^4';
 import { addToAllowList, getAllowList, removeFromAllowList } from '../scanner/index.ts';
 import { clearIneffectiveFlag, getIneffectiveSenders } from '../scanner/tracking.ts';
 import {

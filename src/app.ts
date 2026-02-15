@@ -1,6 +1,6 @@
 // Hono Application Setup
 
-import { Hono } from '@hono/hono';
+import { Hono } from 'npm:hono@^4';
 import { api, authMiddleware, csrfMiddleware, oauth, rateLimitMiddleware } from './api/index.ts';
 
 export const app = new Hono();

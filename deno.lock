@@ -1,33 +1,11 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@std/assert@^1.0.18": "1.0.18",
-    "jsr:@std/dotenv@~0.225.6": "0.225.6",
-    "jsr:@std/internal@^1.0.12": "1.0.12",
-    "npm:@dmikalova/mklv-config@^1.6.2": "1.6.2",
-    "npm:hono@^4.11.9": "4.11.9",
-    "npm:playwright@^1.58.2": "1.58.2",
-    "npm:postgres@^3.4.8": "3.4.8"
-  },
-  "jsr": {
-    "@std/assert@1.0.18": {
-      "integrity": "270245e9c2c13b446286de475131dc688ca9abcd94fc5db41d43a219b34d1c78",
-      "dependencies": [
-        "jsr:@std/internal"
-      ]
-    },
-    "@std/dotenv@0.225.6": {
-      "integrity": "1d6f9db72f565bd26790fa034c26e45ecb260b5245417be76c2279e5734c421b"
-    },
-    "@std/internal@1.0.12": {
-      "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
-    }
+    "npm:hono@4": "4.11.9",
+    "npm:playwright@1": "1.58.2",
+    "npm:postgres@3": "3.4.8"
   },
   "npm": {
-    "@dmikalova/mklv-config@1.6.2": {
-      "integrity": "sha512-UzYdKOuRZ7I4UYwUZ66Mzbo5408+GVox19FPwIwQgJAbsHxHwOA5jhHYgbr2j6wRtosw2bscPOYjHyw+GwP+Iw==",
-      "tarball": "https://npm.pkg.github.com/download/@dmikalova/mklv-config/1.6.2/62d01580c2d72901210083b2a933c0b191d8df71"
-    },
     "fsevents@2.3.2": {
       "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
       "os": ["darwin"],
@@ -87,15 +65,5 @@
     "https://deno.land/std@0.208.0/assert/unimplemented.ts": "d56fbeecb1f108331a380f72e3e010a1f161baa6956fd0f7cf3e095ae1a4c75a",
     "https://deno.land/std@0.208.0/assert/unreachable.ts": "4600dc0baf7d9c15a7f7d234f00c23bca8f3eba8b140286aaca7aa998cf9a536",
     "https://deno.land/std@0.208.0/fmt/colors.ts": "34b3f77432925eb72cf0bfb351616949746768620b8e5ead66da532f93d10ba2"
-  },
-  "workspace": {
-    "dependencies": [
-      "jsr:@std/assert@^1.0.18",
-      "jsr:@std/dotenv@~0.225.6",
-      "npm:@dmikalova/mklv-config@^1.6.2",
-      "npm:hono@^4.11.9",
-      "npm:playwright@^1.58.2",
-      "npm:postgres@^3.4.8"
-    ]
   }
 }
