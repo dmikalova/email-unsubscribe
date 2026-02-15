@@ -36,10 +36,7 @@ export async function initMigrations(): Promise<void> {
   const sql = getConnection();
   const config = getConfig();
 
-  // Create schema if it doesn't exist
-  await sql.unsafe(`CREATE SCHEMA IF NOT EXISTS ${config.schema}`);
-
-  // Set search path
+  // Schema is created by infrastructure (tofu), set search path to use it
   await sql.unsafe(`SET search_path TO ${config.schema}, public`);
 
   // Create migrations tracking table
