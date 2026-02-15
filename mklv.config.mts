@@ -5,7 +5,7 @@
  * Run directly to output JSON: deno run mklv.config.mts | jq .name
  */
 
-import { defineConfig } from '@dmikalova/mklv-config';
+import { defineConfig } from 'npm:@dmikalova/mklv-config';
 
 export default defineConfig(
   {

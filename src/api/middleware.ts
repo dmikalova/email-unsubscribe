@@ -1,6 +1,6 @@
 // Authentication middleware - validates session from main domain
 
-import { type Context, type Next } from '@hono/hono';
+import { type Context, type Next } from 'npm:hono@^4';
 
 const SESSION_DOMAIN = Deno.env.get('SESSION_DOMAIN') || 'cddc39.tech';
 const AUTH_REDIRECT_URL = `https://${SESSION_DOMAIN}/login`;

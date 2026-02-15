@@ -1,6 +1,6 @@
 // OAuth routes for Gmail authorization
 
-import { Hono } from '@hono/hono';
+import { Hono } from 'npm:hono@^4';
 import { exchangeCodeForTokens, getAuthorizationUrl } from '../gmail/oauth.ts';
 import { hasValidTokens, storeTokens } from '../gmail/tokens.ts';
 import { logOAuthAuthorized } from '../tracker/audit.ts';
