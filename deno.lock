@@ -1,11 +1,16 @@
 {
   "version": "5",
   "specifiers": {
+    "npm:@dmikalova/mklv-config@1": "1.6.18",
     "npm:hono@4": "4.11.9",
     "npm:playwright@1": "1.58.2",
     "npm:postgres@3": "3.4.8"
   },
   "npm": {
+    "@dmikalova/mklv-config@1.6.18": {
+      "integrity": "sha512-y4c8YJ9cFsON2FtyRC5PtAUknG/sEVP3tzSXU9K95jLoyzKy6l7A0JWJLkZWRtU6KF/sDmryh639uiFwIWqhRg==",
+      "tarball": "https://npm.pkg.github.com/download/@dmikalova/mklv-config/1.6.18/462feea7614fdc65ad89e6d34d34a0356ad2dae8"
+    },
     "fsevents@2.3.2": {
       "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
       "os": ["darwin"],
