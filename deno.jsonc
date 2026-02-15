@@ -1,14 +1,6 @@
 {
   "name": "@email-unsubscribe/app",
-  "version": "0.1.0",
   "exports": "./src/main.ts",
-
-  // Configure GitHub Packages registry for @dmikalova scope
-  "npmScopes": {
-    "@dmikalova": {
-      "registry": "https://npm.pkg.github.com"
-    }
-  },
 
   // Available tasks: deno task <name>
   "tasks": {
