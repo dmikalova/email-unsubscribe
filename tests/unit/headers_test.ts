@@ -1,6 +1,6 @@
 // Unit tests for email header parsing
 
-import { assertEquals } from 'std/assert';
+import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import type { GmailHeader } from '../../src/gmail/client.ts';
 import { parseListUnsubscribeHeader } from '../../src/scanner/headers.ts';
 
