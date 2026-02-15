@@ -14,19 +14,19 @@
   // Available tasks: deno task <name>
   "tasks": {
     // Development with hot reload
-    "dev": "deno run -P --watch src/main.ts",
+    "dev": "deno run --permission-set --watch src/main.ts",
     // Production start
-    "start": "deno run -P src/main.ts",
+    "start": "deno run --permission-set src/main.ts",
     // Run unit tests only (default, no external deps required)
-    "test": "deno test -P tests/unit/",
+    "test": "deno test --permission-set tests/unit/",
     // Run unit tests only (explicit alias)
-    "test:unit": "deno test -P tests/unit/",
+    "test:unit": "deno test --permission-set tests/unit/",
     // Run integration tests (requires running PostgreSQL)
-    "test:integration": "deno test -P tests/integration/",
+    "test:integration": "deno test --permission-set tests/integration/",
     // Run all tests (unit + integration, requires PostgreSQL)
-    "test:all": "deno test -P tests/",
+    "test:all": "deno test --permission-set tests/",
     // Run tests with coverage report
-    "test:coverage": "deno test -P --coverage=coverage tests/unit/",
+    "test:coverage": "deno test --permission-set --coverage=coverage tests/unit/",
     // Lint TypeScript files
     "lint": "deno lint",
     // Format all files
@@ -34,9 +34,9 @@
     // Type-check without running
     "check": "deno check src/**/*.ts",
     // Run database migrations (additive-only, no down migrations)
-    "migrate": "deno run -P src/db/cli.ts",
+    "migrate": "deno run --permission-set src/db/cli.ts",
     // Check migration status
-    "migrate:status": "deno run -P src/db/cli.ts status",
+    "migrate:status": "deno run --permission-set src/db/cli.ts status",
     // Decrypt all sops-encrypted secret files to .json (removes .sops from filename)
     "secrets:decrypt": "for f in secrets/*.sops.json; do sops -d \"$f\" > \"${f%.sops.json}.json\"; done",
     // Encrypt all .json secret files to .sops.json
