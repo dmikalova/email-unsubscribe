@@ -1,7 +1,7 @@
 // Database configuration and connection pooling
 // Configured for Supabase with Supavisor connection pooler (port 6543)
 
-import postgres from 'npm:postgres@^3';
+import postgres from 'postgres';
 
 export interface DatabaseConfig {
   url: string;

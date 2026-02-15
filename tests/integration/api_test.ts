@@ -1,7 +1,7 @@
 // Integration tests for API endpoints
 // These tests require the app to be running or use Hono's test client
 
-import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertEquals } from 'std/assert';
 
 // Set test environment variables before importing the app
 Deno.env.set('SKIP_AUTH', 'true');

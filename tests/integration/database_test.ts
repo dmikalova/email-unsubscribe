@@ -1,7 +1,7 @@
 // Integration tests for database operations
 // These tests require a running PostgreSQL instance
 
-import { assertEquals, assertExists } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertEquals, assertExists } from 'std/assert';
 
 // Skip tests if DATABASE_URL is not set
 const DATABASE_URL = Deno.env.get('DATABASE_URL');
