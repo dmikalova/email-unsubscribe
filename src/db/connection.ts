@@ -21,11 +21,6 @@ export function getConfig(): DatabaseConfig {
     throw new Error('DATABASE_URL environment variable is required');
   }
 
-  // Validate SSL is required for Supabase connections
-  if (!url.includes('sslmode=') && !url.includes('ssl=')) {
-    console.warn('DATABASE_URL should include sslmode=require for Supabase connections');
-  }
-
   return {
     url,
     schema: Deno.env.get('DATABASE_SCHEMA') || 'email_unsubscribe',
