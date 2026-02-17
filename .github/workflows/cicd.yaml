@@ -1,14 +1,4 @@
 # CI/CD Pipeline
-#
-# Calls the reusable Dagger pipeline from github-meta.
-# All CI/CD logic is centralized there - this file just triggers it.
-#
-# The workflow handles:
-# - Linting and type checking
-# - Running tests
-# - Building container with `deno compile`
-# - Publishing to GHCR
-# - Deploying to Cloud Run
 
 name: CI/CD
 
