@@ -76,7 +76,7 @@ The application is automatically deployed via GitHub Actions:
 
 ### Workflow File
 
-See [`.github/workflows/ci.yaml`](../.github/workflows/ci.yaml) which calls a reusable Dagger workflow from the infra repo.
+See [`.github/workflows/ci.yaml`](../.github/workflows/cicd.yaml) which calls a reusable Dagger workflow from the infra repo.
 
 ## Environments
 

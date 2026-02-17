@@ -1,13 +1,18 @@
-// Authentication middleware - validates session from main domain
+// Authentication middleware - validates Supabase JWT from session cookie
 
-import { type Context, type Next } from 'hono';
+import { type Context, type Next } from "hono";
+import { verify } from "djwt";
 
 function getSessionDomain(): string {
-  return Deno.env.get('SESSION_DOMAIN') || 'cddc39.tech';
+  return Deno.env.get("SESSION_DOMAIN") || "mklv.tech";
 }
 
-function getAuthRedirectUrl(): string {
-  return `https://${getSessionDomain()}/login`;
+function getLoginUrl(returnUrl?: string): string {
+  const loginBase = `https://login.${getSessionDomain()}/login`;
+  if (returnUrl) {
+    return `${loginBase}?returnUrl=${encodeURIComponent(returnUrl)}`;
+  }
+  return loginBase;
 }
 
 export interface SessionData {
@@ -16,79 +21,149 @@ export interface SessionData {
   expiresAt: Date;
 }
 
-// Middleware to validate session cookie from main domain
+// Cached CryptoKey for JWT verification
+let jwtKey: CryptoKey | null = null;
+
+/**
+ * Get or create the CryptoKey for JWT verification.
+ * Uses HS256 (HMAC-SHA256) as Supabase JWTs use this algorithm.
+ */
+async function getJwtKey(): Promise<CryptoKey> {
+  if (jwtKey) return jwtKey;
+
+  const secret = Deno.env.get("SUPABASE_JWT_KEY");
+  if (!secret) {
+    throw new Error("SUPABASE_JWT_KEY environment variable is required");
+  }
+
+  const encoder = new TextEncoder();
+  jwtKey = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"],
+  );
+
+  return jwtKey;
+}
+
+/**
+ * Validate a Supabase JWT and extract session data.
+ *
+ * Validates:
+ * - Signature using HS256 with SUPABASE_JWT_KEY
+ * - Audience is "authenticated"
+ * - Issuer matches expected Supabase project URL
+ * - Token is not expired (with minimal clock skew tolerance)
+ */
+async function validateSession(token: string): Promise<SessionData | null> {
+  try {
+    const key = await getJwtKey();
+
+    // Verify and decode the JWT
+    const payload = await verify(token, key);
+
+    // Verify audience
+    if (payload.aud !== "authenticated") {
+      console.warn("JWT validation failed: invalid audience");
+      return null;
+    }
+
+    // Verify issuer (Supabase project URL)
+    const expectedIssuer = Deno.env.get("SUPABASE_URL");
+    if (expectedIssuer) {
+      const issuerBase = expectedIssuer.replace(/\/$/, "");
+      const payloadIssuer = (payload.iss as string)?.replace(/\/$/, "");
+      if (payloadIssuer && !payloadIssuer.startsWith(issuerBase)) {
+        console.warn("JWT validation failed: invalid issuer");
+        return null;
+      }
+    }
+
+    // Check expiration (djwt already validates exp, but we double-check with minimal skew)
+    const exp = payload.exp as number;
+    if (!exp) {
+      console.warn("JWT validation failed: missing expiration");
+      return null;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const clockSkewTolerance = 60; // 1 minute tolerance
+    if (exp + clockSkewTolerance < now) {
+      console.warn("JWT validation failed: token expired");
+      return null;
+    }
+
+    // Extract user info
+    const sub = payload.sub as string;
+    const email = payload.email as string;
+
+    if (!sub) {
+      console.warn("JWT validation failed: missing subject");
+      return null;
+    }
+
+    return {
+      userId: sub,
+      email: email || "",
+      expiresAt: new Date(exp * 1000),
+    };
+  } catch (err) {
+    // Don't log the actual error details to avoid leaking sensitive info
+    console.warn("JWT validation failed: verification error");
+    return null;
+  }
+}
+
+/**
+ * Authentication middleware - validates session cookie containing Supabase JWT.
+ *
+ * On invalid/missing session: redirects to login portal with returnUrl.
+ */
 export async function authMiddleware(c: Context, next: Next) {
   // Skip auth for health check and OAuth routes
   const path = c.req.path;
-  if (path === '/health' || path.startsWith('/oauth/')) {
+  if (path === "/health" || path.startsWith("/oauth/")) {
     return next();
   }
 
   // In development, skip auth if configured
-  if (Deno.env.get('SKIP_AUTH') === 'true') {
-    c.set('user', { userId: 'dev', email: 'dev@localhost' });
+  if (Deno.env.get("SKIP_AUTH") === "true") {
+    c.set("user", { userId: "dev", email: "dev@localhost" });
     return next();
   }
 
-  // Get session cookie from main domain
+  // Build return URL for login redirect
+  const protocol = c.req.header("X-Forwarded-Proto") || "https";
+  const host = c.req.header("Host") || "";
+  const returnUrl = `${protocol}://${host}${c.req.path}`;
+
+  // Get session cookie
   const sessionCookie = c.req
-    .header('Cookie')
-    ?.split(';')
-    .find((c) => c.trim().startsWith('session='));
+    .header("Cookie")
+    ?.split(";")
+    .find((cookie) => cookie.trim().startsWith("session="));
 
   if (!sessionCookie) {
-    // Redirect to main domain login
-    return c.redirect(getAuthRedirectUrl());
+    return c.redirect(getLoginUrl(returnUrl));
   }
 
-  const sessionToken = sessionCookie.split('=')[1]?.trim();
-
+  const sessionToken = sessionCookie.split("=")[1]?.trim();
   if (!sessionToken) {
-    return c.redirect(getAuthRedirectUrl());
+    return c.redirect(getLoginUrl(returnUrl));
   }
 
-  // Validate session with main domain
-  // This is a placeholder - actual implementation depends on main domain's auth system
+  // Validate JWT
   const session = await validateSession(sessionToken);
-
   if (!session) {
-    return c.redirect(getAuthRedirectUrl());
-  }
-
-  // Check session expiration
-  if (new Date(session.expiresAt) < new Date()) {
-    return c.redirect(getAuthRedirectUrl());
+    return c.redirect(getLoginUrl(returnUrl));
   }
 
   // Set user in context
-  c.set('user', session);
+  c.set("user", session);
 
   return next();
-}
-
-// Placeholder for session validation
-// In production, this would call the main domain's session validation endpoint
-function validateSession(token: string): SessionData | null {
-  // TODO: Implement actual session validation
-  // For now, return a mock session if token exists
-
-  // Example: Call main domain's session endpoint
-  // const response = await fetch(`https://${SESSION_DOMAIN}/api/session/validate`, {
-  //   headers: { Authorization: `Bearer ${token}` }
-  // });
-  // if (!response.ok) return null;
-  // return response.json();
-
-  // Mock implementation for development
-  if (token) {
-    return {
-      userId: 'user-1',
-      email: 'user@example.com',
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    };
-  }
-
-  return null;
 }
 
 // Rate limiting middleware
