@@ -8,7 +8,7 @@ function getSessionDomain(): string {
 }
 
 function getLoginUrl(returnUrl?: string): string {
-  const loginBase = `https://login.${getSessionDomain()}/login`;
+  const loginBase = `https://login.${getSessionDomain()}`;
   if (returnUrl) {
     return `${loginBase}?returnUrl=${encodeURIComponent(returnUrl)}`;
   }
