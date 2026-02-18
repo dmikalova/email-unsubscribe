@@ -10,7 +10,7 @@ context: |
   - Build/Dev: Vite
   - Testing: Vitest + Playwright for E2E
   - Database: PostgreSQL (Supabase with Supavisor connection pooler)
-  - Authentication: Google OAuth 2.0 (shared for Gmail API and dashboard auth)
+  - Authentication: Google OAuth 2.0 for Gmail API; dashboard auth via centralized login portal at login.mklv.tech
 
   # Conventions
   - We use conventional commits
@@ -24,7 +24,7 @@ context: |
   - Automates unsubscribe flows via browser (one-click, mailto, multi-step forms)
   - Maintains allow list of senders to preserve
   - Tracks compliance and surfaces failures for pattern improvement
-  - Web dashboard at email-unsubscribe.cddc39.tech
+  - Web dashboard at email-unsubscribe.mklv.tech
 
   # Deployment
   - Google Cloud Run (serverless, scale-to-zero)
