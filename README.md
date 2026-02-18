@@ -53,15 +53,25 @@ deno task lint
 deno task fmt
 ```
 
-### Database Migrations
+### Database Schema
+
+The database schema is defined declaratively in `db/schema.hcl` and managed by [Atlas](https://atlasgo.io/).
 
 ```bash
-# Run migrations
-deno task migrate
+# Install Atlas (macOS)
+brew install ariga/tap/atlas
 
-# Create new migration
-deno task migrate:create <name>
+# View planned schema changes (fetches DATABASE_URL from Secret Manager)
+deno task db:diff
+
+# Apply schema changes
+deno task db:apply
+
+# Or provide DATABASE_URL explicitly
+DATABASE_URL="postgres://..." deno task db:diff
 ```
+
+Schema changes are automatically applied during CI/CD deployments.
 
 ## Documentation
 

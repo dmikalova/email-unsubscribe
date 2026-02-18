@@ -41,3 +41,5 @@ Current state:
 **[Risk] SESSION_DOMAIN mismatch** → If SESSION_DOMAIN doesn't match cookie domain from login portal, sessions won't work. Mitigation: Both services use same env var pattern.
 
 **[Risk] Spec drift** → Documentation may drift from implementation again. Mitigation: Automated spec validation in CI (future).
+
+**[Risk] Supabase Site URL misconfiguration** → If Supabase Auth Site URL is set to localhost, OAuth redirects fail. Discovered during testing: must configure Site URL to `https://login.mklv.tech` in Supabase Dashboard → Authentication → URL Configuration.
