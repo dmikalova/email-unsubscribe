@@ -12,7 +12,7 @@
 
 const APP_NAME = 'email-unsubscribe';
 const SCHEMA_NAME = 'email_unsubscribe';
-const GCP_PROJECT = 'mklv-tech';
+const GCP_PROJECT = 'mklv-infrastructure';
 
 async function getDatabaseUrl(): Promise<string> {
   // Check environment variable first
