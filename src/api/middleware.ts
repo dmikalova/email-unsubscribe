@@ -109,7 +109,7 @@ async function validateSession(token: string): Promise<SessionData | null> {
       email: email || "",
       expiresAt: new Date(exp * 1000),
     };
-  } catch (err) {
+  } catch (_err) {
     // Don't log the actual error details to avoid leaking sensitive info
     console.warn("JWT validation failed: verification error");
     return null;
