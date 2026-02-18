@@ -352,8 +352,10 @@ table "scan_state" {
     columns = [column.id]
   }
   index "idx_scan_state_singleton" {
-    unique  = true
-    columns = [sql("((id IS NOT NULL))")]
+    unique = true
+    on {
+      expr = "(id IS NOT NULL)"
+    }
   }
 }
 
