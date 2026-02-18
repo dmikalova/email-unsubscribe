@@ -48,6 +48,8 @@ export function getConnection(): postgres.Sql {
     transform: {
       undefined: null,
     },
+    // Disable prepared statements - required for Supavisor transaction pooler
+    prepare: false,
     // Set search_path on each new connection so queries find the schema's tables
     connection: {
       search_path: `${config.schema}, public`,
