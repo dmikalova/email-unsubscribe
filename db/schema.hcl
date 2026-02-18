@@ -198,8 +198,7 @@ table "oauth_tokens" {
   primary_key {
     columns = [column.id]
   }
-  index "oauth_tokens_user_id_key" {
-    unique  = true
+  unique "oauth_tokens_user_id_key" {
     columns = [column.user_id]
   }
   index "idx_oauth_tokens_expires_at" {
@@ -292,8 +291,7 @@ table "processed_emails" {
   primary_key {
     columns = [column.id]
   }
-  index "processed_emails_email_id_key" {
-    unique  = true
+  unique "processed_emails_email_id_key" {
     columns = [column.email_id]
   }
   index "idx_processed_emails_email_id" {
