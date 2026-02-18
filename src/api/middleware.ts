@@ -23,28 +23,67 @@ export interface SessionData {
 
 // Cached CryptoKey for JWT verification
 let jwtKey: CryptoKey | null = null;
+let jwtKeyFetchedAt: number = 0;
+const KEY_CACHE_TTL = 3600 * 1000; // 1 hour cache
+
+interface JWK {
+  kty: string;
+  crv: string;
+  x: string;
+  y: string;
+  kid: string;
+  alg: string;
+}
 
 /**
- * Get or create the CryptoKey for JWT verification.
- * Uses HS256 (HMAC-SHA256) as Supabase JWTs use this algorithm.
+ * Fetch the JWKS from Supabase and import the ES256 public key.
+ * Caches the key for 1 hour to handle key rotation.
  */
 async function getJwtKey(): Promise<CryptoKey> {
-  if (jwtKey) return jwtKey;
-
-  const secret = Deno.env.get("SUPABASE_JWT_KEY");
-  if (!secret) {
-    throw new Error("SUPABASE_JWT_KEY environment variable is required");
+  const now = Date.now();
+  
+  // Return cached key if still valid
+  if (jwtKey && (now - jwtKeyFetchedAt) < KEY_CACHE_TTL) {
+    return jwtKey;
   }
 
-  const encoder = new TextEncoder();
-  jwtKey = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign", "verify"],
-  );
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  if (!supabaseUrl) {
+    throw new Error("SUPABASE_URL environment variable is required");
+  }
 
+  // Fetch JWKS from Supabase
+  const jwksUrl = `${supabaseUrl.replace(/\/$/, "")}/auth/v1/.well-known/jwks.json`;
+  const response = await fetch(jwksUrl);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch JWKS: ${response.status}`);
+  }
+
+  const jwks = await response.json() as { keys: JWK[] };
+  
+  if (!jwks.keys || jwks.keys.length === 0) {
+    throw new Error("No keys found in JWKS");
+  }
+
+  // Use the first ES256 key
+  const jwk = jwks.keys.find((k: JWK) => k.alg === "ES256");
+  if (!jwk) {
+    throw new Error("No ES256 key found in JWKS");
+  }
+
+  // Import the JWK as a CryptoKey
+  jwtKey = await crypto.subtle.importKey(
+    "jwk",
+    jwk,
+    { name: "ECDSA", namedCurve: "P-256" },
+    false,
+    ["verify"],
+  );
+  
+  jwtKeyFetchedAt = now;
+  console.log("JWT key fetched from JWKS");
+  
   return jwtKey;
 }
 
@@ -52,7 +91,7 @@ async function getJwtKey(): Promise<CryptoKey> {
  * Validate a Supabase JWT and extract session data.
  *
  * Validates:
- * - Signature using HS256 with SUPABASE_JWT_KEY
+ * - Signature using ES256 with Supabase JWKS public key
  * - Audience is "authenticated"
  * - Issuer matches expected Supabase project URL
  * - Token is not expired (with minimal clock skew tolerance)
