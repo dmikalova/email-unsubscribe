@@ -1,10 +1,10 @@
 // Authentication middleware - validates Supabase JWT from session cookie
 
-import { type Context, type Next } from "hono";
-import { verify } from "djwt";
+import { verify } from 'djwt';
+import { type Context, type Next } from 'hono';
 
 function getSessionDomain(): string {
-  return Deno.env.get("SESSION_DOMAIN") || "mklv.tech";
+  return Deno.env.get('SESSION_DOMAIN') || 'mklv.tech';
 }
 
 function getLoginUrl(returnUrl?: string): string {
@@ -41,49 +41,49 @@ interface JWK {
  */
 async function getJwtKey(): Promise<CryptoKey> {
   const now = Date.now();
-  
+
   // Return cached key if still valid
-  if (jwtKey && (now - jwtKeyFetchedAt) < KEY_CACHE_TTL) {
+  if (jwtKey && now - jwtKeyFetchedAt < KEY_CACHE_TTL) {
     return jwtKey;
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
   if (!supabaseUrl) {
-    throw new Error("SUPABASE_URL environment variable is required");
+    throw new Error('SUPABASE_URL environment variable is required');
   }
 
   // Fetch JWKS from Supabase
-  const jwksUrl = `${supabaseUrl.replace(/\/$/, "")}/auth/v1/.well-known/jwks.json`;
+  const jwksUrl = `${supabaseUrl.replace(/\/$/, '')}/auth/v1/.well-known/jwks.json`;
   const response = await fetch(jwksUrl);
-  
+
   if (!response.ok) {
     throw new Error(`Failed to fetch JWKS: ${response.status}`);
   }
 
-  const jwks = await response.json() as { keys: JWK[] };
-  
+  const jwks = (await response.json()) as { keys: JWK[] };
+
   if (!jwks.keys || jwks.keys.length === 0) {
-    throw new Error("No keys found in JWKS");
+    throw new Error('No keys found in JWKS');
   }
 
   // Use the first ES256 key
-  const jwk = jwks.keys.find((k: JWK) => k.alg === "ES256");
+  const jwk = jwks.keys.find((k: JWK) => k.alg === 'ES256');
   if (!jwk) {
-    throw new Error("No ES256 key found in JWKS");
+    throw new Error('No ES256 key found in JWKS');
   }
 
   // Import the JWK as a CryptoKey
   jwtKey = await crypto.subtle.importKey(
-    "jwk",
+    'jwk',
     jwk,
-    { name: "ECDSA", namedCurve: "P-256" },
+    { name: 'ECDSA', namedCurve: 'P-256' },
     false,
-    ["verify"],
+    ['verify'],
   );
-  
+
   jwtKeyFetchedAt = now;
-  console.log("JWT key fetched from JWKS");
-  
+  console.log('JWT key fetched from JWKS');
+
   return jwtKey;
 }
 
@@ -104,18 +104,18 @@ async function validateSession(token: string): Promise<SessionData | null> {
     const payload = await verify(token, key);
 
     // Verify audience
-    if (payload.aud !== "authenticated") {
-      console.warn("JWT validation failed: invalid audience");
+    if (payload.aud !== 'authenticated') {
+      console.warn('JWT validation failed: invalid audience');
       return null;
     }
 
     // Verify issuer (Supabase project URL)
-    const expectedIssuer = Deno.env.get("SUPABASE_URL");
+    const expectedIssuer = Deno.env.get('SUPABASE_URL');
     if (expectedIssuer) {
-      const issuerBase = expectedIssuer.replace(/\/$/, "");
-      const payloadIssuer = (payload.iss as string)?.replace(/\/$/, "");
+      const issuerBase = expectedIssuer.replace(/\/$/, '');
+      const payloadIssuer = (payload.iss as string)?.replace(/\/$/, '');
       if (payloadIssuer && !payloadIssuer.startsWith(issuerBase)) {
-        console.warn("JWT validation failed: invalid issuer");
+        console.warn('JWT validation failed: invalid issuer');
         return null;
       }
     }
@@ -123,14 +123,14 @@ async function validateSession(token: string): Promise<SessionData | null> {
     // Check expiration (djwt already validates exp, but we double-check with minimal skew)
     const exp = payload.exp as number;
     if (!exp) {
-      console.warn("JWT validation failed: missing expiration");
+      console.warn('JWT validation failed: missing expiration');
       return null;
     }
 
     const now = Math.floor(Date.now() / 1000);
     const clockSkewTolerance = 60; // 1 minute tolerance
     if (exp + clockSkewTolerance < now) {
-      console.warn("JWT validation failed: token expired");
+      console.warn('JWT validation failed: token expired');
       return null;
     }
 
@@ -139,18 +139,18 @@ async function validateSession(token: string): Promise<SessionData | null> {
     const email = payload.email as string;
 
     if (!sub) {
-      console.warn("JWT validation failed: missing subject");
+      console.warn('JWT validation failed: missing subject');
       return null;
     }
 
     return {
       userId: sub,
-      email: email || "",
+      email: email || '',
       expiresAt: new Date(exp * 1000),
     };
   } catch (_err) {
     // Don't log the actual error details to avoid leaking sensitive info
-    console.warn("JWT validation failed: verification error");
+    console.warn('JWT validation failed: verification error');
     return null;
   }
 }
@@ -163,32 +163,32 @@ async function validateSession(token: string): Promise<SessionData | null> {
 export async function authMiddleware(c: Context, next: Next) {
   // Skip auth for health check and OAuth routes
   const path = c.req.path;
-  if (path === "/health" || path.startsWith("/oauth/")) {
+  if (path === '/health' || path.startsWith('/oauth/')) {
     return next();
   }
 
   // In development, skip auth if configured
-  if (Deno.env.get("SKIP_AUTH") === "true") {
-    c.set("user", { userId: "dev", email: "dev@localhost" });
+  if (Deno.env.get('SKIP_AUTH') === 'true') {
+    c.set('user', { userId: 'dev', email: 'dev@localhost' });
     return next();
   }
 
   // Build return URL for login redirect
-  const protocol = c.req.header("X-Forwarded-Proto") || "https";
-  const host = c.req.header("Host") || "";
+  const protocol = c.req.header('X-Forwarded-Proto') || 'https';
+  const host = c.req.header('Host') || '';
   const returnUrl = `${protocol}://${host}${c.req.path}`;
 
   // Get session cookie
   const sessionCookie = c.req
-    .header("Cookie")
-    ?.split(";")
-    .find((cookie) => cookie.trim().startsWith("session="));
+    .header('Cookie')
+    ?.split(';')
+    .find((cookie) => cookie.trim().startsWith('session='));
 
   if (!sessionCookie) {
     return c.redirect(getLoginUrl(returnUrl));
   }
 
-  const sessionToken = sessionCookie.split("=")[1]?.trim();
+  const sessionToken = sessionCookie.split('=')[1]?.trim();
   if (!sessionToken) {
     return c.redirect(getLoginUrl(returnUrl));
   }
@@ -200,7 +200,7 @@ export async function authMiddleware(c: Context, next: Next) {
   }
 
   // Set user in context
-  c.set("user", session);
+  c.set('user', session);
 
   return next();
 }
