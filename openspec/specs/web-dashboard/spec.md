@@ -17,7 +17,8 @@ The system SHALL require authentication and delegate login to the centralized lo
 #### Scenario: Session validation
 
 - **WHEN** validating a session cookie
-- **THEN** the system SHALL verify the JWT signature using HS256 with the SUPABASE_JWT_KEY
+- **THEN** the system SHALL verify the JWT signature using ES256 with public keys fetched from SUPABASE_URL JWKS endpoint
+- **AND** cache JWKS keys for 1 hour to handle key rotation
 - **AND** verify the JWT audience is "authenticated"
 - **AND** verify the JWT is not expired (with 60s clock skew tolerance)
 

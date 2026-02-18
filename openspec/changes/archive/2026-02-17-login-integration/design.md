@@ -5,7 +5,7 @@ Email-unsubscribe middleware was updated during login-portal implementation to r
 Current state:
 
 - Middleware correctly redirects to `https://login.{SESSION_DOMAIN}`
-- JWT verification uses Supabase JWT with HS256
+- JWT verification uses Supabase JWT with ES256 (public keys from JWKS endpoint)
 - Session cookies are scoped to `.mklv.tech` for subdomain sharing
 - Spec is outdated and needs alignment with implementation
 

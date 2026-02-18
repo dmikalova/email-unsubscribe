@@ -5,8 +5,8 @@
 ## 2. Verification
 
 - [x] 2.1 Verify middleware redirects to login.mklv.tech correctly
-- [ ] 2.2 Test end-to-end login flow from email-unsubscribe dashboard
-- [ ] 2.3 Verify session cookie is valid after login redirect
+- [x] 2.2 Test end-to-end login flow from email-unsubscribe dashboard
+- [x] 2.3 Verify session cookie is valid after login redirect
 
 ## 3. Cleanup
 
