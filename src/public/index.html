@@ -69,6 +69,23 @@
       <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <!-- Dashboard Tab -->
         <div v-if="currentTab === 'dashboard'">
+          <!-- Scan Button -->
+          <div class="mb-6 flex justify-end">
+            <button
+              @click="triggerScan"
+              :disabled="scanInProgress"
+              :class="[
+                'px-4 py-2 rounded-md text-sm font-medium transition-colors',
+                scanInProgress
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-primary-600 text-white hover:bg-primary-700'
+              ]"
+            >
+              <span v-if="scanInProgress">Scanning...</span>
+              <span v-else>Scan Now</span>
+            </button>
+          </div>
+
           <!-- Stats Cards -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white rounded-lg shadow-material p-6">
@@ -527,6 +544,7 @@
           const showAddModal = ref(false);
           const newEntry = ref({ type: 'email', value: '', notes: '' });
           const toasts = ref([]);
+          const scanInProgress = ref(false);
 
           const showToast = (message, type = 'success') => {
             const id = Date.now();
@@ -587,6 +605,43 @@
               patterns.value = await res.json();
             } catch (e) {
               console.error('Failed to fetch patterns:', e);
+            }
+          };
+
+          const fetchScanStatus = async () => {
+            try {
+              const res = await fetch('/api/scan/status');
+              const data = await res.json();
+              scanInProgress.value = data.inProgress;
+            } catch (e) {
+              console.error('Failed to fetch scan status:', e);
+            }
+          };
+
+          const triggerScan = async () => {
+            try {
+              scanInProgress.value = true;
+              const res = await fetch('/api/scan', { method: 'POST' });
+              if (res.ok) {
+                showToast('Scan started');
+                // Poll for completion
+                const pollInterval = setInterval(async () => {
+                  await fetchScanStatus();
+                  if (!scanInProgress.value) {
+                    clearInterval(pollInterval);
+                    showToast('Scan complete');
+                    await fetchStats();
+                    await fetchRecent();
+                  }
+                }, 2000);
+              } else {
+                const data = await res.json();
+                showToast(data.error || 'Failed to start scan', 'error');
+                scanInProgress.value = false;
+              }
+            } catch (e) {
+              showToast('Failed to start scan', 'error');
+              scanInProgress.value = false;
             }
           };
 
@@ -689,6 +744,7 @@
             fetchAllowList();
             fetchDomains();
             fetchPatterns();
+            fetchScanStatus();
           });
 
           return {
@@ -713,6 +769,8 @@
             removeFromAllowList,
             exportPatterns,
             importPatterns,
+            scanInProgress,
+            triggerScan,
           };
         },
       }).mount('#app');

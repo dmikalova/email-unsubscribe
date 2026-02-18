@@ -26,6 +26,7 @@ import {
   type PatternExport,
   type PatternType,
 } from '../unsubscribe/index.ts';
+import { isScanInProgress, scanEmails } from '../scanner/scanner.ts';
 
 export const api = new Hono();
 
@@ -284,4 +285,22 @@ api.get('/ready', async (c) => {
 // Liveness check
 api.get('/live', (c) => {
   return c.json({ alive: true });
+});
+
+// Scanner endpoints
+api.get('/scan/status', (c) => {
+  return c.json({ inProgress: isScanInProgress() });
+});
+
+api.post('/scan', async (c) => {
+  if (isScanInProgress()) {
+    return c.json({ error: 'Scan already in progress' }, 409);
+  }
+
+  // Run scan in background, don't block response
+  scanEmails().catch((err) => {
+    console.error('Scan failed:', err);
+  });
+
+  return c.json({ success: true, message: 'Scan started' });
 });
