@@ -2,7 +2,7 @@
 // This file bootstraps the application
 
 import { app } from './app.ts';
-import { closeConnection, runMigrations } from './db/index.ts';
+import { closeConnection } from './db/index.ts';
 import { initializeLabels } from './gmail/labels.ts';
 import { hasValidTokens } from './gmail/tokens.ts';
 import { closeBrowser } from './unsubscribe/index.ts';
@@ -56,9 +56,7 @@ async function initialize() {
   try {
     log('info', 'Starting Email Unsubscribe service', { port });
 
-    // Run database migrations
-    log('info', 'Running database migrations...');
-    await runMigrations();
+    // Schema is managed by Atlas in CI/CD, skip app-level migrations
 
     // Seed default patterns
     log('info', 'Seeding default patterns...');

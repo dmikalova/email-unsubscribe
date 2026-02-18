@@ -25,10 +25,6 @@
     "fmt": "deno fmt",
     // Lint TypeScript files
     "lint": "deno lint",
-    // Run database migrations (additive-only, no down migrations)
-    "migrate": "deno run --permission-set src/db/cli.ts",
-    // Check migration status
-    "migrate:status": "deno run --permission-set src/db/cli.ts status",
     // Decrypt all sops-encrypted secret files to .json (removes .sops from filename)
     "secrets:decrypt": "for f in secrets/*.sops.json; do sops -d \"$f\" > \"${f%.sops.json}.json\"; done",
     // Encrypt all .json secret files to .sops.json
