@@ -2,6 +2,7 @@
 
 import { Hono } from 'hono';
 import { addToAllowList, getAllowList, removeFromAllowList } from '../scanner/index.ts';
+import { isScanInProgress, scanEmails } from '../scanner/scanner.ts';
 import { clearIneffectiveFlag, getIneffectiveSenders } from '../scanner/tracking.ts';
 import {
   logAllowlistAdd,
@@ -26,7 +27,6 @@ import {
   type PatternExport,
   type PatternType,
 } from '../unsubscribe/index.ts';
-import { isScanInProgress, scanEmails } from '../scanner/scanner.ts';
 
 export const api = new Hono();
 
@@ -292,7 +292,7 @@ api.get('/scan/status', (c) => {
   return c.json({ inProgress: isScanInProgress() });
 });
 
-api.post('/scan', async (c) => {
+api.post('/scan', (c) => {
   if (isScanInProgress()) {
     return c.json({ error: 'Scan already in progress' }, 409);
   }
