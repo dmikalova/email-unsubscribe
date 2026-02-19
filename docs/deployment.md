@@ -1,6 +1,7 @@
 # Deployment Guide
 
-This guide covers deploying the Email Unsubscribe application to Google Cloud Run with Supabase for PostgreSQL.
+This guide covers deploying the Email Unsubscribe application to Google Cloud
+Run with Supabase for PostgreSQL.
 
 ## Architecture Overview
 
@@ -55,7 +56,8 @@ This guide covers deploying the Email Unsubscribe application to Google Cloud Ru
 
 ## Deployment Contract
 
-The [`deploy.config.ts`](../mklv.config.mts) file defines this application's runtime requirements:
+The [`deploy.config.ts`](../mklv.config.mts) file defines this application's
+runtime requirements:
 
 - Runtime: Deno 2.0+
 - Entry point: `src/main.ts`
@@ -76,7 +78,8 @@ The application is automatically deployed via GitHub Actions:
 
 ### Workflow File
 
-See [`.github/workflows/ci.yaml`](../.github/workflows/cicd.yaml) which calls a reusable Dagger workflow from the infra repo.
+See [`.github/workflows/ci.yaml`](../.github/workflows/cicd.yaml) which calls a
+reusable Dagger workflow from the infra repo.
 
 ## Environments
 
@@ -120,7 +123,8 @@ curl https://your-service.run.app/health
 
 ### Logs
 
-Application logs are automatically captured by Cloud Logging. View in Google Cloud Console:
+Application logs are automatically captured by Cloud Logging. View in Google
+Cloud Console:
 
 ```bash
 gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=email-unsubscribe"

@@ -15,7 +15,13 @@ const PRIVATE_IP_RANGES = [
   /^fd00:/i, // IPv6 unique local
 ];
 
-const BLOCKED_HOSTNAMES = ['localhost', 'localhost.localdomain', '0.0.0.0', '[::]', '[::1]'];
+const BLOCKED_HOSTNAMES = [
+  "localhost",
+  "localhost.localdomain",
+  "0.0.0.0",
+  "[::]",
+  "[::1]",
+];
 
 export interface ValidationResult {
   valid: boolean;
@@ -25,8 +31,8 @@ export interface ValidationResult {
 
 export function validateUnsubscribeUrl(url: string): ValidationResult {
   // Check if URL is provided
-  if (!url || typeof url !== 'string') {
-    return { valid: false, error: 'URL is required' };
+  if (!url || typeof url !== "string") {
+    return { valid: false, error: "URL is required" };
   }
 
   // Trim whitespace
@@ -37,23 +43,23 @@ export function validateUnsubscribeUrl(url: string): ValidationResult {
   try {
     parsedUrl = new URL(trimmedUrl);
   } catch {
-    return { valid: false, error: 'Invalid URL format' };
+    return { valid: false, error: "Invalid URL format" };
   }
 
   // Validate scheme (HTTP/HTTPS only)
-  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
     return { valid: false, error: `Invalid scheme: ${parsedUrl.protocol}` };
   }
 
   // Check for blocked hostnames
   const hostname = parsedUrl.hostname.toLowerCase();
   if (BLOCKED_HOSTNAMES.includes(hostname)) {
-    return { valid: false, error: 'Blocked hostname' };
+    return { valid: false, error: "Blocked hostname" };
   }
 
   // Check for private IP addresses
   if (isPrivateIp(hostname)) {
-    return { valid: false, error: 'Private IP addresses are not allowed' };
+    return { valid: false, error: "Private IP addresses are not allowed" };
   }
 
   // Check for IP address in hostname (potential SSRF bypass)
@@ -86,7 +92,7 @@ function isIpAddress(hostname: string): boolean {
   }
 
   // IPv6 (simplified check)
-  if (hostname.includes(':')) {
+  if (hostname.includes(":")) {
     return true;
   }
 
@@ -95,15 +101,15 @@ function isIpAddress(hostname: string): boolean {
 
 function sanitizeUrl(url: URL): string {
   // Remove credentials if present
-  url.username = '';
-  url.password = '';
+  url.username = "";
+  url.password = "";
 
   // Normalize path
   // Remove double slashes (except in protocol)
-  let path = url.pathname.replace(/\/+/g, '/');
+  let path = url.pathname.replace(/\/+/g, "/");
 
   // Remove path traversal attempts
-  path = path.replace(/\.\./g, '');
+  path = path.replace(/\.\./g, "");
 
   url.pathname = path;
 
@@ -111,19 +117,21 @@ function sanitizeUrl(url: URL): string {
 }
 
 export function validateMailtoUrl(url: string): ValidationResult {
-  if (!url.startsWith('mailto:')) {
-    return { valid: false, error: 'Not a mailto URL' };
+  if (!url.startsWith("mailto:")) {
+    return { valid: false, error: "Not a mailto URL" };
   }
 
   // Extract email address
   const withoutScheme = url.slice(7);
-  const queryStart = withoutScheme.indexOf('?');
-  const email = queryStart > -1 ? withoutScheme.slice(0, queryStart) : withoutScheme;
+  const queryStart = withoutScheme.indexOf("?");
+  const email = queryStart > -1
+    ? withoutScheme.slice(0, queryStart)
+    : withoutScheme;
 
   // Basic email validation
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailPattern.test(email)) {
-    return { valid: false, error: 'Invalid email address in mailto URL' };
+    return { valid: false, error: "Invalid email address in mailto URL" };
   }
 
   return { valid: true, sanitizedUrl: url };
@@ -132,22 +140,24 @@ export function validateMailtoUrl(url: string): ValidationResult {
 export function parseMailtoUrl(
   url: string,
 ): { to: string; subject?: string; body?: string } | null {
-  if (!url.startsWith('mailto:')) {
+  if (!url.startsWith("mailto:")) {
     return null;
   }
 
   const withoutScheme = url.slice(7);
-  const queryStart = withoutScheme.indexOf('?');
+  const queryStart = withoutScheme.indexOf("?");
 
-  const to = queryStart > -1 ? withoutScheme.slice(0, queryStart) : withoutScheme;
+  const to = queryStart > -1
+    ? withoutScheme.slice(0, queryStart)
+    : withoutScheme;
 
   let subject: string | undefined;
   let body: string | undefined;
 
   if (queryStart > -1) {
     const params = new URLSearchParams(withoutScheme.slice(queryStart + 1));
-    subject = params.get('subject') ?? undefined;
-    body = params.get('body') ?? undefined;
+    subject = params.get("subject") ?? undefined;
+    body = params.get("body") ?? undefined;
   }
 
   return { to: decodeURIComponent(to), subject, body };

@@ -1,3 +1,5 @@
+# Tasks
+
 ## 1. Spec Updates
 
 - [x] 1.1 Sync web-dashboard delta spec to main specs
@@ -11,4 +13,5 @@
 ## 3. Cleanup
 
 - [x] 3.1 Remove any references to cddc39.tech auth in codebase
-- [x] 3.2 Update project context if needed (openspec/config.yaml auth description)
+- [x] 3.2 Update project context if needed (openspec/config.yaml auth
+      description)

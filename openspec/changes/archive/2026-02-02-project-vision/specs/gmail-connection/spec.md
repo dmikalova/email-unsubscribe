@@ -1,13 +1,17 @@
+# Gmail Connection
+
 ## ADDED Requirements
 
 ### Requirement: OAuth authentication with Gmail
 
-The system SHALL authenticate with Gmail using Google OAuth 2.0 to obtain read access to the user's inbox.
+The system SHALL authenticate with Gmail using Google OAuth 2.0 to obtain read
+access to the user's inbox.
 
 #### Scenario: Initial OAuth authorization
 
 - **WHEN** the system is started without valid credentials
-- **THEN** the system SHALL prompt the user to complete OAuth authorization via browser
+- **THEN** the system SHALL prompt the user to complete OAuth authorization via
+  browser
 
 #### Scenario: Token refresh
 
@@ -26,7 +30,8 @@ The system SHALL store OAuth tokens encrypted in the database.
 #### Scenario: Token persistence
 
 - **WHEN** OAuth authorization completes
-- **THEN** the system SHALL store the access token and refresh token encrypted at rest
+- **THEN** the system SHALL store the access token and refresh token encrypted
+  at rest
 
 #### Scenario: Token retrieval
 
@@ -45,7 +50,8 @@ The system SHALL respect Gmail API rate limits.
 #### Scenario: Batch operations
 
 - **WHEN** fetching multiple emails
-- **THEN** the system SHALL use batch requests where possible to minimize API calls
+- **THEN** the system SHALL use batch requests where possible to minimize API
+  calls
 
 #### Scenario: Quota awareness
 
@@ -69,16 +75,19 @@ The system SHALL label emails in Gmail after processing.
 #### Scenario: Label indicates status
 
 - **WHEN** labeling processed emails
-- **THEN** the system SHALL use sub-labels to indicate status (e.g., "Unsubscribed/Success", "Unsubscribed/Failed")
+- **THEN** the system SHALL use sub-labels to indicate status (e.g.,
+  "Unsubscribed/Success", "Unsubscribed/Failed")
 
 ### Requirement: Archive after successful unsubscribe
 
-The system SHALL archive emails after successfully unsubscribing from the sender.
+The system SHALL archive emails after successfully unsubscribing from the
+sender.
 
 #### Scenario: Archive on success
 
 - **WHEN** an unsubscribe is confirmed successful
-- **THEN** the system SHALL archive the source email (remove from inbox, keep in All Mail)
+- **THEN** the system SHALL archive the source email (remove from inbox, keep in
+  All Mail)
 
 #### Scenario: No archive on failure
 

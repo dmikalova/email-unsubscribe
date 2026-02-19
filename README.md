@@ -1,16 +1,25 @@
 # Email Unsubscribe
 
-Automated email unsubscribe system that connects to Gmail via OAuth and automatically processes unsubscribe requests. Built for personal use to automatically unsubscribe from _everything_ while maintaining an allow list for important senders.
+Automated email unsubscribe system that connects to Gmail via OAuth and
+automatically processes unsubscribe requests. Built for personal use to
+automatically unsubscribe from _everything_ while maintaining an allow list for
+important senders.
 
 ## Features
 
-- 📧 **Gmail Integration** - OAuth-based Gmail connection for secure email access
-- 🔗 **Smart Unsubscribe Detection** - Parses RFC 8058 one-click headers, mailto links, and HTML unsubscribe links
-- 🤖 **Browser Automation** - Uses Playwright to handle complex unsubscribe flows
-- ✅ **Allow List** - Preserve subscriptions from important senders with pattern matching
-- 🔍 **Debug Tools** - Screenshots and Playwright traces for failed unsubscribe flows
+- 📧 **Gmail Integration** - OAuth-based Gmail connection for secure email
+  access
+- 🔗 **Smart Unsubscribe Detection** - Parses RFC 8058 one-click headers, mailto
+  links, and HTML unsubscribe links
+- 🤖 **Browser Automation** - Uses Playwright to handle complex unsubscribe
+  flows
+- ✅ **Allow List** - Preserve subscriptions from important senders with pattern
+  matching
+- 🔍 **Debug Tools** - Screenshots and Playwright traces for failed unsubscribe
+  flows
 - 📊 **Web Dashboard** - Monitor progress, view failures, manage allow list
-- 🔄 **Pattern Sharing** - Reusable automation patterns for common unsubscribe pages
+- 🔄 **Pattern Sharing** - Reusable automation patterns for common unsubscribe
+  pages
 
 ## Tech Stack
 
@@ -55,7 +64,8 @@ deno task fmt
 
 ### Database Schema
 
-The database schema is defined declaratively in `db/schema.hcl` and managed by [Atlas](https://atlasgo.io/).
+The database schema is defined declaratively in `db/schema.hcl` and managed by
+[Atlas](https://atlasgo.io/).
 
 ```bash
 # Install Atlas (macOS)
@@ -82,7 +92,9 @@ Schema changes are automatically applied during CI/CD deployments.
 
 ## Deployment
 
-The application is deployed on [Google Cloud Run](https://cloud.google.com/run) with [Supabase](https://supabase.com) for PostgreSQL. Cloud Run scales to zero when idle, minimizing costs for personal use.
+The application is deployed on [Google Cloud Run](https://cloud.google.com/run)
+with [Supabase](https://supabase.com) for PostgreSQL. Cloud Run scales to zero
+when idle, minimizing costs for personal use.
 
 **Key features:**
 
@@ -94,4 +106,6 @@ See [docs/deployment.md](docs/deployment.md) for configuration details.
 
 ### Deployment Contract
 
-The [`deploy.config.ts`](mklv.config.mts) file defines this application's runtime requirements in a platform-agnostic format. Infrastructure tooling consumes this contract to provision appropriate resources.
+The [`deploy.config.ts`](mklv.config.mts) file defines this application's
+runtime requirements in a platform-agnostic format. Infrastructure tooling
+consumes this contract to provision appropriate resources.

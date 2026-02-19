@@ -10,33 +10,33 @@
  *   deno task db:diff    # Show planned changes
  */
 
-const APP_NAME = 'email-unsubscribe';
-const SCHEMA_NAME = 'email_unsubscribe';
-const GCP_PROJECT = 'mklv-infrastructure';
+const APP_NAME = "email-unsubscribe";
+const SCHEMA_NAME = "email_unsubscribe";
+const GCP_PROJECT = "mklv-infrastructure";
 
 async function getDatabaseUrl(): Promise<string> {
   // Check environment variable first
-  const envUrl = Deno.env.get('DATABASE_URL');
+  const envUrl = Deno.env.get("DATABASE_URL");
   if (envUrl) {
-    console.log('Using DATABASE_URL from environment');
+    console.log("Using DATABASE_URL from environment");
     return envUrl;
   }
 
   // Fetch from Secret Manager
-  console.log('Fetching DATABASE_URL from Secret Manager...');
+  console.log("Fetching DATABASE_URL from Secret Manager...");
   const secretName = `${APP_NAME}-database-url`;
 
-  const command = new Deno.Command('gcloud', {
+  const command = new Deno.Command("gcloud", {
     args: [
-      'secrets',
-      'versions',
-      'access',
-      'latest',
+      "secrets",
+      "versions",
+      "access",
+      "latest",
       `--secret=${secretName}`,
       `--project=${GCP_PROJECT}`,
     ],
-    stdout: 'piped',
-    stderr: 'piped',
+    stdout: "piped",
+    stderr: "piped",
   });
 
   const { code, stdout, stderr } = await command.output();
@@ -44,39 +44,44 @@ async function getDatabaseUrl(): Promise<string> {
   if (code !== 0) {
     const errorMsg = new TextDecoder().decode(stderr);
     console.error(`Failed to fetch secret: ${errorMsg}`);
-    console.error("\nMake sure you're authenticated with gcloud and have access to the secret.");
+    console.error(
+      "\nMake sure you're authenticated with gcloud and have access to the secret.",
+    );
     Deno.exit(1);
   }
 
   return new TextDecoder().decode(stdout).trim();
 }
 
-async function runAtlas(subcommand: string, databaseUrl: string): Promise<void> {
-  const repoRoot = new URL('../', import.meta.url).pathname;
+async function runAtlas(
+  subcommand: string,
+  databaseUrl: string,
+): Promise<void> {
+  const repoRoot = new URL("../", import.meta.url).pathname;
   const schemaFile = `${repoRoot}db/schema.hcl`;
 
   const args = [
-    'schema',
+    "schema",
     subcommand,
-    '--to',
+    "--to",
     `file://${schemaFile}`,
-    '--url',
+    "--url",
     databaseUrl,
-    '--schema',
+    "--schema",
     SCHEMA_NAME,
   ];
 
   // Add --auto-approve for apply
-  if (subcommand === 'apply') {
-    args.push('--auto-approve');
+  if (subcommand === "apply") {
+    args.push("--auto-approve");
   }
 
   console.log(`Running: atlas schema ${subcommand}\n`);
 
-  const command = new Deno.Command('atlas', {
+  const command = new Deno.Command("atlas", {
     args,
-    stdout: 'inherit',
-    stderr: 'inherit',
+    stdout: "inherit",
+    stderr: "inherit",
   });
 
   const { code } = await command.output();
@@ -89,12 +94,12 @@ async function runAtlas(subcommand: string, databaseUrl: string): Promise<void> 
 // Main
 const subcommand = Deno.args[0];
 
-if (!subcommand || !['apply', 'diff'].includes(subcommand)) {
-  console.log('Usage: db.ts <apply|diff>');
-  console.log('');
-  console.log('Commands:');
-  console.log('  apply  Apply schema changes to the database');
-  console.log('  diff   Show planned schema changes without applying');
+if (!subcommand || !["apply", "diff"].includes(subcommand)) {
+  console.log("Usage: db.ts <apply|diff>");
+  console.log("");
+  console.log("Commands:");
+  console.log("  apply  Apply schema changes to the database");
+  console.log("  diff   Show planned schema changes without applying");
   Deno.exit(1);
 }
 

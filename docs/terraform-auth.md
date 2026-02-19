@@ -1,10 +1,12 @@
 # Terraform/OpenTofu Google Cloud Authentication
 
-This guide explains how to authenticate with Google Cloud to run Terraform/OpenTofu configurations.
+This guide explains how to authenticate with Google Cloud to run
+Terraform/OpenTofu configurations.
 
 ## Prerequisites
 
-- [Google Cloud CLI (gcloud)](https://cloud.google.com/sdk/docs/install) installed
+- [Google Cloud CLI (gcloud)](https://cloud.google.com/sdk/docs/install)
+  installed
 - A Google Cloud project (see "Creating Your First Project" below)
 
 ## Creating Your First Project
@@ -29,7 +31,8 @@ gcloud config set project email-unsubscribe-prd
 
 Or via the console:
 
-1. Go to [Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
+1. Go to
+   [Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
 2. Click "Create Project"
 3. Enter name: `Email Unsubscribe`
 4. Project ID: `email-unsubscribe-prod` (or let Google generate one)
@@ -41,7 +44,8 @@ Or via the console:
 2. Create a billing account if you don't have one
 3. Link your project to the billing account
 
-> **Note**: Gmail API has a generous free tier. You won't be charged for typical personal use.
+> **Note**: Gmail API has a generous free tier. You won't be charged for typical
+> personal use.
 
 ## About Organizations (Optional)
 
@@ -50,9 +54,12 @@ Or via the console:
 - Companies with Google Workspace (formerly G Suite)
 - Teams using Google Cloud Identity
 
-For personal projects, you can skip organizations entirely and work directly with projects. If you later need to manage multiple projects, you can:
+For personal projects, you can skip organizations entirely and work directly
+with projects. If you later need to manage multiple projects, you can:
 
-- Create a [Cloud Identity Free](https://cloud.google.com/identity/docs/set-up-cloud-identity-admin) account to get an organization
+- Create a
+  [Cloud Identity Free](https://cloud.google.com/identity/docs/set-up-cloud-identity-admin)
+  account to get an organization
 - Or simply grant your service account access to each project individually
 
 ## Option 1: Application Default Credentials (Recommended for Development)
@@ -104,7 +111,8 @@ For automated environments, use a service account.
 
 ### Option 2a: Organization-Wide Service Account (Access to All Projects)
 
-> **Note**: This requires a GCP organization (via Google Workspace or Cloud Identity). Skip to Option 2b if you don't have one.
+> **Note**: This requires a GCP organization (via Google Workspace or Cloud
+> Identity). Skip to Option 2b if you don't have one.
 
 Create a service account with access across your entire GCP organization:
 
@@ -191,7 +199,8 @@ gcloud iam service-accounts keys create terraform-key.json \
   --iam-account=$SA_EMAIL
 ```
 
-⚠️ **Security Warning**: Keep this file secure and never commit it to version control.
+⚠️ **Security Warning**: Keep this file secure and never commit it to version
+control.
 
 ### Step 4: Set Environment Variable
 
@@ -236,11 +245,14 @@ Run `gcloud auth application-default login` to set up credentials.
 
 ### "API not enabled"
 
-The Terraform configuration will enable required APIs, but you need sufficient permissions. Ensure your account has `roles/serviceusage.serviceUsageAdmin` or `roles/owner`.
+The Terraform configuration will enable required APIs, but you need sufficient
+permissions. Ensure your account has `roles/serviceusage.serviceUsageAdmin` or
+`roles/owner`.
 
 ### "Quota exceeded"
 
-Google Cloud has API quotas. Wait a few minutes and try again, or request a quota increase.
+Google Cloud has API quotas. Wait a few minutes and try again, or request a
+quota increase.
 
 ## Required IAM Permissions
 
@@ -259,7 +271,8 @@ For project owners, these permissions are already included.
 2. **Use Service Accounts** for CI/CD and automation
 3. **Rotate service account keys** regularly
 4. **Never commit credentials** to version control
-5. **Use Workload Identity Federation** for production CI/CD (avoids long-lived keys)
+5. **Use Workload Identity Federation** for production CI/CD (avoids long-lived
+   keys)
 
 ## Additional Resources
 

@@ -8,18 +8,18 @@ export {
   getMessage,
   getOrCreateLabel,
   getProfile,
-  listLabels,
-  listMessages,
-  modifyMessageLabels,
-  sendEmail,
   type GmailHeader,
   type GmailLabel,
   type GmailMessage,
   type GmailMessagePayload,
   type HistoryResponse,
+  listLabels,
+  listMessages,
   type ListMessagesResponse,
-} from './client.ts';
-export { decrypt, encrypt } from './encryption.ts';
+  modifyMessageLabels,
+  sendEmail,
+} from "./client.ts";
+export { decrypt, encrypt } from "./encryption.ts";
 export {
   archiveAndLabelSuccess,
   getLabelId,
@@ -28,17 +28,17 @@ export {
   labelMessageAsFailed,
   labelMessageAsPending,
   labelMessageAsSuccess,
-} from './labels.ts';
+} from "./labels.ts";
 export {
   exchangeCodeForTokens,
   getAuthorizationUrl,
   getOAuthConfig,
   refreshAccessToken,
-} from './oauth.ts';
+} from "./oauth.ts";
 export {
   deleteTokens,
   getTokens,
   getValidAccessToken,
   hasValidTokens,
   storeTokens,
-} from './tokens.ts';
+} from "./tokens.ts";

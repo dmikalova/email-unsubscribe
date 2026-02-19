@@ -1,7 +1,7 @@
 // Sender tracking for ineffective unsubscribe detection
 
-import { getConnection } from '../db/index.ts';
-import { extractDomain } from './headers.ts';
+import { getConnection } from "../db/index.ts";
+import { extractDomain } from "./headers.ts";
 
 export interface SenderTracking {
   id: number;
@@ -73,7 +73,9 @@ export async function trackSender(sender: string): Promise<SenderTracking> {
   return rows[0];
 }
 
-export async function getSenderTracking(sender: string): Promise<SenderTracking | null> {
+export async function getSenderTracking(
+  sender: string,
+): Promise<SenderTracking | null> {
   const sql = getConnection();
   const normalizedSender = sender.toLowerCase().trim();
 

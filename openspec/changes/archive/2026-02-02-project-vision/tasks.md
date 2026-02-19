@@ -1,3 +1,5 @@
+# Tasks
+
 ## 1. Project Setup
 
 - [x] 1.1 Initialize Deno project with deno.json configuration
@@ -13,11 +15,15 @@
 ## 2. Database Schema & Persistence
 
 - [x] 2.1 Set up database migration framework
-- [x] 2.2 Create migration: oauth_tokens table (encrypted access/refresh tokens, expiry)
+- [x] 2.2 Create migration: oauth_tokens table (encrypted access/refresh tokens,
+      expiry)
 - [x] 2.3 Create migration: allow_list table (type, value, created_at)
-- [x] 2.4 Create migration: unsubscribe_history table (sender, url, status, failure_reason, screenshot_path, trace_path, attempted_at)
-- [x] 2.5 Create migration: sender_tracking table (sender, domain, first_seen, last_seen, unsubscribed_at, emails_after_unsubscribe)
-- [x] 2.6 Create migration: processed_emails table (email_id, processed_at) for idempotency
+- [x] 2.4 Create migration: unsubscribe_history table (sender, url, status,
+      failure_reason, screenshot_path, trace_path, attempted_at)
+- [x] 2.5 Create migration: sender_tracking table (sender, domain, first_seen,
+      last_seen, unsubscribed_at, emails_after_unsubscribe)
+- [x] 2.6 Create migration: processed_emails table (email_id, processed_at) for
+      idempotency
 - [x] 2.7 Create migration: audit_log table (action, details, timestamp)
 - [x] 2.8 Create migration: patterns table (name, selector, type, match_count)
 - [x] 2.9 Create migration: scan_state table (last_email_id, last_scan_at)
@@ -28,7 +34,8 @@
 ## 3. Gmail Connection
 
 - [x] 3.1 Create Google OAuth client configuration
-- [x] 3.2 Implement OAuth authorization flow (redirect to Google, handle callback)
+- [x] 3.2 Implement OAuth authorization flow (redirect to Google, handle
+      callback)
 - [x] 3.3 Implement secure token storage (encrypt before storing)
 - [x] 3.4 Implement token retrieval and decryption
 - [x] 3.5 Implement automatic token refresh on expiry
@@ -37,7 +44,8 @@
 - [x] 3.8 Implement rate limit handling with exponential backoff
 - [x] 3.9 Implement batch request helper for fetching multiple emails
 - [x] 3.10 Add quota awareness logging
-- [x] 3.11 Implement Gmail label creation (Unsubscribed/Success, Unsubscribed/Failed)
+- [x] 3.11 Implement Gmail label creation (Unsubscribed/Success,
+      Unsubscribed/Failed)
 - [x] 3.12 Implement email labeling after processing
 - [x] 3.13 Implement email archiving after successful unsubscribe
 
@@ -56,7 +64,8 @@
 - [x] 4.11 Implement idempotency check (skip already processed emails)
 - [x] 4.12 Implement concurrent scan protection (mutex/lock)
 - [x] 4.13 Create scheduled scan runner (node-cron equivalent for Deno)
-- [x] 4.14 Implement ineffective unsubscribe detection (email after 24hr grace period)
+- [x] 4.14 Implement ineffective unsubscribe detection (email after 24hr grace
+      period)
 
 ## 5. Unsubscribe Automation - URL Validation
 
@@ -102,12 +111,14 @@
 ## 9. Compliance Tracker
 
 - [x] 9.1 Implement unsubscribe attempt recording (success/failure/uncertain)
-- [x] 9.2 Implement failure categorization (timeout, no match, navigation error, unknown)
+- [x] 9.2 Implement failure categorization (timeout, no match, navigation error,
+      unknown)
 - [x] 9.3 Implement screenshot storage path management
 - [x] 9.4 Implement trace storage path management
 - [x] 9.5 Implement manual retry trigger
 - [x] 9.6 Implement mark-as-resolved functionality
-- [x] 9.7 Implement ineffective unsubscribe flagging (new email after successful unsubscribe)
+- [x] 9.7 Implement ineffective unsubscribe flagging (new email after successful
+      unsubscribe)
 - [x] 9.8 Implement 24-hour grace period for confirmation emails
 
 ## 10. Allow List Management
@@ -139,20 +150,23 @@
 - [x] 12.9 Create API endpoint: GET /api/recent (recent activity)
 - [x] 12.10 Create API endpoint: GET /api/digest (weekly digest data)
 - [x] 12.11 Create API endpoint: GET /api/failed (failed unsubscribes list)
-- [x] 12.12 Create API endpoint: GET /api/failed/:id (failure details with screenshot)
+- [x] 12.12 Create API endpoint: GET /api/failed/:id (failure details with
+      screenshot)
 - [x] 12.13 Create API endpoint: GET /api/failed/:id/trace (download trace file)
 - [x] 12.14 Create API endpoint: POST /api/failed/:id/retry (retry unsubscribe)
 - [x] 12.15 Create API endpoint: POST /api/failed/:id/resolve (mark resolved)
 - [x] 12.16 Create API endpoint: GET /api/allowlist (list entries)
 - [x] 12.17 Create API endpoint: POST /api/allowlist (add entry)
 - [x] 12.18 Create API endpoint: DELETE /api/allowlist/:id (remove entry)
-- [x] 12.19 Create API endpoint: GET /api/history (unsubscribe history with filtering)
+- [x] 12.19 Create API endpoint: GET /api/history (unsubscribe history with
+      filtering)
 - [x] 12.20 Create API endpoint: GET /api/domains (domain grouping stats)
 - [x] 12.21 Create API endpoint: GET /api/domains/:domain (senders in domain)
 - [x] 12.22 Create API endpoint: GET /api/patterns (list patterns)
 - [x] 12.23 Create API endpoint: GET /api/patterns/export (export JSON)
 - [x] 12.24 Create API endpoint: POST /api/patterns/import (import JSON)
-- [x] 12.25 Create API endpoint: GET /api/ineffective (ineffective unsubscribe flags)
+- [x] 12.25 Create API endpoint: GET /api/ineffective (ineffective unsubscribe
+      flags)
 - [x] 12.26 Implement health check endpoint: GET /health
 
 ## 13. Web Dashboard - Frontend
@@ -164,7 +178,8 @@
 - [x] 13.5 Create app layout component (navigation, content area)
 - [x] 13.6 Create dashboard home page (stats overview, digest, recent activity)
 - [x] 13.7 Create failed unsubscribes page (list with filtering)
-- [x] 13.8 Create failure detail view (screenshot, error details, trace download, retry/resolve actions)
+- [x] 13.8 Create failure detail view (screenshot, error details, trace
+      download, retry/resolve actions)
 - [x] 13.9 Create allow list management page (list, add form, remove action)
 - [x] 13.10 Create unsubscribe history page (filterable list)
 - [x] 13.11 Create domain grouping view (domain list, expandable sender details)

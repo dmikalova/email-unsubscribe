@@ -1,23 +1,29 @@
+# Web Dashboard
+
 ## ADDED Requirements
 
 ### Requirement: Authentication via login portal
 
-The system SHALL require authentication and delegate login to the centralized login portal.
+The system SHALL require authentication and delegate login to the centralized
+login portal.
 
 #### Scenario: Unauthenticated access
 
 - **WHEN** a user accesses the dashboard without a valid session cookie
-- **THEN** the system SHALL redirect to `https://login.{SESSION_DOMAIN}?returnUrl={current_url}`
+- **THEN** the system SHALL redirect to
+  `https://login.{SESSION_DOMAIN}?returnUrl={current_url}`
 
 #### Scenario: Authenticated access
 
-- **WHEN** a user accesses the dashboard with a valid Supabase JWT in the session cookie
+- **WHEN** a user accesses the dashboard with a valid Supabase JWT in the
+  session cookie
 - **THEN** the system SHALL grant dashboard access
 
 #### Scenario: Session validation
 
 - **WHEN** validating a session cookie
-- **THEN** the system SHALL verify the JWT signature using ES256 with public keys fetched from SUPABASE_URL JWKS endpoint
+- **THEN** the system SHALL verify the JWT signature using ES256 with public
+  keys fetched from SUPABASE_URL JWKS endpoint
 - **AND** cache JWKS keys for 1 hour to handle key rotation
 - **AND** verify the JWT audience is "authenticated"
 - **AND** verify the JWT is not expired (with 60s clock skew tolerance)
@@ -47,12 +53,14 @@ The system SHALL rate limit dashboard endpoints to prevent abuse.
 
 #### Scenario: Retry endpoint rate limit
 
-- **WHEN** the retry unsubscribe endpoint is called more than 10 times per minute
+- **WHEN** the retry unsubscribe endpoint is called more than 10 times per
+  minute
 - **THEN** the system SHALL return 429 Too Many Requests
 
 #### Scenario: General rate limit
 
-- **WHEN** any endpoint receives more than 100 requests per minute from a session
+- **WHEN** any endpoint receives more than 100 requests per minute from a
+  session
 - **THEN** the system SHALL return 429 Too Many Requests
 
 ### Requirement: Display unsubscribe statistics
@@ -62,17 +70,21 @@ The system SHALL display aggregate statistics about unsubscribe activity.
 #### Scenario: Stats overview
 
 - **WHEN** viewing the dashboard home
-- **THEN** the system SHALL display total unsubscribes attempted, success count, failure count, and success rate
+- **THEN** the system SHALL display total unsubscribes attempted, success count,
+  failure count, and success rate
 
 #### Scenario: Recent activity
 
 - **WHEN** viewing the dashboard home
-- **THEN** the system SHALL display recent unsubscribe attempts with their outcomes
+- **THEN** the system SHALL display recent unsubscribe attempts with their
+  outcomes
 
 #### Scenario: Digest view
 
 - **WHEN** viewing the dashboard home
-- **THEN** the system SHALL display a digest summary: unsubscribes this week, failures requiring attention, new senders detected, and ineffective unsubscribe flags
+- **THEN** the system SHALL display a digest summary: unsubscribes this week,
+  failures requiring attention, new senders detected, and ineffective
+  unsubscribe flags
 
 ### Requirement: Domain grouping
 
@@ -81,12 +93,14 @@ The system SHALL group related senders by domain for consolidated viewing.
 #### Scenario: Domain-based grouping
 
 - **WHEN** viewing sender statistics
-- **THEN** the system SHALL group senders by root domain (e.g., all `*.amazon.com` together)
+- **THEN** the system SHALL group senders by root domain (e.g., all
+  `*.amazon.com` together)
 
 #### Scenario: Domain stats
 
 - **WHEN** viewing a domain group
-- **THEN** the system SHALL display aggregate stats: total emails, total unsubscribes, success rate across all senders in that domain
+- **THEN** the system SHALL display aggregate stats: total emails, total
+  unsubscribes, success rate across all senders in that domain
 
 #### Scenario: Expand domain details
 
@@ -100,17 +114,20 @@ The system SHALL surface failed unsubscribe attempts prominently for debugging.
 #### Scenario: Failed unsubscribes list
 
 - **WHEN** viewing the failed unsubscribes page
-- **THEN** the system SHALL display failed attempts with sender, URL, failure type, and timestamp
+- **THEN** the system SHALL display failed attempts with sender, URL, failure
+  type, and timestamp
 
 #### Scenario: Failure details with screenshot
 
 - **WHEN** viewing a specific failed unsubscribe
-- **THEN** the system SHALL display the captured screenshot and full error details
+- **THEN** the system SHALL display the captured screenshot and full error
+  details
 
 #### Scenario: Replay trace download
 
 - **WHEN** viewing a specific failed unsubscribe that has a trace
-- **THEN** the system SHALL provide a download link for the Playwright trace file for local replay
+- **THEN** the system SHALL provide a download link for the Playwright trace
+  file for local replay
 
 #### Scenario: Mark as resolved
 
@@ -124,7 +141,8 @@ The system SHALL provide a UI for managing the sender allow list.
 #### Scenario: View allow list
 
 - **WHEN** viewing the allow list page
-- **THEN** the system SHALL display all allowed entries with their type and creation date
+- **THEN** the system SHALL display all allowed entries with their type and
+  creation date
 
 #### Scenario: Add to allow list
 
@@ -143,7 +161,8 @@ The system SHALL provide a UI for managing unsubscribe patterns.
 #### Scenario: View patterns
 
 - **WHEN** viewing the patterns page
-- **THEN** the system SHALL display all configured patterns with their match counts
+- **THEN** the system SHALL display all configured patterns with their match
+  counts
 
 #### Scenario: Export patterns
 
@@ -162,12 +181,14 @@ The system SHALL provide a searchable history of unsubscribe attempts.
 #### Scenario: History list
 
 - **WHEN** viewing the history page
-- **THEN** the system SHALL display unsubscribe attempts with sender, date, and status
+- **THEN** the system SHALL display unsubscribe attempts with sender, date, and
+  status
 
 #### Scenario: History filtering
 
 - **WHEN** filtering the history
-- **THEN** the system SHALL support filtering by status (success/failed) and sender search
+- **THEN** the system SHALL support filtering by status (success/failed) and
+  sender search
 
 #### Scenario: Retry failed unsubscribe
 

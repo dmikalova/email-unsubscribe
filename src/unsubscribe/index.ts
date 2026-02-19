@@ -5,23 +5,27 @@ export {
   validateMailtoUrl,
   validateUnsubscribeUrl,
   type ValidationResult,
-} from './validation.ts';
+} from "./validation.ts";
 
 export {
   isOneClickSupported,
-  performOneClickUnsubscribe,
   type OneClickResult,
-} from './oneclick.ts';
-
-export { hasMailtoOption, performMailtoUnsubscribe, type MailtoResult } from './mailto.ts';
+  performOneClickUnsubscribe,
+} from "./oneclick.ts";
 
 export {
+  hasMailtoOption,
+  type MailtoResult,
+  performMailtoUnsubscribe,
+} from "./mailto.ts";
+
+export {
+  type BrowserOptions,
+  type BrowserResult,
   closeBrowser,
   getBrowser,
   performBrowserUnsubscribe,
-  type BrowserOptions,
-  type BrowserResult,
-} from './browser.ts';
+} from "./browser.ts";
 
 export {
   addPattern,
@@ -31,9 +35,9 @@ export {
   getPatterns,
   importPatterns,
   incrementPatternMatchCount,
-  seedDefaultPatterns,
   type Pattern,
   type PatternExport,
   type PatternInput,
   type PatternType,
-} from './patterns.ts';
+  seedDefaultPatterns,
+} from "./patterns.ts";

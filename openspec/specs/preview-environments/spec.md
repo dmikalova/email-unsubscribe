@@ -1,22 +1,28 @@
+# Preview Environments
+
 ## ADDED Requirements
 
 ### Requirement: Preview environment per pull request
 
-The system SHALL create an ephemeral Cloud Run service for each open pull request to enable testing changes before merge.
+The system SHALL create an ephemeral Cloud Run service for each open pull
+request to enable testing changes before merge.
 
 #### Scenario: Service created on PR open
 
 - **WHEN** a pull request is opened
-- **THEN** a Cloud Run service named `app-pr-{PR_NUMBER}` is created with the PR's code deployed
+- **THEN** a Cloud Run service named `app-pr-{PR_NUMBER}` is created with the
+  PR's code deployed
 
 #### Scenario: Service updated on PR push
 
 - **WHEN** new commits are pushed to an open pull request
-- **THEN** the existing `app-pr-{PR_NUMBER}` service is updated with the new code
+- **THEN** the existing `app-pr-{PR_NUMBER}` service is updated with the new
+  code
 
 ### Requirement: Preview URL posted to PR
 
-The system SHALL post the preview environment URL as a comment on the pull request for easy access.
+The system SHALL post the preview environment URL as a comment on the pull
+request for easy access.
 
 #### Scenario: URL comment added
 
@@ -26,25 +32,30 @@ The system SHALL post the preview environment URL as a comment on the pull reque
 #### Scenario: URL comment updated
 
 - **WHEN** a preview environment is redeployed after updates
-- **THEN** the existing comment is updated rather than creating duplicate comments
+- **THEN** the existing comment is updated rather than creating duplicate
+  comments
 
 ### Requirement: Preview environments scale to zero
 
-Preview Cloud Run services SHALL be configured to scale to zero instances when not in use to minimize costs.
+Preview Cloud Run services SHALL be configured to scale to zero instances when
+not in use to minimize costs.
 
 #### Scenario: Idle preview scales down
 
-- **WHEN** a preview environment receives no traffic for the configured idle period
+- **WHEN** a preview environment receives no traffic for the configured idle
+  period
 - **THEN** it scales to zero instances and incurs no compute costs
 
 #### Scenario: Preview wakes on request
 
 - **WHEN** a request is made to a scaled-to-zero preview environment
-- **THEN** Cloud Run starts an instance and serves the request (cold start acceptable)
+- **THEN** Cloud Run starts an instance and serves the request (cold start
+  acceptable)
 
 ### Requirement: Preview environment cleanup on PR close
 
-The system SHALL automatically delete preview Cloud Run services when their associated pull request is closed or merged.
+The system SHALL automatically delete preview Cloud Run services when their
+associated pull request is closed or merged.
 
 #### Scenario: Service deleted on merge
 
@@ -58,12 +69,14 @@ The system SHALL automatically delete preview Cloud Run services when their asso
 
 ### Requirement: Preview environments use shared database
 
-Preview environments SHALL connect to a shared Supabase preview database, separate from production.
+Preview environments SHALL connect to a shared Supabase preview database,
+separate from production.
 
 #### Scenario: Preview uses preview database
 
 - **WHEN** a preview environment starts
-- **THEN** it connects to the Supabase preview project, not the production database
+- **THEN** it connects to the Supabase preview project, not the production
+  database
 
 #### Scenario: Multiple previews share database
 
@@ -72,7 +85,8 @@ Preview environments SHALL connect to a shared Supabase preview database, separa
 
 ### Requirement: Preview database migrations run automatically
 
-The system SHALL run database migrations when deploying preview environments to ensure schema is up to date.
+The system SHALL run database migrations when deploying preview environments to
+ensure schema is up to date.
 
 #### Scenario: Migrations run on preview deploy
 
@@ -82,25 +96,30 @@ The system SHALL run database migrations when deploying preview environments to 
 #### Scenario: Migration conflicts are acceptable
 
 - **WHEN** two PRs with conflicting migrations are both open
-- **THEN** the later deployment may fail, which is acceptable for a single-user project
+- **THEN** the later deployment may fail, which is acceptable for a single-user
+  project
 
 ### Requirement: Preview environment secrets configured
 
-Preview Cloud Run services SHALL have access to necessary secrets (Google OAuth credentials, encryption key) via Secret Manager.
+Preview Cloud Run services SHALL have access to necessary secrets (Google OAuth
+credentials, encryption key) via Secret Manager.
 
 #### Scenario: Secrets available to preview
 
 - **WHEN** a preview environment starts
-- **THEN** it can access `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `ENCRYPTION_KEY` from Secret Manager
+- **THEN** it can access `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and
+  `ENCRYPTION_KEY` from Secret Manager
 
 #### Scenario: Preview uses same OAuth credentials
 
 - **WHEN** a user authenticates in a preview environment
-- **THEN** they use the same Google OAuth application as production (redirect URIs permitting)
+- **THEN** they use the same Google OAuth application as production (redirect
+  URIs permitting)
 
 ### Requirement: Preview environment labeled for identification
 
-Preview Cloud Run services SHALL be labeled with metadata identifying their associated pull request for management purposes.
+Preview Cloud Run services SHALL be labeled with metadata identifying their
+associated pull request for management purposes.
 
 #### Scenario: PR number label
 

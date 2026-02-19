@@ -1,6 +1,6 @@
 // RFC 8058 One-Click Unsubscribe Implementation
 
-import { validateUnsubscribeUrl } from './validation.ts';
+import { validateUnsubscribeUrl } from "./validation.ts";
 
 export interface OneClickResult {
   success: boolean;
@@ -9,7 +9,9 @@ export interface OneClickResult {
   fallbackRequired?: boolean;
 }
 
-export async function performOneClickUnsubscribe(url: string): Promise<OneClickResult> {
+export async function performOneClickUnsubscribe(
+  url: string,
+): Promise<OneClickResult> {
   // Validate URL first
   const validation = validateUnsubscribeUrl(url);
   if (!validation.valid) {
@@ -25,12 +27,12 @@ export async function performOneClickUnsubscribe(url: string): Promise<OneClickR
   try {
     // RFC 8058 specifies a POST request with specific body
     const response = await fetch(sanitizedUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: 'List-Unsubscribe=One-Click',
-      redirect: 'follow',
+      body: "List-Unsubscribe=One-Click",
+      redirect: "follow",
     });
 
     if (response.ok) {
@@ -42,7 +44,9 @@ export async function performOneClickUnsubscribe(url: string): Promise<OneClickR
     }
 
     // Non-2xx response - may need fallback to browser
-    console.log(`One-click failed with status ${response.status} for ${sanitizedUrl}`);
+    console.log(
+      `One-click failed with status ${response.status} for ${sanitizedUrl}`,
+    );
     return {
       success: false,
       statusCode: response.status,
@@ -50,7 +54,7 @@ export async function performOneClickUnsubscribe(url: string): Promise<OneClickR
       fallbackRequired: true,
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error(`One-click unsubscribe error for ${sanitizedUrl}:`, message);
 
     return {
@@ -61,7 +65,10 @@ export async function performOneClickUnsubscribe(url: string): Promise<OneClickR
   }
 }
 
-export function isOneClickSupported(listUnsubscribePost: boolean, httpUrls: string[]): boolean {
+export function isOneClickSupported(
+  listUnsubscribePost: boolean,
+  httpUrls: string[],
+): boolean {
   // One-click requires:
   // 1. List-Unsubscribe-Post header with "List-Unsubscribe=One-Click"
   // 2. At least one HTTP/HTTPS URL in List-Unsubscribe

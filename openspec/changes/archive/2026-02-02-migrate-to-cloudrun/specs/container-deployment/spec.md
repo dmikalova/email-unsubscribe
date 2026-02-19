@@ -1,8 +1,11 @@
+# Container Deployment
+
 ## ADDED Requirements
 
 ### Requirement: Cloud Run as deployment target
 
-The application SHALL be deployed to Google Cloud Run as a serverless container service.
+The application SHALL be deployed to Google Cloud Run as a serverless container
+service.
 
 #### Scenario: Application runs on Cloud Run
 
@@ -11,7 +14,8 @@ The application SHALL be deployed to Google Cloud Run as a serverless container 
 
 ### Requirement: Scale to zero configuration
 
-The Cloud Run service SHALL be configured to scale to zero instances when idle to minimize costs.
+The Cloud Run service SHALL be configured to scale to zero instances when idle
+to minimize costs.
 
 #### Scenario: No traffic scaling
 
@@ -25,21 +29,25 @@ The Cloud Run service SHALL be configured to scale to zero instances when idle t
 
 ### Requirement: Source-based deployments
 
-The application SHALL be deployed using Cloud Run source deploys (`gcloud run deploy --source .`) with Google Cloud Buildpacks.
+The application SHALL be deployed using Cloud Run source deploys
+(`gcloud run deploy --source .`) with Google Cloud Buildpacks.
 
 #### Scenario: No Dockerfile required
 
 - **WHEN** deploying the application
-- **THEN** Cloud Run uses Buildpacks to detect Deno and build the container image automatically
+- **THEN** Cloud Run uses Buildpacks to detect Deno and build the container
+  image automatically
 
 #### Scenario: Artifact Registry managed automatically
 
 - **WHEN** a source deploy completes
-- **THEN** the container image is stored in Artifact Registry without manual registry configuration
+- **THEN** the container image is stored in Artifact Registry without manual
+  registry configuration
 
 ### Requirement: Health check endpoint
 
-The application SHALL expose a health check endpoint that Cloud Run uses for liveness probes.
+The application SHALL expose a health check endpoint that Cloud Run uses for
+liveness probes.
 
 #### Scenario: Health endpoint returns OK
 
@@ -53,16 +61,19 @@ The application SHALL expose a health check endpoint that Cloud Run uses for liv
 
 ### Requirement: Startup probe configuration
 
-The Cloud Run service SHALL be configured with appropriate startup probe settings for Deno's cold start time.
+The Cloud Run service SHALL be configured with appropriate startup probe
+settings for Deno's cold start time.
 
 #### Scenario: Startup time allowed
 
 - **WHEN** a new instance starts
-- **THEN** Cloud Run allows up to 10 seconds for the application to become ready before failing the health check
+- **THEN** Cloud Run allows up to 10 seconds for the application to become ready
+  before failing the health check
 
 ### Requirement: Cloud Logging integration
 
-The application logs SHALL be automatically captured by Cloud Logging without additional configuration.
+The application logs SHALL be automatically captured by Cloud Logging without
+additional configuration.
 
 #### Scenario: Stdout captured
 
@@ -76,7 +87,8 @@ The application logs SHALL be automatically captured by Cloud Logging without ad
 
 ### Requirement: Secret Manager integration
 
-The Cloud Run service SHALL access secrets via Google Secret Manager, not environment variables with plaintext values.
+The Cloud Run service SHALL access secrets via Google Secret Manager, not
+environment variables with plaintext values.
 
 #### Scenario: Database URL from Secret Manager
 
@@ -90,7 +102,8 @@ The Cloud Run service SHALL access secrets via Google Secret Manager, not enviro
 
 ### Requirement: Revision labels for traceability
 
-Each Cloud Run deployment SHALL include labels identifying the git commit SHA for rollback and debugging purposes.
+Each Cloud Run deployment SHALL include labels identifying the git commit SHA
+for rollback and debugging purposes.
 
 #### Scenario: Git SHA label present
 
@@ -104,7 +117,8 @@ Each Cloud Run deployment SHALL include labels identifying the git commit SHA fo
 
 ### Requirement: Single region deployment
 
-The application SHALL be deployed to a single region (us-west1) without multi-region redundancy.
+The application SHALL be deployed to a single region (us-west1) without
+multi-region redundancy.
 
 #### Scenario: Region selection
 
@@ -113,7 +127,8 @@ The application SHALL be deployed to a single region (us-west1) without multi-re
 
 ### Requirement: CPU allocation on request only
 
-The Cloud Run service SHALL be configured to allocate CPU only during request processing to minimize costs.
+The Cloud Run service SHALL be configured to allocate CPU only during request
+processing to minimize costs.
 
 #### Scenario: CPU throttled when idle
 

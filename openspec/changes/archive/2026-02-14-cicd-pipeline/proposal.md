@@ -1,6 +1,10 @@
+# Proposal
+
 ## Why
 
-The app needs automated build, versioning, and deployment to GCP Cloud Run. Currently there are placeholder workflows - one calling a non-existent Dagger workflow, another deploying to Northflank. Need a simple, working pipeline that:
+The app needs automated build, versioning, and deployment to GCP Cloud Run.
+Currently there are placeholder workflows - one calling a non-existent Dagger
+workflow, another deploying to Northflank. Need a simple, working pipeline that:
 
 - Builds and publishes containers automatically
 - Versions releases using conventional commits (already in use)

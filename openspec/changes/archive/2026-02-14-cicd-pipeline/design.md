@@ -1,6 +1,9 @@
+# Design
+
 ## Context
 
-The email-unsubscribe app needs CI/CD to deploy containers to GCP Cloud Run. Current state:
+The email-unsubscribe app needs CI/CD to deploy containers to GCP Cloud Run.
+Current state:
 
 - `ci.yaml`: Calls non-existent Dagger workflow in infra repo
 - `deploy.yml`: Deploys to Northflank (deprecated target)
@@ -30,7 +33,8 @@ Target: Reusable Dagger pipeline in a shared repo, app repos just call it.
 
 ### 1. Repository Structure
 
-**Decision:** New `dmikalova/github-meta` repo hosts reusable workflows and Dagger pipelines.
+**Decision:** New `dmikalova/github-meta` repo hosts reusable workflows and
+Dagger pipelines.
 
 ```
 github-meta/
@@ -46,7 +50,9 @@ github-meta/
 └── README.md
 ```
 
-**Rationale:** Centralized CI/CD logic. App repos stay clean - just call the reusable workflow. Changes to build process don't require updating every app repo.
+**Rationale:** Centralized CI/CD logic. App repos stay clean - just call the
+reusable workflow. Changes to build process don't require updating every app
+repo.
 
 ### 2. Container Registry
 
@@ -62,7 +68,8 @@ ghcr.io/dmikalova/email-unsubscribe:latest
 - GCP Artifact Registry: Requires authentication, costs money
 - Docker Hub: Rate limits, less integrated with GitHub
 
-**Rationale:** GHCR is free for public repos, integrated with GitHub auth, and Cloud Run can pull public images directly.
+**Rationale:** GHCR is free for public repos, integrated with GitHub auth, and
+Cloud Run can pull public images directly.
 
 ### 3. Versioning Strategy
 
@@ -75,7 +82,9 @@ feat!: breaking change   → x.0.0 (major)
 chore: maintenance       → no release
 ```
 
-**Rationale:** Removes manual versioning. Commit messages already follow conventional format. semantic-release creates GitHub releases with changelogs automatically.
+**Rationale:** Removes manual versioning. Commit messages already follow
+conventional format. semantic-release creates GitHub releases with changelogs
+automatically.
 
 ### 4. Commit Enforcement
 
@@ -92,7 +101,8 @@ chore: maintenance       → no release
 }
 ```
 
-**Rationale:** Catches bad commit messages before push. Works with Deno projects.
+**Rationale:** Catches bad commit messages before push. Works with Deno
+projects.
 
 ### 5. Dagger Pipeline (No Dockerfile)
 
@@ -100,7 +110,7 @@ chore: maintenance       → no release
 
 ```typescript
 // github-meta/dagger/deno/src/index.ts
-import { dag, Container, Directory, object, func } from '@dagger.io/dagger';
+import { Container, dag, Directory, func, object } from '@dagger.io/dagger';
 
 @object()
 class DenoPipeline {
@@ -290,7 +300,8 @@ jobs:
             --project=${{ inputs.gcp-project }}
 ```
 
-**Rationale:** App repos just pass inputs - all logic is in the shared workflow and Dagger module.
+**Rationale:** App repos just pass inputs - all logic is in the shared workflow
+and Dagger module.
 
 ### 7. App Repo Workflow (Caller)
 
@@ -318,13 +329,15 @@ jobs:
     secrets: inherit
 ```
 
-**Rationale:** ~15 lines instead of 100+. Changes to pipeline don't require app repo updates.
+**Rationale:** ~15 lines instead of 100+. Changes to pipeline don't require app
+repo updates.
 
 ### 8. Files to Remove/Update
 
 - **Delete** `.github/workflows/deploy.yml` - Northflank deployment
 - **Replace** `.github/workflows/ci.yaml` - Call reusable workflow
-- **Keep** `deploy.config.ts` - Still useful for documenting runtime requirements
+- **Keep** `deploy.config.ts` - Still useful for documenting runtime
+  requirements
 
 ## Risks / Trade-offs
 
@@ -342,19 +355,21 @@ jobs:
 1. **Create repo** - `dmikalova/github-meta`, public
 2. **Add Dagger module** - `dagger/deno/` with TypeScript pipeline
 3. **Add reusable workflow** - `.github/workflows/deno-cloudrun.yaml`
-4. **Test locally** - `dagger call build --source=../email-unsubscribe --entrypoint=src/main.ts`
+4. **Test locally** -
+   `dagger call build --source=../email-unsubscribe --entrypoint=src/main.ts`
 
 ### In email-unsubscribe repo
 
-5. **Add commitlint** - package.json, commitlint.config.js, husky setup
-6. **Add semantic-release** - .releaserc.json
-7. **Replace ci.yaml** - Call reusable workflow
-8. **Delete deploy.yml** - Remove Northflank workflow
-9. **Push to main** - Triggers first automated release
+- **Add commitlint** - package.json, commitlint.config.js, husky setup
+- **Add semantic-release** - .releaserc.json
+- **Replace ci.yaml** - Call reusable workflow
+- **Delete deploy.yml** - Remove Northflank workflow
+- **Push to main** - Triggers first automated release
 
 ## Dependencies
 
-- `gcp-github-wif` change in infrastructure repo must be applied first (WIF pool, service account)
+- `gcp-github-wif` change in infrastructure repo must be applied first (WIF
+  pool, service account)
 - `supabase-setup` change must be applied first (database connection)
 - `github-terramate-migration` to manage the new github-meta repo
 

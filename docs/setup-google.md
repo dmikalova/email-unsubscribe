@@ -1,6 +1,7 @@
 # Google OAuth Setup
 
-This guide walks through setting up Google OAuth for the Email Unsubscribe application.
+This guide walks through setting up Google OAuth for the Email Unsubscribe
+application.
 
 ## Prerequisites
 
@@ -89,13 +90,15 @@ ENCRYPTION_KEY=your-generated-encryption-key
 
 ## Verification (Production)
 
-For production use with users other than yourself, you'll need to verify your app with Google:
+For production use with users other than yourself, you'll need to verify your
+app with Google:
 
 1. Go to "OAuth consent screen"
 2. Click "Publish App"
 3. Complete the verification process
 
-**Note**: For personal use with only your account, you can skip verification and add yourself as a test user.
+**Note**: For personal use with only your account, you can skip verification and
+add yourself as a test user.
 
 ## Troubleshooting
 

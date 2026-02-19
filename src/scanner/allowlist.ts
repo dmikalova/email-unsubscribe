@@ -1,11 +1,11 @@
 // Allow list checking
 
-import { getConnection } from '../db/index.ts';
-import { extractDomain } from './headers.ts';
+import { getConnection } from "../db/index.ts";
+import { extractDomain } from "./headers.ts";
 
 export interface AllowListEntry {
   id: number;
-  type: 'email' | 'domain';
+  type: "email" | "domain";
   value: string;
   notes: string | null;
   createdAt: Date;
@@ -28,7 +28,7 @@ export async function isAllowed(email: string): Promise<boolean> {
 }
 
 export async function addToAllowList(
-  type: 'email' | 'domain',
+  type: "email" | "domain",
   value: string,
   notes?: string,
 ): Promise<AllowListEntry> {
@@ -66,7 +66,9 @@ export function getAllowList(): Promise<AllowListEntry[]> {
   `;
 }
 
-export async function findInAllowList(value: string): Promise<AllowListEntry | null> {
+export async function findInAllowList(
+  value: string,
+): Promise<AllowListEntry | null> {
   const sql = getConnection();
   const normalizedValue = value.toLowerCase().trim();
 

@@ -1,11 +1,13 @@
 # Email Unsubscribe
 
-Automated email unsubscribe system that connects to Gmail via OAuth and automatically processes unsubscribe requests.
+Automated email unsubscribe system that connects to Gmail via OAuth and
+automatically processes unsubscribe requests.
 
 ## Features
 
 - Gmail integration via OAuth
-- Automatic unsubscribe link detection (RFC 8058 one-click, mailto, browser-based)
+- Automatic unsubscribe link detection (RFC 8058 one-click, mailto,
+  browser-based)
 - Sender allow list to preserve important subscriptions
 - Failed flow debugging with screenshots and Playwright traces
 - Web dashboard for monitoring and management
@@ -50,4 +52,5 @@ See `.env.example` for required variables.
 
 ## Deployment
 
-The application is deployed on Google Cloud Run with Supabase for PostgreSQL. See [deployment.md](deployment.md) for details.
+The application is deployed on Google Cloud Run with Supabase for PostgreSQL.
+See [deployment.md](deployment.md) for details.

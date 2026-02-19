@@ -1,8 +1,11 @@
+# Email Scanner
+
 ## ADDED Requirements
 
 ### Requirement: Scan inbox for unsubscribable emails
 
-The system SHALL periodically scan the Gmail inbox for emails containing unsubscribe options.
+The system SHALL periodically scan the Gmail inbox for emails containing
+unsubscribe options.
 
 #### Scenario: Scheduled scan
 
@@ -11,8 +14,10 @@ The system SHALL periodically scan the Gmail inbox for emails containing unsubsc
 
 #### Scenario: One-Click Unsubscribe header detection (RFC 8058)
 
-- **WHEN** an email contains a `List-Unsubscribe-Post` header along with `List-Unsubscribe`
-- **THEN** the system SHALL mark this email as supporting one-click unsubscribe via POST request
+- **WHEN** an email contains a `List-Unsubscribe-Post` header along with
+  `List-Unsubscribe`
+- **THEN** the system SHALL mark this email as supporting one-click unsubscribe
+  via POST request
 
 #### Scenario: Unsubscribe link detection via header
 
@@ -22,11 +27,13 @@ The system SHALL periodically scan the Gmail inbox for emails containing unsubsc
 #### Scenario: Mailto unsubscribe detection
 
 - **WHEN** an email contains a `List-Unsubscribe` header with a `mailto:` link
-- **THEN** the system SHALL extract the mailto address and mark as requiring email-based unsubscribe
+- **THEN** the system SHALL extract the mailto address and mark as requiring
+  email-based unsubscribe
 
 #### Scenario: Unsubscribe link detection via body
 
-- **WHEN** an email lacks a `List-Unsubscribe` header but contains an unsubscribe link in the body
+- **WHEN** an email lacks a `List-Unsubscribe` header but contains an
+  unsubscribe link in the body
 - **THEN** the system SHALL parse the email body to extract the unsubscribe URL
 
 ### Requirement: Extract sender information
@@ -41,26 +48,31 @@ The system SHALL extract and normalize sender information from each email.
 #### Scenario: Sender normalization
 
 - **WHEN** a sender uses plus-addressing or subdomains
-- **THEN** the system SHALL normalize to the base sender identity for tracking purposes
+- **THEN** the system SHALL normalize to the base sender identity for tracking
+  purposes
 
 ### Requirement: Track scan position
 
-The system SHALL track the last scanned email to ensure no emails are missed between scans.
+The system SHALL track the last scanned email to ensure no emails are missed
+between scans.
 
 #### Scenario: Record scan position
 
 - **WHEN** a scan completes
-- **THEN** the system SHALL store the timestamp or ID of the most recent email scanned
+- **THEN** the system SHALL store the timestamp or ID of the most recent email
+  scanned
 
 #### Scenario: Resume from last position
 
 - **WHEN** a new scan starts
-- **THEN** the system SHALL scan all emails received since the last recorded position, regardless of the scan interval
+- **THEN** the system SHALL scan all emails received since the last recorded
+  position, regardless of the scan interval
 
 #### Scenario: First scan
 
 - **WHEN** no previous scan position exists
-- **THEN** the system SHALL scan the most recent 1000 emails as the initial backlog
+- **THEN** the system SHALL scan the most recent 1000 emails as the initial
+  backlog
 
 ### Requirement: Idempotent processing
 
@@ -79,7 +91,8 @@ The system SHALL not reprocess emails that have already been handled.
 #### Scenario: Concurrent scan protection
 
 - **WHEN** a scan is already in progress
-- **THEN** the system SHALL skip starting a new scan until the current one completes
+- **THEN** the system SHALL skip starting a new scan until the current one
+  completes
 
 ### Requirement: Skip allowed senders
 
