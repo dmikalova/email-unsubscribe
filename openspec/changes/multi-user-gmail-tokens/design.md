@@ -2,7 +2,10 @@
 
 ## Context
 
-The email-unsubscribe system currently uses a hardcoded "default" user ID for OAuth token storage, supporting only a single user. With the centralized login portal (`login.mklv.tech`) providing Supabase JWT authentication, we can now support multiple users.
+The email-unsubscribe system currently uses a hardcoded "default" user ID for
+OAuth token storage, supporting only a single user. With the centralized login
+portal (`login.mklv.tech`) providing Supabase JWT authentication, we can now
+support multiple users.
 
 **Current state:**
 
@@ -14,7 +17,8 @@ The email-unsubscribe system currently uses a hardcoded "default" user ID for OA
 
 **Constraints:**
 
-- Must work with existing Supabase JWT from login portal (cannot modify login flow)
+- Must work with existing Supabase JWT from login portal (cannot modify login
+  flow)
 - Database migrations are additive-only (cannot drop columns)
 - Google requires separate OAuth clients for different privilege levels
 - Sensitive Gmail scopes require Google app verification for production
@@ -41,19 +45,25 @@ The email-unsubscribe system currently uses a hardcoded "default" user ID for OA
 
 ### 1. Two OAuth Clients (Separation of Authentication and Authorization)
 
-**Decision:** Use Supabase's OAuth client for identity, a separate Gmail OAuth client for API access.
+**Decision:** Use Supabase's OAuth client for identity, a separate Gmail OAuth
+client for API access.
 
 **Rationale:**
 
-- Follows Google's recommended separation (Google Identity Services explicitly split auth from authorization in 2022+)
-- Users see contextual consent ("Email Unsubscribe wants to read your Gmail") rather than scary permissions at login
+- Follows Google's recommended separation (Google Identity Services explicitly
+  split auth from authorization in 2022+)
+- Users see contextual consent ("Email Unsubscribe wants to read your Gmail")
+  rather than scary permissions at login
 - Can revoke Gmail access without affecting login
 - Supabase manages identity lifecycle; we manage Gmail tokens
 
 **Alternatives considered:**
 
-- _Supabase with Gmail scopes:_ Would require all users to grant Gmail access at login, even if they never use the feature. Also requires manual token refresh since Supabase doesn't auto-refresh provider tokens.
-- _Single custom OAuth client:_ Would require rebuilding login infrastructure, losing Supabase benefits.
+- _Supabase with Gmail scopes:_ Would require all users to grant Gmail access at
+  login, even if they never use the feature. Also requires manual token refresh
+  since Supabase doesn't auto-refresh provider tokens.
+- _Single custom OAuth client:_ Would require rebuilding login infrastructure,
+  losing Supabase benefits.
 
 ### 2. User ID Strategy
 
@@ -82,7 +92,8 @@ CREATE TABLE oauth_tokens (
 );
 ```
 
-Since nothing is deployed yet, we can modify the schema directly rather than adding columns.
+Since nothing is deployed yet, we can modify the schema directly rather than
+adding columns.
 
 ### 3. Token Encryption Strategy
 
@@ -90,8 +101,10 @@ Since nothing is deployed yet, we can modify the schema directly rather than add
 
 **Rationale:**
 
-- Per-user keys add complexity (key derivation, key storage) with marginal security benefit for this use case
-- Single key with versioning allows key rotation without re-encrypting all tokens immediately
+- Per-user keys add complexity (key derivation, key storage) with marginal
+  security benefit for this use case
+- Single key with versioning allows key rotation without re-encrypting all
+  tokens immediately
 - AES-256-GCM already provides authenticated encryption
 
 **Implementation:**
@@ -117,7 +130,8 @@ Since nothing is deployed yet, we can modify the schema directly rather than add
 
 **Rationale:**
 
-- Defense in depth - even if API middleware is bypassed, data layer rejects unauthorized access
+- Defense in depth - even if API middleware is bypassed, data layer rejects
+  unauthorized access
 - Single point of enforcement reduces risk of missed checks
 
 **Implementation:**
@@ -130,7 +144,8 @@ async function getTokens(userId: string): Promise<StoredTokens | null> {
 }
 ```
 
-Remove the `DEFAULT_USER_ID` constant and all functions that allow omitting user ID.
+Remove the `DEFAULT_USER_ID` constant and all functions that allow omitting user
+ID.
 
 ### 5. Audit Logging
 
@@ -206,7 +221,8 @@ POST /oauth/gmail/disconnect
   → Return success
 ```
 
-Google revocation endpoint: `https://oauth2.googleapis.com/revoke?token=<access_token>`
+Google revocation endpoint:
+`https://oauth2.googleapis.com/revoke?token=<access_token>`
 
 ### 8. Background/Cron Job Token Access
 
@@ -228,7 +244,7 @@ async function runScheduledScan() {
     try {
       const tokens = await getTokensForCron(userId); // System-level access
       await scanUserInbox(userId, tokens);
-      await logTokenAccess(userId, 'cron_scan');
+      await logTokenAccess(userId, "cron_scan");
     } catch (err) {
       // Handle per-user failures, continue with others
     }
@@ -240,7 +256,8 @@ Cron access is logged separately from user-initiated access for audit trail.
 
 ### 9. Token Health Check
 
-**Decision:** Provide endpoint to verify token validity without triggering a scan.
+**Decision:** Provide endpoint to verify token validity without triggering a
+scan.
 
 **Implementation:**
 
@@ -254,7 +271,8 @@ GET /oauth/gmail/health
      or   { status: "unhealthy", reason: "..." }
 ```
 
-Google tokeninfo endpoint: `https://oauth2.googleapis.com/tokeninfo?access_token=<token>`
+Google tokeninfo endpoint:
+`https://oauth2.googleapis.com/tokeninfo?access_token=<token>`
 
 ### 10. User Data Deletion
 
@@ -273,7 +291,8 @@ DELETE /api/user/data?confirm=true
   → Return { success: true, deleted: [...tables] }
 ```
 
-This provides users control over their data and supports a clean "start over" workflow.
+This provides users control over their data and supports a clean "start over"
+workflow.
 
 ## Risks / Trade-offs
 
@@ -287,7 +306,8 @@ This provides users control over their data and supports a clean "start over" wo
 
 ## Migration Plan
 
-Since nothing is deployed to production yet, we can make breaking schema changes directly:
+Since nothing is deployed to production yet, we can make breaking schema changes
+directly:
 
 1. Drop and recreate `oauth_tokens` table with new schema
 2. Add `oauth_audit_log` table
@@ -301,8 +321,16 @@ Since nothing is deployed to production yet, we can make breaking schema changes
 
 _All resolved:_
 
-1. ~~**Token refresh rotation:**~~ **Yes, enable it.** Google may issue new refresh tokens on each refresh - always store the latest refresh token returned. This is automatic if we save tokens after every refresh.
+1. ~~**Token refresh rotation:**~~ **Yes, enable it.** Google may issue new
+   refresh tokens on each refresh - always store the latest refresh token
+   returned. This is automatic if we save tokens after every refresh.
 
-2. ~~**Inactive user cleanup:**~~ **No cleanup.** The app is designed to run in the background after setup. Users may not access the dashboard frequently. Keep tokens indefinitely; only remove on explicit disconnect or Google revocation.
+2. ~~**Inactive user cleanup:**~~ **No cleanup.** The app is designed to run in
+   the background after setup. Users may not access the dashboard frequently.
+   Keep tokens indefinitely; only remove on explicit disconnect or Google
+   revocation.
 
-3. ~~**Rate limiting per user:**~~ **Yes, track per-user.** Gmail API quotas are per-project, but tracking per-user helps identify if one user's activity is causing issues. Log user_id with each API call for debugging. If quota issues arise, can implement per-user throttling.
+3. ~~**Rate limiting per user:**~~ **Yes, track per-user.** Gmail API quotas are
+   per-project, but tracking per-user helps identify if one user's activity is
+   causing issues. Log user_id with each API call for debugging. If quota issues
+   arise, can implement per-user throttling.

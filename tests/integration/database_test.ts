@@ -1,33 +1,37 @@
 // Integration tests for database operations
 // These tests require a running PostgreSQL instance
 
-import { assertEquals, assertExists } from '@std/assert';
+import { assertEquals, assertExists } from "@std/assert";
 
 // Skip tests if DATABASE_URL is not set
-const DATABASE_URL = Deno.env.get('DATABASE_URL');
+const DATABASE_URL = Deno.env.get("DATABASE_URL");
 const runIntegrationTests = !!DATABASE_URL;
 
 // Test user ID for integration tests
-const TEST_USER_ID = '00000000-0000-0000-0000-000000000001';
+const TEST_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 if (runIntegrationTests) {
   // Dynamic imports to avoid errors when database is not available
-  const { runMigrations, closeConnection } = await import('../../src/db/index.ts');
-  const { addToAllowList, removeFromAllowList, isAllowed } =
-    await import('../../src/scanner/allowlist.ts');
+  const { runMigrations, closeConnection } = await import(
+    "../../src/db/index.ts"
+  );
+  const { addToAllowList, removeFromAllowList, isAllowed } = await import(
+    "../../src/scanner/allowlist.ts"
+  );
   const {
     recordUnsubscribeAttempt,
     getUnsubscribeAttempt,
     markAsResolved,
     getStats,
     getFailedAttempts,
-  } = await import('../../src/tracker/tracker.ts');
-  const { logScanStarted, logScanCompleted, getAuditLog } =
-    await import('../../src/tracker/audit.ts');
+  } = await import("../../src/tracker/tracker.ts");
+  const { logScanStarted, logScanCompleted, getAuditLog } = await import(
+    "../../src/tracker/audit.ts"
+  );
 
   // Setup: Run migrations before tests
   Deno.test({
-    name: 'database - setup migrations',
+    name: "database - setup migrations",
     async fn() {
       await runMigrations();
     },
@@ -37,14 +41,19 @@ if (runIntegrationTests) {
 
   // Allow List Tests
   Deno.test({
-    name: 'allowlist - add and retrieve entry',
+    name: "allowlist - add and retrieve entry",
     async fn() {
       const value = `test-${Date.now()}@example.com`;
-      const entry = await addToAllowList(TEST_USER_ID, 'email', value, 'Test integration');
+      const entry = await addToAllowList(
+        TEST_USER_ID,
+        "email",
+        value,
+        "Test integration",
+      );
 
       assertExists(entry);
       assertEquals(entry.value, value.toLowerCase());
-      assertEquals(entry.type, 'email');
+      assertEquals(entry.type, "email");
 
       // Cleanup
       await removeFromAllowList(TEST_USER_ID, entry.id);
@@ -54,10 +63,10 @@ if (runIntegrationTests) {
   });
 
   Deno.test({
-    name: 'allowlist - check if in allow list',
+    name: "allowlist - check if in allow list",
     async fn() {
       const value = `allowed-${Date.now()}@example.com`;
-      const entry = await addToAllowList(TEST_USER_ID, 'email', value, 'Test');
+      const entry = await addToAllowList(TEST_USER_ID, "email", value, "Test");
 
       const allowed = await isAllowed(TEST_USER_ID, value);
       assertEquals(allowed, true);
@@ -71,15 +80,15 @@ if (runIntegrationTests) {
 
   // Unsubscribe Tracking Tests
   Deno.test({
-    name: 'tracker - record and retrieve attempt',
+    name: "tracker - record and retrieve attempt",
     async fn() {
       const attempt = await recordUnsubscribeAttempt(TEST_USER_ID, {
         emailId: `test-email-${Date.now()}`,
-        sender: 'test@example.com',
-        senderDomain: 'example.com',
-        method: 'one_click',
-        unsubscribeUrl: 'https://example.com/unsubscribe',
-        status: 'success',
+        sender: "test@example.com",
+        senderDomain: "example.com",
+        method: "one_click",
+        unsubscribeUrl: "https://example.com/unsubscribe",
+        status: "success",
       });
 
       assertExists(attempt);
@@ -87,63 +96,63 @@ if (runIntegrationTests) {
 
       const retrieved = await getUnsubscribeAttempt(TEST_USER_ID, attempt.id);
       assertExists(retrieved);
-      assertEquals(retrieved.sender, 'test@example.com');
-      assertEquals(retrieved.status, 'success');
+      assertEquals(retrieved.sender, "test@example.com");
+      assertEquals(retrieved.status, "success");
     },
     sanitizeOps: false,
     sanitizeResources: false,
   });
 
   Deno.test({
-    name: 'tracker - mark as resolved',
+    name: "tracker - mark as resolved",
     async fn() {
       const attempt = await recordUnsubscribeAttempt(TEST_USER_ID, {
         emailId: `test-email-${Date.now()}`,
-        sender: 'failed@example.com',
-        senderDomain: 'example.com',
-        method: 'browser',
-        unsubscribeUrl: 'https://example.com/unsubscribe',
-        status: 'failed',
-        failureReason: 'timeout',
-        failureDetails: 'Test error',
+        sender: "failed@example.com",
+        senderDomain: "example.com",
+        method: "browser",
+        unsubscribeUrl: "https://example.com/unsubscribe",
+        status: "failed",
+        failureReason: "timeout",
+        failureDetails: "Test error",
       });
 
       await markAsResolved(TEST_USER_ID, attempt.id);
 
       const resolved = await getUnsubscribeAttempt(TEST_USER_ID, attempt.id);
-      assertEquals(resolved?.status, 'success');
+      assertEquals(resolved?.status, "success");
     },
     sanitizeOps: false,
     sanitizeResources: false,
   });
 
   Deno.test({
-    name: 'tracker - get stats',
+    name: "tracker - get stats",
     async fn() {
       const stats = await getStats(TEST_USER_ID);
 
       assertExists(stats);
-      assertEquals(typeof stats.total, 'number');
-      assertEquals(typeof stats.success, 'number');
-      assertEquals(typeof stats.failed, 'number');
+      assertEquals(typeof stats.total, "number");
+      assertEquals(typeof stats.success, "number");
+      assertEquals(typeof stats.failed, "number");
     },
     sanitizeOps: false,
     sanitizeResources: false,
   });
 
   Deno.test({
-    name: 'tracker - get failed attempts',
+    name: "tracker - get failed attempts",
     async fn() {
       // Create a failed attempt
       await recordUnsubscribeAttempt(TEST_USER_ID, {
         emailId: `test-failed-${Date.now()}`,
-        sender: 'fail@example.com',
-        senderDomain: 'example.com',
-        method: 'browser',
-        unsubscribeUrl: 'https://example.com/unsubscribe',
-        status: 'failed',
-        failureReason: 'timeout',
-        failureDetails: 'Test failure',
+        sender: "fail@example.com",
+        senderDomain: "example.com",
+        method: "browser",
+        unsubscribeUrl: "https://example.com/unsubscribe",
+        status: "failed",
+        failureReason: "timeout",
+        failureDetails: "Test failure",
       });
 
       const failed = getFailedAttempts(TEST_USER_ID, 10, 0);
@@ -156,7 +165,7 @@ if (runIntegrationTests) {
 
   // Audit Log Tests
   Deno.test({
-    name: 'audit - log scan events',
+    name: "audit - log scan events",
     async fn() {
       await logScanStarted(TEST_USER_ID);
       await logScanCompleted(TEST_USER_ID, 10, 5, 0);
@@ -172,7 +181,7 @@ if (runIntegrationTests) {
 
   // Cleanup: Close database connection
   Deno.test({
-    name: 'database - cleanup',
+    name: "database - cleanup",
     async fn() {
       await closeConnection();
     },
@@ -181,7 +190,9 @@ if (runIntegrationTests) {
   });
 } else {
   // Placeholder test when database is not available
-  Deno.test('database integration tests skipped - DATABASE_URL not set', () => {
-    console.log('Skipping database integration tests - set DATABASE_URL to run');
+  Deno.test("database integration tests skipped - DATABASE_URL not set", () => {
+    console.log(
+      "Skipping database integration tests - set DATABASE_URL to run",
+    );
   });
 }

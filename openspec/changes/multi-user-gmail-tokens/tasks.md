@@ -2,16 +2,22 @@
 
 ## 1. Database Schema
 
-- [ ] 1.1 Drop existing `oauth_tokens` table and recreate with new schema (UUID primary key, `connected_email` column)
-- [ ] 1.2 Create `oauth_audit_log` table with indexes on user_id, event_type, and created_at
-- [ ] 1.3 Add `user_id` column to `allow_list`, `unsubscribe_history`, `processed_emails`, and `sender_tracking` tables
+- [ ] 1.1 Drop existing `oauth_tokens` table and recreate with new schema (UUID
+      primary key, `connected_email` column)
+- [ ] 1.2 Create `oauth_audit_log` table with indexes on user_id, event_type,
+      and created_at
+- [ ] 1.3 Add `user_id` column to `allow_list`, `unsubscribe_history`,
+      `processed_emails`, and `sender_tracking` tables
 
 ## 2. CSRF Fix
 
-- [ ] 2.1 Update HTML page to set CSRF cookie on load (generate token, set in cookie)
-- [ ] 2.2 Update frontend JavaScript to include `X-CSRF-Token` header on all POST/DELETE requests
+- [ ] 2.1 Update HTML page to set CSRF cookie on load (generate token, set in
+      cookie)
+- [ ] 2.2 Update frontend JavaScript to include `X-CSRF-Token` header on all
+      POST/DELETE requests
 - [ ] 2.3 Verify "Scan Now" button works after CSRF fix
-- [ ] 2.4 Add tests for CSRF validation (valid token accepted, missing/invalid rejected)
+- [ ] 2.4 Add tests for CSRF validation (valid token accepted, missing/invalid
+      rejected)
 
 ## 3. Token Storage Refactor
 
@@ -34,13 +40,18 @@
 
 ## 5. Gmail OAuth Flow
 
-- [ ] 5.1 Create `GET /oauth/gmail/connect` route - generate signed state, redirect to Google
-- [ ] 5.2 Implement signed state token generation (timestamp + user_id hash + random)
+- [ ] 5.1 Create `GET /oauth/gmail/connect` route - generate signed state,
+      redirect to Google
+- [ ] 5.2 Implement signed state token generation (timestamp + user_id hash +
+      random)
 - [ ] 5.3 Store state in session cookie for validation
-- [ ] 5.4 Create `GET /oauth/gmail/callback` route - validate state, exchange code, store tokens
+- [ ] 5.4 Create `GET /oauth/gmail/callback` route - validate state, exchange
+      code, store tokens
 - [ ] 5.5 Extract connected email from Google userinfo or token response
-- [ ] 5.6 Create `GET /oauth/gmail/status` route - return connection status for user
-- [ ] 5.7 Add tests for OAuth flow (state validation, callback handling, error cases)
+- [ ] 5.6 Create `GET /oauth/gmail/status` route - return connection status for
+      user
+- [ ] 5.7 Add tests for OAuth flow (state validation, callback handling, error
+      cases)
 
 ## 6. Gmail Disconnect
 
@@ -64,7 +75,8 @@
 - [ ] 8.1 Create `DELETE /api/user/data` route
 - [ ] 8.2 Require `?confirm=true` query parameter
 - [ ] 8.3 Revoke Google token if exists
-- [ ] 8.4 Delete user data from all tables (oauth_tokens, allow_list, unsubscribe_history, etc.)
+- [ ] 8.4 Delete user data from all tables (oauth_tokens, allow_list,
+      unsubscribe_history, etc.)
 - [ ] 8.5 Log `user_data_deleted` audit event
 - [ ] 8.6 Return list of cleared tables
 - [ ] 8.7 Add tests for data deletion (with/without confirm, partial data)
@@ -80,7 +92,8 @@
 
 ## 10. Dashboard UI
 
-- [ ] 10.1 Add Gmail connection status display (connected email or "Not connected")
+- [ ] 10.1 Add Gmail connection status display (connected email or "Not
+      connected")
 - [ ] 10.2 Add "Connect Gmail" button when not connected
 - [ ] 10.3 Add "Disconnect" button when connected (with confirmation dialog)
 - [ ] 10.4 Update "Scan Now" to show error if Gmail not connected

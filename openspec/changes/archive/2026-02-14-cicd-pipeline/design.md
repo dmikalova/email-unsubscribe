@@ -110,7 +110,7 @@ projects.
 
 ```typescript
 // github-meta/dagger/deno/src/index.ts
-import { Container, dag, Directory, func, object } from '@dagger.io/dagger';
+import { Container, dag, Directory, func, object } from "@dagger.io/dagger";
 
 @object()
 class DenoPipeline {
@@ -119,38 +119,38 @@ class DenoPipeline {
     // Build stage: compile Deno app to standalone binary
     const builder = dag
       .container()
-      .from('denoland/deno:2.0.0')
-      .withDirectory('/app', source)
-      .withWorkdir('/app')
+      .from("denoland/deno:2.0.0")
+      .withDirectory("/app", source)
+      .withWorkdir("/app")
       .withExec([
-        'deno',
-        'compile',
-        '--allow-net',
-        '--allow-env',
-        '--allow-read',
-        '--output',
-        'app',
+        "deno",
+        "compile",
+        "--allow-net",
+        "--allow-env",
+        "--allow-read",
+        "--output",
+        "app",
         entrypoint,
       ]);
 
     // Runtime stage: minimal distroless image
     return dag
       .container()
-      .from('gcr.io/distroless/cc-debian12')
-      .withFile('/app', builder.file('/app/app'))
+      .from("gcr.io/distroless/cc-debian12")
+      .withFile("/app", builder.file("/app/app"))
       .withExposedPort(8000)
-      .withEntrypoint(['/app']);
+      .withEntrypoint(["/app"]);
   }
 
   @func()
   async test(source: Directory): Promise<string> {
     return dag
       .container()
-      .from('denoland/deno:2.0.0')
-      .withDirectory('/app', source)
-      .withWorkdir('/app')
-      .withExec(['deno', 'task', 'check'])
-      .withExec(['deno', 'task', 'test'])
+      .from("denoland/deno:2.0.0")
+      .withDirectory("/app", source)
+      .withWorkdir("/app")
+      .withExec(["deno", "task", "check"])
+      .withExec(["deno", "task", "test"])
       .stdout();
   }
 
@@ -164,27 +164,34 @@ class DenoPipeline {
     password: Secret,
   ): Promise<string> {
     const ref = `${registry}/${image}:${tag}`;
-    return container.withRegistryAuth(registry, username, password).publish(ref);
+    return container.withRegistryAuth(registry, username, password).publish(
+      ref,
+    );
   }
 
   @func()
-  async deploy(image: string, service: string, region: string, project: string): Promise<string> {
+  async deploy(
+    image: string,
+    service: string,
+    region: string,
+    project: string,
+  ): Promise<string> {
     // Use gcloud CLI to deploy
     return dag
       .container()
-      .from('google/cloud-sdk:slim')
+      .from("google/cloud-sdk:slim")
       .withExec([
-        'gcloud',
-        'run',
-        'deploy',
+        "gcloud",
+        "run",
+        "deploy",
         service,
-        '--image',
+        "--image",
         image,
-        '--region',
+        "--region",
         region,
-        '--project',
+        "--project",
         project,
-        '--quiet',
+        "--quiet",
       ])
       .stdout();
   }

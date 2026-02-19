@@ -1,6 +1,6 @@
 // Scan state management
 
-import { getConnection } from '../db/index.ts';
+import { getConnection } from "../db/index.ts";
 
 export interface ScanState {
   lastHistoryId: string | null;
@@ -57,21 +57,34 @@ export async function getScanState(userId: string): Promise<ScanState> {
   };
 }
 
-export async function updateScanState(userId: string, updates: Partial<ScanState>): Promise<void> {
+export async function updateScanState(
+  userId: string,
+  updates: Partial<ScanState>,
+): Promise<void> {
   const sql = getConnection();
 
   await sql`
     INSERT INTO scan_state (user_id)
     VALUES (${userId}::uuid)
     ON CONFLICT (user_id) DO UPDATE SET
-      last_history_id = COALESCE(${updates.lastHistoryId ?? null}, scan_state.last_history_id),
-      last_email_id = COALESCE(${updates.lastEmailId ?? null}, scan_state.last_email_id),
-      last_scan_at = COALESCE(${updates.lastScanAt ?? null}, scan_state.last_scan_at),
-      emails_scanned = COALESCE(${updates.emailsScanned ?? null}, scan_state.emails_scanned),
-      emails_processed = COALESCE(${updates.emailsProcessed ?? null}, scan_state.emails_processed),
+      last_history_id = COALESCE(${
+    updates.lastHistoryId ?? null
+  }, scan_state.last_history_id),
+      last_email_id = COALESCE(${
+    updates.lastEmailId ?? null
+  }, scan_state.last_email_id),
+      last_scan_at = COALESCE(${
+    updates.lastScanAt ?? null
+  }, scan_state.last_scan_at),
+      emails_scanned = COALESCE(${
+    updates.emailsScanned ?? null
+  }, scan_state.emails_scanned),
+      emails_processed = COALESCE(${
+    updates.emailsProcessed ?? null
+  }, scan_state.emails_processed),
       is_initial_backlog_complete = COALESCE(${
-        updates.isInitialBacklogComplete ?? null
-      }, scan_state.is_initial_backlog_complete),
+    updates.isInitialBacklogComplete ?? null
+  }, scan_state.is_initial_backlog_complete),
       updated_at = NOW()
   `;
 }
@@ -95,7 +108,10 @@ export async function incrementScanStats(
 
 // Processed emails tracking for idempotency
 
-export async function isEmailProcessed(userId: string, emailId: string): Promise<boolean> {
+export async function isEmailProcessed(
+  userId: string,
+  emailId: string,
+): Promise<boolean> {
   const sql = getConnection();
 
   const rows = await sql<{ id: number }[]>`
@@ -106,7 +122,10 @@ export async function isEmailProcessed(userId: string, emailId: string): Promise
   return rows.length > 0;
 }
 
-export async function markEmailProcessed(userId: string, emailId: string): Promise<void> {
+export async function markEmailProcessed(
+  userId: string,
+  emailId: string,
+): Promise<void> {
   const sql = getConnection();
 
   await sql`

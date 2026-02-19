@@ -49,7 +49,8 @@ The system SHALL encrypt OAuth tokens before database storage.
 #### Scenario: Token decryption
 
 - **WHEN** retrieving tokens from the database
-- **THEN** the system SHALL decrypt using the key version indicated in the payload
+- **THEN** the system SHALL decrypt using the key version indicated in the
+  payload
 
 ### Requirement: Audit logging for token operations
 
@@ -125,7 +126,8 @@ The system SHALL use cryptographically secure state parameters.
 
 ### Requirement: Token health check
 
-The system SHALL provide an endpoint to verify token validity without triggering a scan.
+The system SHALL provide an endpoint to verify token validity without triggering
+a scan.
 
 #### Scenario: Health check with valid token
 

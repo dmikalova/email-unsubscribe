@@ -4,7 +4,8 @@
 
 ### Requirement: Gmail connection UI
 
-The system SHALL provide UI for users to connect and disconnect their Gmail account.
+The system SHALL provide UI for users to connect and disconnect their Gmail
+account.
 
 #### Scenario: Display connection status
 
@@ -27,7 +28,8 @@ The system SHALL provide UI for users to connect and disconnect their Gmail acco
 #### Scenario: Connection required for scanning
 
 - **WHEN** Gmail is not connected and user clicks "Scan Now"
-- **THEN** the system SHALL display a message indicating Gmail must be connected first
+- **THEN** the system SHALL display a message indicating Gmail must be connected
+  first
 - **AND** SHALL provide a link/button to connect Gmail
 
 ### Requirement: OAuth error handling UI
@@ -49,5 +51,6 @@ The system SHALL display clear error messages for OAuth failures.
 #### Scenario: Token revocation notification
 
 - **WHEN** the system detects Gmail access has been revoked
-- **THEN** the system SHALL display a notification that Gmail needs to be reconnected
+- **THEN** the system SHALL display a notification that Gmail needs to be
+  reconnected
 - **AND** SHALL show the "Connect Gmail" button
