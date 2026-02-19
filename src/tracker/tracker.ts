@@ -1,25 +1,22 @@
 // Compliance tracker - records unsubscribe attempts and outcomes
 
-import { getConnection } from "../db/index.ts";
-import {
-  archiveAndLabelSuccess,
-  labelMessageAsFailed,
-} from "../gmail/index.ts";
-import { markEmailProcessed } from "../scanner/state.ts";
-import { markSenderUnsubscribed } from "../scanner/tracking.ts";
+import { getConnection } from '../db/index.ts';
+import { archiveAndLabelSuccess, labelMessageAsFailed } from '../gmail/index.ts';
+import { markEmailProcessed } from '../scanner/state.ts';
+import { markSenderUnsubscribed } from '../scanner/tracking.ts';
 
-export type UnsubscribeStatus = "success" | "failed" | "uncertain" | "pending";
-export type UnsubscribeMethod = "one_click" | "mailto" | "browser" | "manual";
+export type UnsubscribeStatus = 'success' | 'failed' | 'uncertain' | 'pending';
+export type UnsubscribeMethod = 'one_click' | 'mailto' | 'browser' | 'manual';
 export type FailureReason =
-  | "timeout"
-  | "no_button_found"
-  | "navigation_error"
-  | "form_error"
-  | "captcha_detected"
-  | "login_required"
-  | "network_error"
-  | "invalid_url"
-  | "unknown";
+  | 'timeout'
+  | 'no_button_found'
+  | 'navigation_error'
+  | 'form_error'
+  | 'captcha_detected'
+  | 'login_required'
+  | 'network_error'
+  | 'invalid_url'
+  | 'unknown';
 
 export interface UnsubscribeAttempt {
   id: number;
@@ -52,16 +49,18 @@ export interface RecordAttemptInput {
 }
 
 export async function recordUnsubscribeAttempt(
+  userId: string,
   input: RecordAttemptInput,
 ): Promise<UnsubscribeAttempt> {
   const sql = getConnection();
 
   const rows = await sql<UnsubscribeAttempt[]>`
     INSERT INTO unsubscribe_history (
-      email_id, sender, sender_domain, unsubscribe_url,
+      user_id, email_id, sender, sender_domain, unsubscribe_url,
       method, status, failure_reason, failure_details,
       screenshot_path, trace_path, completed_at
     ) VALUES (
+      ${userId},
       ${input.emailId},
       ${input.sender},
       ${input.senderDomain},
@@ -72,7 +71,7 @@ export async function recordUnsubscribeAttempt(
       ${input.failureDetails ?? null},
       ${input.screenshotPath ?? null},
       ${input.tracePath ?? null},
-      ${input.status !== "pending" ? new Date() : null}
+      ${input.status !== 'pending' ? new Date() : null}
     )
     RETURNING id, email_id as "emailId", sender, sender_domain as "senderDomain",
               unsubscribe_url as "unsubscribeUrl", method, status,
@@ -85,40 +84,41 @@ export async function recordUnsubscribeAttempt(
   const attempt = rows[0];
 
   // Handle side effects based on status
-  if (input.status === "success") {
-    await handleSuccess(input.emailId, input.sender);
-  } else if (input.status === "failed") {
-    await handleFailure(input.emailId);
+  if (input.status === 'success') {
+    await handleSuccess(userId, input.emailId, input.sender);
+  } else if (input.status === 'failed') {
+    await handleFailure(userId, input.emailId);
   }
 
   // Mark email as processed
-  await markEmailProcessed(input.emailId);
+  await markEmailProcessed(userId, input.emailId);
 
   return attempt;
 }
 
-async function handleSuccess(emailId: string, sender: string): Promise<void> {
+async function handleSuccess(userId: string, emailId: string, sender: string): Promise<void> {
   // Mark sender as unsubscribed (for tracking)
-  await markSenderUnsubscribed(sender);
+  await markSenderUnsubscribed(userId, sender);
 
   // Label and archive the email
   try {
-    await archiveAndLabelSuccess(emailId);
+    await archiveAndLabelSuccess(userId, emailId);
   } catch (error) {
     console.error(`Failed to label/archive email ${emailId}:`, error);
   }
 }
 
-async function handleFailure(emailId: string): Promise<void> {
+async function handleFailure(userId: string, emailId: string): Promise<void> {
   // Label email as failed
   try {
-    await labelMessageAsFailed(emailId);
+    await labelMessageAsFailed(userId, emailId);
   } catch (error) {
     console.error(`Failed to label email ${emailId}:`, error);
   }
 }
 
 export async function getUnsubscribeAttempt(
+  userId: string,
   id: number,
 ): Promise<UnsubscribeAttempt | null> {
   const sql = getConnection();
@@ -131,13 +131,14 @@ export async function getUnsubscribeAttempt(
            attempted_at as "attemptedAt", completed_at as "completedAt",
            retry_count as "retryCount"
     FROM unsubscribe_history
-    WHERE id = ${id}
+    WHERE user_id = ${userId} AND id = ${id}
   `;
 
   return rows[0] ?? null;
 }
 
 export function getFailedAttempts(
+  userId: string,
   limit = 50,
   offset = 0,
 ): Promise<UnsubscribeAttempt[]> {
@@ -151,13 +152,13 @@ export function getFailedAttempts(
            attempted_at as "attemptedAt", completed_at as "completedAt",
            retry_count as "retryCount"
     FROM unsubscribe_history
-    WHERE status = 'failed' OR status = 'uncertain'
+    WHERE user_id = ${userId} AND (status = 'failed' OR status = 'uncertain')
     ORDER BY attempted_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `;
 }
 
-export function getRecentAttempts(limit = 20): Promise<UnsubscribeAttempt[]> {
+export function getRecentAttempts(userId: string, limit = 20): Promise<UnsubscribeAttempt[]> {
   const sql = getConnection();
 
   return sql<UnsubscribeAttempt[]>`
@@ -168,28 +169,29 @@ export function getRecentAttempts(limit = 20): Promise<UnsubscribeAttempt[]> {
            attempted_at as "attemptedAt", completed_at as "completedAt",
            retry_count as "retryCount"
     FROM unsubscribe_history
+    WHERE user_id = ${userId}
     ORDER BY attempted_at DESC
     LIMIT ${limit}
   `;
 }
 
-export async function markAsResolved(id: number): Promise<void> {
+export async function markAsResolved(userId: string, id: number): Promise<void> {
   const sql = getConnection();
 
   await sql`
     UPDATE unsubscribe_history
     SET status = 'success', completed_at = NOW()
-    WHERE id = ${id}
+    WHERE user_id = ${userId} AND id = ${id}
   `;
 }
 
-export async function incrementRetryCount(id: number): Promise<number> {
+export async function incrementRetryCount(userId: string, id: number): Promise<number> {
   const sql = getConnection();
 
   const rows = await sql<{ retry_count: number }[]>`
     UPDATE unsubscribe_history
     SET retry_count = retry_count + 1, status = 'pending'
-    WHERE id = ${id}
+    WHERE user_id = ${userId} AND id = ${id}
     RETURNING retry_count
   `;
 
@@ -197,6 +199,7 @@ export async function incrementRetryCount(id: number): Promise<number> {
 }
 
 export async function updateAttemptStatus(
+  userId: string,
   id: number,
   status: UnsubscribeStatus,
   details?: {
@@ -212,18 +215,12 @@ export async function updateAttemptStatus(
     UPDATE unsubscribe_history
     SET
       status = ${status},
-      failure_reason = COALESCE(${
-    details?.failureReason ?? null
-  }, failure_reason),
-      failure_details = COALESCE(${
-    details?.failureDetails ?? null
-  }, failure_details),
-      screenshot_path = COALESCE(${
-    details?.screenshotPath ?? null
-  }, screenshot_path),
+      failure_reason = COALESCE(${details?.failureReason ?? null}, failure_reason),
+      failure_details = COALESCE(${details?.failureDetails ?? null}, failure_details),
+      screenshot_path = COALESCE(${details?.screenshotPath ?? null}, screenshot_path),
       trace_path = COALESCE(${details?.tracePath ?? null}, trace_path),
-      completed_at = ${status !== "pending" ? new Date() : null}
-    WHERE id = ${id}
+      completed_at = ${status !== 'pending' ? new Date() : null}
+    WHERE user_id = ${userId} AND id = ${id}
   `;
 }
 
@@ -236,12 +233,13 @@ export interface UnsubscribeStats {
   successRate: number;
 }
 
-export async function getStats(): Promise<UnsubscribeStats> {
+export async function getStats(userId: string): Promise<UnsubscribeStats> {
   const sql = getConnection();
 
   const rows = await sql<{ status: string; count: string }[]>`
     SELECT status, COUNT(*)::text as count
     FROM unsubscribe_history
+    WHERE user_id = ${userId}
     GROUP BY status
   `;
 
@@ -259,16 +257,16 @@ export async function getStats(): Promise<UnsubscribeStats> {
     stats.total += count;
 
     switch (row.status) {
-      case "success":
+      case 'success':
         stats.success = count;
         break;
-      case "failed":
+      case 'failed':
         stats.failed = count;
         break;
-      case "uncertain":
+      case 'uncertain':
         stats.uncertain = count;
         break;
-      case "pending":
+      case 'pending':
         stats.pending = count;
         break;
     }
@@ -281,9 +279,7 @@ export async function getStats(): Promise<UnsubscribeStats> {
   return stats;
 }
 
-export function getHistoryByDomain(
-  domain: string,
-): Promise<UnsubscribeAttempt[]> {
+export function getHistoryByDomain(userId: string, domain: string): Promise<UnsubscribeAttempt[]> {
   const sql = getConnection();
 
   return sql<UnsubscribeAttempt[]>`
@@ -294,14 +290,14 @@ export function getHistoryByDomain(
            attempted_at as "attemptedAt", completed_at as "completedAt",
            retry_count as "retryCount"
     FROM unsubscribe_history
-    WHERE sender_domain = ${domain}
+    WHERE user_id = ${userId} AND sender_domain = ${domain}
     ORDER BY attempted_at DESC
   `;
 }
 
-export function getDomainStats(): Promise<
-  { domain: string; total: number; success: number; failed: number }[]
-> {
+export function getDomainStats(
+  userId: string,
+): Promise<{ domain: string; total: number; success: number; failed: number }[]> {
   const sql = getConnection();
 
   return sql`
@@ -311,6 +307,7 @@ export function getDomainStats(): Promise<
       COUNT(*) FILTER (WHERE status = 'success')::int as success,
       COUNT(*) FILTER (WHERE status = 'failed' OR status = 'uncertain')::int as failed
     FROM unsubscribe_history
+    WHERE user_id = ${userId}
     GROUP BY sender_domain
     ORDER BY total DESC
     LIMIT 50

@@ -3,6 +3,7 @@
 export {
   authMiddleware,
   csrfMiddleware,
+  csrfSetupMiddleware,
   generateCsrfToken,
   getSecureCookieOptions,
   rateLimitMiddleware,

@@ -1,8 +1,8 @@
 // Gmail API Client Wrapper
 
-import { getValidAccessToken } from "./tokens.ts";
+import { getValidAccessToken } from './tokens.ts';
 
-const GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
+const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1/users/me';
 
 export interface GmailMessage {
   id: string;
@@ -41,16 +41,13 @@ export interface ListMessagesResponse {
 let lastRequestTime = 0;
 const MIN_REQUEST_INTERVAL = 100; // ms between requests
 
-async function rateLimitedFetch(
-  url: string,
-  options: RequestInit = {},
-): Promise<Response> {
+async function rateLimitedFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const now = Date.now();
   const timeSinceLastRequest = now - lastRequestTime;
 
   if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
     await new Promise((resolve) =>
-      setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest)
+      setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest),
     );
   }
 
@@ -59,17 +56,18 @@ async function rateLimitedFetch(
 }
 
 async function gmailFetch(
+  userId: string,
   endpoint: string,
   options: RequestInit = {},
   retries = 3,
 ): Promise<Response> {
-  const accessToken = await getValidAccessToken();
+  const accessToken = await getValidAccessToken(userId);
 
   const fetchOptions: RequestInit = {
     ...options,
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...options.headers,
     },
   };
@@ -78,14 +76,11 @@ async function gmailFetch(
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const response = await rateLimitedFetch(
-        `${GMAIL_API_BASE}${endpoint}`,
-        fetchOptions,
-      );
+      const response = await rateLimitedFetch(`${GMAIL_API_BASE}${endpoint}`, fetchOptions);
 
       // Handle rate limiting
       if (response.status === 429) {
-        const retryAfter = parseInt(response.headers.get("Retry-After") || "5");
+        const retryAfter = parseInt(response.headers.get('Retry-After') || '5');
         console.log(`Rate limited, waiting ${retryAfter} seconds...`);
         await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
         continue;
@@ -108,22 +103,23 @@ async function gmailFetch(
     }
   }
 
-  throw lastError || new Error("Request failed after retries");
+  throw lastError || new Error('Request failed after retries');
 }
 
 // Messages API
 
 export async function listMessages(
+  userId: string,
   query?: string,
   maxResults = 100,
   pageToken?: string,
 ): Promise<ListMessagesResponse> {
   const params = new URLSearchParams();
-  if (query) params.set("q", query);
-  if (maxResults) params.set("maxResults", maxResults.toString());
-  if (pageToken) params.set("pageToken", pageToken);
+  if (query) params.set('q', query);
+  if (maxResults) params.set('maxResults', maxResults.toString());
+  if (pageToken) params.set('pageToken', pageToken);
 
-  const response = await gmailFetch(`/messages?${params.toString()}`);
+  const response = await gmailFetch(userId, `/messages?${params.toString()}`);
 
   if (!response.ok) {
     throw new Error(`Failed to list messages: ${await response.text()}`);
@@ -133,10 +129,11 @@ export async function listMessages(
 }
 
 export async function getMessage(
+  userId: string,
   messageId: string,
-  format: "full" | "metadata" | "minimal" = "metadata",
+  format: 'full' | 'metadata' | 'minimal' = 'metadata',
 ): Promise<GmailMessage> {
-  const response = await gmailFetch(`/messages/${messageId}?format=${format}`);
+  const response = await gmailFetch(userId, `/messages/${messageId}?format=${format}`);
 
   if (!response.ok) {
     throw new Error(`Failed to get message: ${await response.text()}`);
@@ -146,8 +143,9 @@ export async function getMessage(
 }
 
 export async function batchGetMessages(
+  userId: string,
   messageIds: string[],
-  format: "full" | "metadata" | "minimal" = "metadata",
+  format: 'full' | 'metadata' | 'minimal' = 'metadata',
 ): Promise<GmailMessage[]> {
   // Gmail API doesn't have native batch for individual messages
   // We'll use parallel requests with rate limiting
@@ -156,9 +154,7 @@ export async function batchGetMessages(
 
   for (let i = 0; i < messageIds.length; i += batchSize) {
     const batch = messageIds.slice(i, i + batchSize);
-    const batchResults = await Promise.all(
-      batch.map((id) => getMessage(id, format)),
-    );
+    const batchResults = await Promise.all(batch.map((id) => getMessage(userId, id, format)));
     results.push(...batchResults);
   }
 
@@ -167,8 +163,8 @@ export async function batchGetMessages(
 
 // Labels API
 
-export async function listLabels(): Promise<GmailLabel[]> {
-  const response = await gmailFetch("/labels");
+export async function listLabels(userId: string): Promise<GmailLabel[]> {
+  const response = await gmailFetch(userId, '/labels');
 
   if (!response.ok) {
     throw new Error(`Failed to list labels: ${await response.text()}`);
@@ -178,13 +174,13 @@ export async function listLabels(): Promise<GmailLabel[]> {
   return data.labels || [];
 }
 
-export async function createLabel(name: string): Promise<GmailLabel> {
-  const response = await gmailFetch("/labels", {
-    method: "POST",
+export async function createLabel(userId: string, name: string): Promise<GmailLabel> {
+  const response = await gmailFetch(userId, '/labels', {
+    method: 'POST',
     body: JSON.stringify({
       name,
-      labelListVisibility: "labelShow",
-      messageListVisibility: "show",
+      labelListVisibility: 'labelShow',
+      messageListVisibility: 'show',
     }),
   });
 
@@ -195,24 +191,25 @@ export async function createLabel(name: string): Promise<GmailLabel> {
   return response.json();
 }
 
-export async function getOrCreateLabel(name: string): Promise<GmailLabel> {
-  const labels = await listLabels();
+export async function getOrCreateLabel(userId: string, name: string): Promise<GmailLabel> {
+  const labels = await listLabels(userId);
   const existing = labels.find((l) => l.name === name);
 
   if (existing) {
     return existing;
   }
 
-  return createLabel(name);
+  return createLabel(userId, name);
 }
 
 export async function modifyMessageLabels(
+  userId: string,
   messageId: string,
   addLabelIds: string[] = [],
   removeLabelIds: string[] = [],
 ): Promise<void> {
-  const response = await gmailFetch(`/messages/${messageId}/modify`, {
-    method: "POST",
+  const response = await gmailFetch(userId, `/messages/${messageId}/modify`, {
+    method: 'POST',
     body: JSON.stringify({ addLabelIds, removeLabelIds }),
   });
 
@@ -221,14 +218,15 @@ export async function modifyMessageLabels(
   }
 }
 
-export async function archiveMessage(messageId: string): Promise<void> {
+export async function archiveMessage(userId: string, messageId: string): Promise<void> {
   // Archiving is done by removing the INBOX label
-  await modifyMessageLabels(messageId, [], ["INBOX"]);
+  await modifyMessageLabels(userId, messageId, [], ['INBOX']);
 }
 
 // Send API (for mailto unsubscribe)
 
 export async function sendEmail(
+  userId: string,
   to: string,
   subject: string,
   body: string,
@@ -236,16 +234,15 @@ export async function sendEmail(
   const message = [
     `To: ${to}`,
     `Subject: ${subject}`,
-    "Content-Type: text/plain; charset=utf-8",
-    "",
+    'Content-Type: text/plain; charset=utf-8',
+    '',
     body,
-  ].join("\r\n");
+  ].join('\r\n');
 
-  const encodedMessage = btoa(message).replace(/\+/g, "-").replace(/\//g, "_")
-    .replace(/=+$/, "");
+  const encodedMessage = btoa(message).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-  const response = await gmailFetch("/messages/send", {
-    method: "POST",
+  const response = await gmailFetch(userId, '/messages/send', {
+    method: 'POST',
     body: JSON.stringify({ raw: encodedMessage }),
   });
 
@@ -268,21 +265,22 @@ export interface HistoryResponse {
 }
 
 export async function getHistory(
+  userId: string,
   startHistoryId: string,
   pageToken?: string,
 ): Promise<HistoryResponse> {
   const params = new URLSearchParams({
     startHistoryId,
-    historyTypes: "messageAdded",
+    historyTypes: 'messageAdded',
   });
-  if (pageToken) params.set("pageToken", pageToken);
+  if (pageToken) params.set('pageToken', pageToken);
 
-  const response = await gmailFetch(`/history?${params.toString()}`);
+  const response = await gmailFetch(userId, `/history?${params.toString()}`);
 
   if (!response.ok) {
     // 404 means history is too old, need full sync
     if (response.status === 404) {
-      throw new Error("History too old, full sync required");
+      throw new Error('History too old, full sync required');
     }
     throw new Error(`Failed to get history: ${await response.text()}`);
   }
@@ -292,10 +290,10 @@ export async function getHistory(
 
 // Profile API (for getting current history ID)
 
-export async function getProfile(): Promise<
-  { emailAddress: string; historyId: string }
-> {
-  const response = await gmailFetch("/profile");
+export async function getProfile(
+  userId: string,
+): Promise<{ emailAddress: string; historyId: string }> {
+  const response = await gmailFetch(userId, '/profile');
 
   if (!response.ok) {
     throw new Error(`Failed to get profile: ${await response.text()}`);

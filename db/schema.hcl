@@ -81,6 +81,10 @@ table "allow_list" {
     null = false
     type = serial
   }
+  column "user_id" {
+    null = false
+    type = uuid
+  }
   column "type" {
     null = false
     type = enum.allow_list_type
@@ -103,7 +107,10 @@ table "allow_list" {
   }
   index "idx_allow_list_type_value" {
     unique  = true
-    columns = [column.type, column.value]
+    columns = [column.user_id, column.type, column.value]
+  }
+  index "idx_allow_list_user_id" {
+    columns = [column.user_id]
   }
   index "idx_allow_list_value" {
     columns = [column.value]
@@ -116,6 +123,10 @@ table "audit_log" {
   column "id" {
     null = false
     type = serial
+  }
+  column "user_id" {
+    null = true
+    type = uuid
   }
   column "action" {
     null = false
@@ -151,9 +162,12 @@ table "audit_log" {
     type    = GIN
     columns = [column.details]
   }
+  index "idx_audit_log_user_id" {
+    columns = [column.user_id]
+  }
 }
 
-table "oauth_tokens" {
+table "oauth_audit_log" {
   schema = schema.email_unsubscribe
 
   column "id" {
@@ -162,11 +176,57 @@ table "oauth_tokens" {
   }
   column "user_id" {
     null = false
+    type = uuid
+  }
+  column "event_type" {
+    null = false
     type = text
+  }
+  column "event_data" {
+    null = true
+    type = jsonb
+  }
+  column "ip_address" {
+    null = true
+    type = text
+  }
+  column "user_agent" {
+    null = true
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "idx_oauth_audit_created_at" {
+    columns = [column.created_at]
+  }
+  index "idx_oauth_audit_event_type" {
+    columns = [column.event_type]
+  }
+  index "idx_oauth_audit_user_id" {
+    columns = [column.user_id]
+  }
+}
+
+table "oauth_tokens" {
+  schema = schema.email_unsubscribe
+
+  column "user_id" {
+    null = false
+    type = uuid
   }
   column "access_token_encrypted" {
     null = false
     type = bytea
+  }
+  column "connected_email" {
+    null = true
+    type = text
   }
   column "refresh_token_encrypted" {
     null = false
@@ -196,16 +256,10 @@ table "oauth_tokens" {
     default = sql("now()")
   }
   primary_key {
-    columns = [column.id]
-  }
-  unique "oauth_tokens_user_id_key" {
     columns = [column.user_id]
   }
   index "idx_oauth_tokens_expires_at" {
     columns = [column.expires_at]
-  }
-  index "idx_oauth_tokens_user_id" {
-    columns = [column.user_id]
   }
 }
 
@@ -279,6 +333,10 @@ table "processed_emails" {
     null = false
     type = serial
   }
+  column "user_id" {
+    null = false
+    type = uuid
+  }
   column "email_id" {
     null = false
     type = text
@@ -291,8 +349,8 @@ table "processed_emails" {
   primary_key {
     columns = [column.id]
   }
-  unique "processed_emails_email_id_key" {
-    columns = [column.email_id]
+  unique "processed_emails_user_email_key" {
+    columns = [column.user_id, column.email_id]
   }
   index "idx_processed_emails_email_id" {
     columns = [column.email_id]
@@ -300,14 +358,17 @@ table "processed_emails" {
   index "idx_processed_emails_processed_at" {
     columns = [column.processed_at]
   }
+  index "idx_processed_emails_user_id" {
+    columns = [column.user_id]
+  }
 }
 
 table "scan_state" {
   schema = schema.email_unsubscribe
 
-  column "id" {
+  column "user_id" {
     null = false
-    type = serial
+    type = uuid
   }
   column "last_history_id" {
     null = true
@@ -347,13 +408,7 @@ table "scan_state" {
     default = sql("now()")
   }
   primary_key {
-    columns = [column.id]
-  }
-  index "idx_scan_state_singleton" {
-    unique = true
-    on {
-      expr = "(id IS NOT NULL)"
-    }
+    columns = [column.user_id]
   }
 }
 
@@ -363,6 +418,10 @@ table "sender_tracking" {
   column "id" {
     null = false
     type = serial
+  }
+  column "user_id" {
+    null = false
+    type = uuid
   }
   column "sender" {
     null = false
@@ -421,11 +480,14 @@ table "sender_tracking" {
   }
   index "idx_sender_tracking_sender" {
     unique  = true
-    columns = [column.sender]
+    columns = [column.user_id, column.sender]
   }
   index "idx_sender_tracking_unsubscribed" {
     columns = [column.unsubscribed_at]
     where   = "unsubscribed_at IS NOT NULL"
+  }
+  index "idx_sender_tracking_user_id" {
+    columns = [column.user_id]
   }
 }
 
@@ -435,6 +497,10 @@ table "unsubscribe_history" {
   column "id" {
     null = false
     type = serial
+  }
+  column "user_id" {
+    null = false
+    type = uuid
   }
   column "email_id" {
     null = false
@@ -508,5 +574,8 @@ table "unsubscribe_history" {
   }
   index "idx_unsubscribe_history_status" {
     columns = [column.status]
+  }
+  index "idx_unsubscribe_history_user_id" {
+    columns = [column.user_id]
   }
 }

@@ -241,7 +241,39 @@ export async function rateLimitMiddleware(c: Context, next: Next) {
   await next();
 }
 
-// CSRF protection middleware
+// CSRF protection middleware - double-submit cookie pattern
+
+/**
+ * Sets the CSRF cookie if not present.
+ * Must be applied before csrfMiddleware.
+ * The cookie is readable by JavaScript to enable double-submit pattern.
+ */
+export async function csrfSetupMiddleware(c: Context, next: Next) {
+  const existingToken = c.req
+    .header("Cookie")
+    ?.split(";")
+    .find((cookie) => cookie.trim().startsWith("csrf="))
+    ?.split("=")[1]
+    ?.trim();
+
+  if (!existingToken) {
+    const token = generateCsrfToken();
+    const isProduction = Deno.env.get("NODE_ENV") === "production";
+
+    // Cookie must be readable by JavaScript for double-submit pattern
+    c.header(
+      "Set-Cookie",
+      `csrf=${token}; Path=/; SameSite=Strict; ${isProduction ? "Secure; " : ""}Max-Age=86400`,
+    );
+  }
+
+  await next();
+}
+
+/**
+ * Validates CSRF token on state-changing requests.
+ * Requires X-CSRF-Token header to match csrf cookie value.
+ */
 export async function csrfMiddleware(c: Context, next: Next) {
   // Skip CSRF for GET requests and OAuth routes
   if (c.req.method === "GET" || c.req.path.startsWith("/oauth/")) {
@@ -253,7 +285,7 @@ export async function csrfMiddleware(c: Context, next: Next) {
   const cookieToken = c.req
     .header("Cookie")
     ?.split(";")
-    .find((c) => c.trim().startsWith("csrf="))
+    .find((cookie) => cookie.trim().startsWith("csrf="))
     ?.split("=")[1]
     ?.trim();
 

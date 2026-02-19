@@ -7,32 +7,29 @@ import {
   getProfile,
   type GmailMessage,
   listMessages,
-} from "../gmail/index.ts";
-import { isAllowed } from "./allowlist.ts";
+} from '../gmail/index.ts';
+import { isAllowed } from './allowlist.ts';
 import {
   extractDomain,
   getSender,
   parseListUnsubscribeHeader,
   type UnsubscribeInfo,
-} from "./headers.ts";
-import {
-  extractUnsubscribeLinksFromHtml,
-  getHtmlBodyFromPayload,
-} from "./html.ts";
+} from './headers.ts';
+import { extractUnsubscribeLinksFromHtml, getHtmlBodyFromPayload } from './html.ts';
 import {
   getProcessedEmailIds,
   getScanState,
   incrementScanStats,
   isEmailProcessed,
   updateScanState,
-} from "./state.ts";
-import { trackSender } from "./tracking.ts";
+} from './state.ts';
+import { trackSender } from './tracking.ts';
 
 const INITIAL_BACKLOG_LIMIT = 1000;
 const BATCH_SIZE = 50;
 
-// Mutex for preventing concurrent scans
-let scanInProgress = false;
+// Per-user mutex for preventing concurrent scans
+const scansInProgress = new Set<string>();
 
 export interface ScannedEmail {
   id: string;
@@ -54,30 +51,30 @@ export interface ScanResult {
   emails: ScannedEmail[];
 }
 
-export async function scanEmails(limit?: number): Promise<ScanResult> {
-  if (scanInProgress) {
-    throw new Error("Scan already in progress");
+export async function scanEmails(userId: string, limit?: number): Promise<ScanResult> {
+  if (scansInProgress.has(userId)) {
+    throw new Error('Scan already in progress for this user');
   }
 
-  scanInProgress = true;
+  scansInProgress.add(userId);
 
   try {
-    const state = await getScanState();
+    const state = await getScanState(userId);
 
     // If initial backlog is not complete, do initial scan
     if (!state.isInitialBacklogComplete) {
-      return await performInitialScan(limit ?? INITIAL_BACKLOG_LIMIT);
+      return await performInitialScan(userId, limit ?? INITIAL_BACKLOG_LIMIT);
     }
 
     // Otherwise, do incremental scan using history API
-    return await performIncrementalScan(state.lastHistoryId);
+    return await performIncrementalScan(userId, state.lastHistoryId);
   } finally {
-    scanInProgress = false;
+    scansInProgress.delete(userId);
   }
 }
 
-async function performInitialScan(limit: number): Promise<ScanResult> {
-  console.log(`Starting initial scan (limit: ${limit})`);
+async function performInitialScan(userId: string, limit: number): Promise<ScanResult> {
+  console.log(`Starting initial scan for user ${userId} (limit: ${limit})`);
 
   const result: ScanResult = {
     scanned: 0,
@@ -94,7 +91,7 @@ async function performInitialScan(limit: number): Promise<ScanResult> {
     const batchSize = Math.min(remaining, BATCH_SIZE);
 
     // List messages
-    const listResponse = await listMessages(undefined, batchSize, pageToken);
+    const listResponse = await listMessages(userId, undefined, batchSize, pageToken);
 
     if (!listResponse.messages || listResponse.messages.length === 0) {
       break;
@@ -104,19 +101,19 @@ async function performInitialScan(limit: number): Promise<ScanResult> {
     const messageIds = listResponse.messages.map((m) => m.id);
 
     // Check which are already processed
-    const processedIds = await getProcessedEmailIds(messageIds);
+    const processedIds = await getProcessedEmailIds(userId, messageIds);
 
     // Filter out already processed
     const newMessageIds = messageIds.filter((id) => !processedIds.has(id));
 
     if (newMessageIds.length > 0) {
       // Fetch full messages
-      const messages = await batchGetMessages(newMessageIds, "full");
+      const messages = await batchGetMessages(userId, newMessageIds, 'full');
 
       // Process each message
       for (const message of messages) {
         try {
-          const scanned = await processMessage(message);
+          const scanned = await processMessage(userId, message);
           if (scanned) {
             result.emails.push(scanned);
             if (!scanned.isAllowed && !scanned.alreadyProcessed) {
@@ -138,15 +135,14 @@ async function performInitialScan(limit: number): Promise<ScanResult> {
     remaining -= listResponse.messages.length;
 
     // Update scan state
-    const lastEmailId =
-      listResponse.messages[listResponse.messages.length - 1].id;
-    await updateScanState({ lastEmailId });
+    const lastEmailId = listResponse.messages[listResponse.messages.length - 1].id;
+    await updateScanState(userId, { lastEmailId });
 
     // Check for more pages
     if (!listResponse.nextPageToken) {
       // No more pages, mark initial scan complete
-      const profile = await getProfile();
-      await updateScanState({
+      const profile = await getProfile(userId);
+      await updateScanState(userId, {
         isInitialBacklogComplete: true,
         lastHistoryId: profile.historyId,
       });
@@ -156,22 +152,23 @@ async function performInitialScan(limit: number): Promise<ScanResult> {
     pageToken = listResponse.nextPageToken;
   }
 
-  await incrementScanStats(result.scanned, result.processed);
+  await incrementScanStats(userId, result.scanned, result.processed);
   console.log(
-    `Initial scan complete: ${result.scanned} scanned, ${result.processed} to process, ${result.skipped} skipped`,
+    `Initial scan complete for user ${userId}: ${result.scanned} scanned, ${result.processed} to process, ${result.skipped} skipped`,
   );
 
   return result;
 }
 
 async function performIncrementalScan(
+  userId: string,
   lastHistoryId: string | null,
 ): Promise<ScanResult> {
   if (!lastHistoryId) {
-    throw new Error("No history ID available for incremental scan");
+    throw new Error('No history ID available for incremental scan');
   }
 
-  console.log(`Starting incremental scan from history ID: ${lastHistoryId}`);
+  console.log(`Starting incremental scan for user ${userId} from history ID: ${lastHistoryId}`);
 
   const result: ScanResult = {
     scanned: 0,
@@ -186,7 +183,7 @@ async function performIncrementalScan(
     let newHistoryId = lastHistoryId;
 
     while (true) {
-      const historyResponse = await getHistory(lastHistoryId, pageToken);
+      const historyResponse = await getHistory(userId, lastHistoryId, pageToken);
       newHistoryId = historyResponse.historyId;
 
       if (historyResponse.history) {
@@ -195,15 +192,15 @@ async function performIncrementalScan(
             for (const added of historyItem.messagesAdded) {
               try {
                 // Check if already processed
-                if (await isEmailProcessed(added.message.id)) {
+                if (await isEmailProcessed(userId, added.message.id)) {
                   result.skipped++;
                   result.scanned++;
                   continue;
                 }
 
                 // Fetch and process
-                const message = await getMessage(added.message.id, "full");
-                const scanned = await processMessage(message);
+                const message = await getMessage(userId, added.message.id, 'full');
+                const scanned = await processMessage(userId, message);
 
                 if (scanned) {
                   result.emails.push(scanned);
@@ -215,10 +212,7 @@ async function performIncrementalScan(
                 }
                 result.scanned++;
               } catch (error) {
-                console.error(
-                  `Error processing message ${added.message.id}:`,
-                  error,
-                );
+                console.error(`Error processing message ${added.message.id}:`, error);
                 result.errors++;
               }
             }
@@ -233,35 +227,31 @@ async function performIncrementalScan(
     }
 
     // Update history ID
-    await updateScanState({
+    await updateScanState(userId, {
       lastHistoryId: newHistoryId,
       lastScanAt: new Date(),
     });
-    await incrementScanStats(result.scanned, result.processed);
+    await incrementScanStats(userId, result.scanned, result.processed);
 
     console.log(
-      `Incremental scan complete: ${result.scanned} scanned, ${result.processed} to process`,
+      `Incremental scan complete for user ${userId}: ${result.scanned} scanned, ${result.processed} to process`,
     );
     return result;
   } catch (error) {
     // If history is too old, need to do full scan
-    if (
-      error instanceof Error && error.message.includes("full sync required")
-    ) {
-      console.log("History too old, switching to full scan");
-      await updateScanState({
+    if (error instanceof Error && error.message.includes('full sync required')) {
+      console.log('History too old, switching to full scan');
+      await updateScanState(userId, {
         isInitialBacklogComplete: false,
         lastHistoryId: null,
       });
-      return await performInitialScan(INITIAL_BACKLOG_LIMIT);
+      return await performInitialScan(userId, INITIAL_BACKLOG_LIMIT);
     }
     throw error;
   }
 }
 
-async function processMessage(
-  message: GmailMessage,
-): Promise<ScannedEmail | null> {
+async function processMessage(userId: string, message: GmailMessage): Promise<ScannedEmail | null> {
   const headers = message.payload?.headers || [];
   const sender = getSender(headers);
 
@@ -271,10 +261,10 @@ async function processMessage(
   }
 
   // Track sender (for ineffective unsubscribe detection)
-  await trackSender(sender);
+  await trackSender(userId, sender);
 
   // Check allow list
-  const allowed = await isAllowed(sender);
+  const allowed = await isAllowed(userId, sender);
 
   // Parse unsubscribe info from headers
   const unsubscribeInfo = parseListUnsubscribeHeader(headers);
@@ -289,8 +279,8 @@ async function processMessage(
   }
 
   // Get subject and date
-  const subjectHeader = headers.find((h) => h.name.toLowerCase() === "subject");
-  const dateHeader = headers.find((h) => h.name.toLowerCase() === "date");
+  const subjectHeader = headers.find((h) => h.name.toLowerCase() === 'subject');
+  const dateHeader = headers.find((h) => h.name.toLowerCase() === 'date');
 
   return {
     id: message.id,
@@ -305,6 +295,6 @@ async function processMessage(
   };
 }
 
-export function isScanInProgress(): boolean {
-  return scanInProgress;
+export function isScanInProgress(userId: string): boolean {
+  return scansInProgress.has(userId);
 }
