@@ -12,7 +12,8 @@ user action.
 
 - **WHEN** a user clicks "Connect Gmail" in the dashboard
 - **THEN** the system SHALL redirect to Google OAuth consent screen
-- **AND** SHALL request gmail.readonly, gmail.modify, gmail.labels, and mail.google.com scopes
+- **AND** SHALL request gmail.readonly, gmail.modify, gmail.labels, and
+  mail.google.com scopes
 - **AND** SHALL include offline access (refresh token)
 
 #### Scenario: OAuth callback handling
@@ -20,7 +21,8 @@ user action.
 - **WHEN** Google redirects back after user consent
 - **THEN** the system SHALL validate the state parameter
 - **AND** SHALL exchange the authorization code for tokens
-- **AND** SHALL store tokens associated with the authenticated user's Supabase ID
+- **AND** SHALL store tokens associated with the authenticated user's Supabase
+  ID
 
 #### Scenario: Token refresh
 
@@ -42,13 +44,15 @@ The system SHALL store OAuth tokens encrypted in the database, keyed by user ID.
 #### Scenario: Token persistence
 
 - **WHEN** OAuth authorization completes
-- **THEN** the system SHALL store the access token and refresh token encrypted at rest
+- **THEN** the system SHALL store the access token and refresh token encrypted
+  at rest
 - **AND** SHALL associate tokens with the authenticated user's Supabase UUID
 
 #### Scenario: Token retrieval
 
 - **WHEN** the system needs to access Gmail
-- **THEN** the system SHALL decrypt and use the stored tokens for the specific user
+- **THEN** the system SHALL decrypt and use the stored tokens for the specific
+  user
 - **AND** SHALL reject requests without a valid user context
 
 #### Scenario: Token isolation
@@ -73,8 +77,10 @@ The system SHALL track and expose Gmail connection status per user.
 #### Scenario: Connection status endpoint
 
 - **WHEN** calling GET /oauth/gmail/status
-- **THEN** the system SHALL return the connection status for the authenticated user
-- **AND** SHALL include connected (boolean), email (if connected), and connected_at timestamp
+- **THEN** the system SHALL return the connection status for the authenticated
+  user
+- **AND** SHALL include connected (boolean), email (if connected), and
+  connected_at timestamp
 
 ### Requirement: Per-user email scanning
 
@@ -89,11 +95,13 @@ The system SHALL scan emails on behalf of specific users.
 #### Scenario: Background scan for all users
 
 - **WHEN** the scheduled scan job runs
-- **THEN** the system SHALL iterate through all users with valid Gmail connections
+- **THEN** the system SHALL iterate through all users with valid Gmail
+  connections
 - **AND** SHALL scan each user's inbox with their respective tokens
 - **AND** SHALL handle per-user failures without stopping the entire job
 
 #### Scenario: Scan requires connection
 
 - **WHEN** a scan is attempted for a user without Gmail connected
-- **THEN** the system SHALL return an error indicating Gmail must be connected first
+- **THEN** the system SHALL return an error indicating Gmail must be connected
+  first

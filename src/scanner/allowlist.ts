@@ -1,17 +1,20 @@
 // Allow list checking
 
-import { getConnection } from '../db/index.ts';
-import { extractDomain } from './headers.ts';
+import { getConnection } from "../db/index.ts";
+import { extractDomain } from "./headers.ts";
 
 export interface AllowListEntry {
   id: number;
-  type: 'email' | 'domain';
+  type: "email" | "domain";
   value: string;
   notes: string | null;
   createdAt: Date;
 }
 
-export async function isAllowed(userId: string, email: string): Promise<boolean> {
+export async function isAllowed(
+  userId: string,
+  email: string,
+): Promise<boolean> {
   const sql = getConnection();
   const normalizedEmail = email.toLowerCase().trim();
   const domain = extractDomain(normalizedEmail);
@@ -30,7 +33,7 @@ export async function isAllowed(userId: string, email: string): Promise<boolean>
 
 export async function addToAllowList(
   userId: string,
-  type: 'email' | 'domain',
+  type: "email" | "domain",
   value: string,
   notes?: string,
 ): Promise<AllowListEntry> {
@@ -48,7 +51,10 @@ export async function addToAllowList(
   return rows[0];
 }
 
-export async function removeFromAllowList(userId: string, id: number): Promise<boolean> {
+export async function removeFromAllowList(
+  userId: string,
+  id: number,
+): Promise<boolean> {
   const sql = getConnection();
 
   const result = await sql`

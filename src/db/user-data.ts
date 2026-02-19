@@ -1,6 +1,6 @@
 // User data management - deletion and export
 
-import { getConnection } from './connection.ts';
+import { getConnection } from "./connection.ts";
 
 /**
  * Delete all data for a specific user across all tables.
@@ -25,17 +25,19 @@ export async function deleteAllUserData(userId: string): Promise<{
 
   // Delete in order respecting foreign key constraints
   const tables = [
-    'oauth_tokens',
-    'scan_state',
-    'processed_emails',
-    'sender_tracking',
-    'allow_list',
-    'unsubscribe_history',
-    'audit_log',
+    "oauth_tokens",
+    "scan_state",
+    "processed_emails",
+    "sender_tracking",
+    "allow_list",
+    "unsubscribe_history",
+    "audit_log",
   ];
 
   for (const table of tables) {
-    const result = await sql.unsafe(`DELETE FROM ${table} WHERE user_id = $1`, [userId]);
+    const result = await sql.unsafe(`DELETE FROM ${table} WHERE user_id = $1`, [
+      userId,
+    ]);
     const count = result.count;
     if (count > 0) {
       rowsDeleted[table] = count;
@@ -88,6 +90,6 @@ export async function exportAllUserData(userId: string): Promise<{
     unsubscribeHistory: history,
     allowList: allowList,
     senderTracking: tracking,
-    processedEmails: parseInt(processedCount[0]?.count || '0'),
+    processedEmails: parseInt(processedCount[0]?.count || "0"),
   };
 }

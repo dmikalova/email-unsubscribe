@@ -263,7 +263,9 @@ export async function csrfSetupMiddleware(c: Context, next: Next) {
     // Cookie must be readable by JavaScript for double-submit pattern
     c.header(
       "Set-Cookie",
-      `csrf=${token}; Path=/; SameSite=Strict; ${isProduction ? "Secure; " : ""}Max-Age=86400`,
+      `csrf=${token}; Path=/; SameSite=Strict; ${
+        isProduction ? "Secure; " : ""
+      }Max-Age=86400`,
     );
   }
 

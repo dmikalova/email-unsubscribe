@@ -1,7 +1,7 @@
 // Sender tracking for ineffective unsubscribe detection
 
-import { getConnection } from '../db/index.ts';
-import { extractDomain } from './headers.ts';
+import { getConnection } from "../db/index.ts";
+import { extractDomain } from "./headers.ts";
 
 export interface SenderTracking {
   id: number;
@@ -19,7 +19,10 @@ export interface SenderTracking {
 
 const GRACE_PERIOD_HOURS = 24;
 
-export async function trackSender(userId: string, sender: string): Promise<SenderTracking> {
+export async function trackSender(
+  userId: string,
+  sender: string,
+): Promise<SenderTracking> {
   const sql = getConnection();
   const normalizedSender = sender.toLowerCase().trim();
   const domain = extractDomain(normalizedSender);
@@ -94,7 +97,10 @@ export async function getSenderTracking(
   return rows[0] ?? null;
 }
 
-export async function markSenderUnsubscribed(userId: string, sender: string): Promise<void> {
+export async function markSenderUnsubscribed(
+  userId: string,
+  sender: string,
+): Promise<void> {
   const sql = getConnection();
   const normalizedSender = sender.toLowerCase().trim();
   const domain = extractDomain(normalizedSender);
@@ -110,7 +116,9 @@ export async function markSenderUnsubscribed(userId: string, sender: string): Pr
   `;
 }
 
-export function getIneffectiveSenders(userId: string): Promise<SenderTracking[]> {
+export function getIneffectiveSenders(
+  userId: string,
+): Promise<SenderTracking[]> {
   const sql = getConnection();
 
   return sql<SenderTracking[]>`
@@ -126,7 +134,10 @@ export function getIneffectiveSenders(userId: string): Promise<SenderTracking[]>
   `;
 }
 
-export async function clearIneffectiveFlag(userId: string, sender: string): Promise<void> {
+export async function clearIneffectiveFlag(
+  userId: string,
+  sender: string,
+): Promise<void> {
   const sql = getConnection();
   const normalizedSender = sender.toLowerCase().trim();
 

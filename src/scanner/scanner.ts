@@ -7,23 +7,26 @@ import {
   getProfile,
   type GmailMessage,
   listMessages,
-} from '../gmail/index.ts';
-import { isAllowed } from './allowlist.ts';
+} from "../gmail/index.ts";
+import { isAllowed } from "./allowlist.ts";
 import {
   extractDomain,
   getSender,
   parseListUnsubscribeHeader,
   type UnsubscribeInfo,
-} from './headers.ts';
-import { extractUnsubscribeLinksFromHtml, getHtmlBodyFromPayload } from './html.ts';
+} from "./headers.ts";
+import {
+  extractUnsubscribeLinksFromHtml,
+  getHtmlBodyFromPayload,
+} from "./html.ts";
 import {
   getProcessedEmailIds,
   getScanState,
   incrementScanStats,
   isEmailProcessed,
   updateScanState,
-} from './state.ts';
-import { trackSender } from './tracking.ts';
+} from "./state.ts";
+import { trackSender } from "./tracking.ts";
 
 const INITIAL_BACKLOG_LIMIT = 1000;
 const BATCH_SIZE = 50;
@@ -51,9 +54,12 @@ export interface ScanResult {
   emails: ScannedEmail[];
 }
 
-export async function scanEmails(userId: string, limit?: number): Promise<ScanResult> {
+export async function scanEmails(
+  userId: string,
+  limit?: number,
+): Promise<ScanResult> {
   if (scansInProgress.has(userId)) {
-    throw new Error('Scan already in progress for this user');
+    throw new Error("Scan already in progress for this user");
   }
 
   scansInProgress.add(userId);
@@ -73,7 +79,10 @@ export async function scanEmails(userId: string, limit?: number): Promise<ScanRe
   }
 }
 
-async function performInitialScan(userId: string, limit: number): Promise<ScanResult> {
+async function performInitialScan(
+  userId: string,
+  limit: number,
+): Promise<ScanResult> {
   console.log(`Starting initial scan for user ${userId} (limit: ${limit})`);
 
   const result: ScanResult = {
@@ -91,7 +100,12 @@ async function performInitialScan(userId: string, limit: number): Promise<ScanRe
     const batchSize = Math.min(remaining, BATCH_SIZE);
 
     // List messages
-    const listResponse = await listMessages(userId, undefined, batchSize, pageToken);
+    const listResponse = await listMessages(
+      userId,
+      undefined,
+      batchSize,
+      pageToken,
+    );
 
     if (!listResponse.messages || listResponse.messages.length === 0) {
       break;
@@ -108,7 +122,7 @@ async function performInitialScan(userId: string, limit: number): Promise<ScanRe
 
     if (newMessageIds.length > 0) {
       // Fetch full messages
-      const messages = await batchGetMessages(userId, newMessageIds, 'full');
+      const messages = await batchGetMessages(userId, newMessageIds, "full");
 
       // Process each message
       for (const message of messages) {
@@ -135,7 +149,8 @@ async function performInitialScan(userId: string, limit: number): Promise<ScanRe
     remaining -= listResponse.messages.length;
 
     // Update scan state
-    const lastEmailId = listResponse.messages[listResponse.messages.length - 1].id;
+    const lastEmailId =
+      listResponse.messages[listResponse.messages.length - 1].id;
     await updateScanState(userId, { lastEmailId });
 
     // Check for more pages
@@ -165,10 +180,12 @@ async function performIncrementalScan(
   lastHistoryId: string | null,
 ): Promise<ScanResult> {
   if (!lastHistoryId) {
-    throw new Error('No history ID available for incremental scan');
+    throw new Error("No history ID available for incremental scan");
   }
 
-  console.log(`Starting incremental scan for user ${userId} from history ID: ${lastHistoryId}`);
+  console.log(
+    `Starting incremental scan for user ${userId} from history ID: ${lastHistoryId}`,
+  );
 
   const result: ScanResult = {
     scanned: 0,
@@ -183,7 +200,11 @@ async function performIncrementalScan(
     let newHistoryId = lastHistoryId;
 
     while (true) {
-      const historyResponse = await getHistory(userId, lastHistoryId, pageToken);
+      const historyResponse = await getHistory(
+        userId,
+        lastHistoryId,
+        pageToken,
+      );
       newHistoryId = historyResponse.historyId;
 
       if (historyResponse.history) {
@@ -199,7 +220,11 @@ async function performIncrementalScan(
                 }
 
                 // Fetch and process
-                const message = await getMessage(userId, added.message.id, 'full');
+                const message = await getMessage(
+                  userId,
+                  added.message.id,
+                  "full",
+                );
                 const scanned = await processMessage(userId, message);
 
                 if (scanned) {
@@ -212,7 +237,10 @@ async function performIncrementalScan(
                 }
                 result.scanned++;
               } catch (error) {
-                console.error(`Error processing message ${added.message.id}:`, error);
+                console.error(
+                  `Error processing message ${added.message.id}:`,
+                  error,
+                );
                 result.errors++;
               }
             }
@@ -239,8 +267,10 @@ async function performIncrementalScan(
     return result;
   } catch (error) {
     // If history is too old, need to do full scan
-    if (error instanceof Error && error.message.includes('full sync required')) {
-      console.log('History too old, switching to full scan');
+    if (
+      error instanceof Error && error.message.includes("full sync required")
+    ) {
+      console.log("History too old, switching to full scan");
       await updateScanState(userId, {
         isInitialBacklogComplete: false,
         lastHistoryId: null,
@@ -251,7 +281,10 @@ async function performIncrementalScan(
   }
 }
 
-async function processMessage(userId: string, message: GmailMessage): Promise<ScannedEmail | null> {
+async function processMessage(
+  userId: string,
+  message: GmailMessage,
+): Promise<ScannedEmail | null> {
   const headers = message.payload?.headers || [];
   const sender = getSender(headers);
 
@@ -279,8 +312,8 @@ async function processMessage(userId: string, message: GmailMessage): Promise<Sc
   }
 
   // Get subject and date
-  const subjectHeader = headers.find((h) => h.name.toLowerCase() === 'subject');
-  const dateHeader = headers.find((h) => h.name.toLowerCase() === 'date');
+  const subjectHeader = headers.find((h) => h.name.toLowerCase() === "subject");
+  const dateHeader = headers.find((h) => h.name.toLowerCase() === "date");
 
   return {
     id: message.id,
