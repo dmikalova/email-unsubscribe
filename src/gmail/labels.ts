@@ -1,36 +1,36 @@
 // Gmail Label Management
 
-import {
-  archiveMessage,
-  getOrCreateLabel,
-  modifyMessageLabels,
-} from "./client.ts";
+import { archiveMessage, getOrCreateLabel, modifyMessageLabels } from './client.ts';
 
 export const LABEL_NAMES = {
-  SUCCESS: "Unsubscribed/Success",
-  FAILED: "Unsubscribed/Failed",
-  PENDING: "Unsubscribed/Pending",
+  SUCCESS: 'Unsubscribed/Success',
+  FAILED: 'Unsubscribed/Failed',
+  PENDING: 'Unsubscribed/Pending',
 } as const;
 
-let labelCache: Map<string, string> | null = null;
+// Per-user label cache: userId -> (labelName -> labelId)
+const userLabelCache: Map<string, Map<string, string>> = new Map();
 
-export async function initializeLabels(): Promise<void> {
-  labelCache = new Map();
+export async function initializeLabels(userId: string): Promise<void> {
+  const cache = new Map<string, string>();
 
   for (const name of Object.values(LABEL_NAMES)) {
-    const label = await getOrCreateLabel(name);
-    labelCache.set(name, label.id);
+    const label = await getOrCreateLabel(userId, name);
+    cache.set(name, label.id);
   }
 
-  console.log("Gmail labels initialized");
+  userLabelCache.set(userId, cache);
+  console.log(`Gmail labels initialized for user ${userId}`);
 }
 
-export async function getLabelId(name: string): Promise<string> {
-  if (!labelCache) {
-    await initializeLabels();
+export async function getLabelId(userId: string, name: string): Promise<string> {
+  let cache = userLabelCache.get(userId);
+  if (!cache) {
+    await initializeLabels(userId);
+    cache = userLabelCache.get(userId);
   }
 
-  const id = labelCache!.get(name);
+  const id = cache!.get(name);
   if (!id) {
     throw new Error(`Label not found: ${name}`);
   }
@@ -38,34 +38,28 @@ export async function getLabelId(name: string): Promise<string> {
   return id;
 }
 
-export async function labelMessageAsSuccess(messageId: string): Promise<void> {
-  const labelId = await getLabelId(LABEL_NAMES.SUCCESS);
-  const failedLabelId = await getLabelId(LABEL_NAMES.FAILED);
-  const pendingLabelId = await getLabelId(LABEL_NAMES.PENDING);
+export async function labelMessageAsSuccess(userId: string, messageId: string): Promise<void> {
+  const labelId = await getLabelId(userId, LABEL_NAMES.SUCCESS);
+  const failedLabelId = await getLabelId(userId, LABEL_NAMES.FAILED);
+  const pendingLabelId = await getLabelId(userId, LABEL_NAMES.PENDING);
 
-  await modifyMessageLabels(messageId, [labelId], [
-    failedLabelId,
-    pendingLabelId,
-  ]);
+  await modifyMessageLabels(userId, messageId, [labelId], [failedLabelId, pendingLabelId]);
 }
 
-export async function labelMessageAsFailed(messageId: string): Promise<void> {
-  const labelId = await getLabelId(LABEL_NAMES.FAILED);
-  const successLabelId = await getLabelId(LABEL_NAMES.SUCCESS);
-  const pendingLabelId = await getLabelId(LABEL_NAMES.PENDING);
+export async function labelMessageAsFailed(userId: string, messageId: string): Promise<void> {
+  const labelId = await getLabelId(userId, LABEL_NAMES.FAILED);
+  const successLabelId = await getLabelId(userId, LABEL_NAMES.SUCCESS);
+  const pendingLabelId = await getLabelId(userId, LABEL_NAMES.PENDING);
 
-  await modifyMessageLabels(messageId, [labelId], [
-    successLabelId,
-    pendingLabelId,
-  ]);
+  await modifyMessageLabels(userId, messageId, [labelId], [successLabelId, pendingLabelId]);
 }
 
-export async function labelMessageAsPending(messageId: string): Promise<void> {
-  const labelId = await getLabelId(LABEL_NAMES.PENDING);
-  await modifyMessageLabels(messageId, [labelId], []);
+export async function labelMessageAsPending(userId: string, messageId: string): Promise<void> {
+  const labelId = await getLabelId(userId, LABEL_NAMES.PENDING);
+  await modifyMessageLabels(userId, messageId, [labelId], []);
 }
 
-export async function archiveAndLabelSuccess(messageId: string): Promise<void> {
-  await labelMessageAsSuccess(messageId);
-  await archiveMessage(messageId);
+export async function archiveAndLabelSuccess(userId: string, messageId: string): Promise<void> {
+  await labelMessageAsSuccess(userId, messageId);
+  await archiveMessage(userId, messageId);
 }

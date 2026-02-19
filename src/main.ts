@@ -3,8 +3,6 @@
 
 import { app } from "./app.ts";
 import { closeConnection } from "./db/index.ts";
-import { initializeLabels } from "./gmail/labels.ts";
-import { hasValidTokens } from "./gmail/tokens.ts";
 import { closeBrowser } from "./unsubscribe/index.ts";
 import { seedDefaultPatterns } from "./unsubscribe/patterns.ts";
 
@@ -66,21 +64,7 @@ async function initialize() {
     log("info", "Seeding default patterns...");
     await seedDefaultPatterns();
 
-    // Initialize Gmail labels if tokens exist
-    const hasTokens = await hasValidTokens();
-    if (hasTokens) {
-      log("info", "Initializing Gmail labels...");
-      try {
-        await initializeLabels();
-      } catch (error) {
-        log("warn", "Failed to initialize Gmail labels", {
-          error: String(error),
-        });
-      }
-    } else {
-      log("info", "No Gmail tokens found, skipping label initialization");
-    }
-
+    // Gmail labels are initialized per-user when they connect their Gmail account
     log("info", "Initialization complete, starting server...");
   } catch (error) {
     log("error", "Initialization failed", { error: String(error) });
