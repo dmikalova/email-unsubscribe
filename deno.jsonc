@@ -19,6 +19,8 @@
     "db:apply": "deno run --allow-run --allow-env scripts/db.ts apply",
     // Show planned schema changes without applying
     "db:diff": "deno run --allow-run --allow-env scripts/db.ts diff",
+    // Truncate all tables (use before destructive migrations)
+    "db:truncate": "deno run --allow-run --allow-env scripts/db.ts truncate",
     // Development with hot reload
     "dev": "deno run --permission-set --watch src/main.ts",
     // Format all files
