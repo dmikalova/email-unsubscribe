@@ -1,47 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Email Unsubscribe Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/output.css" />
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: {
-                50: "#fce4ec",
-                100: "#f8bbd9",
-                200: "#f48fb1",
-                300: "#f06292",
-                400: "#ec407a",
-                500: "#e91e63",
-                600: "#d81b60",
-                700: "#c2185b",
-                800: "#ad1457",
-                900: "#880e4f",
-              },
-            },
-            boxShadow: {
-              material:
-                "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
-              "material-lg":
-                "0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12)",
-              "material-xl":
-                "0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10)",
-            },
-          },
-        },
-      };
-    </script>
-    <style>
-      [v-cloak] {
-        display: none;
-      }
-    </style>
   </head>
   <body class="bg-gray-100 min-h-screen">
     <div id="app" v-cloak>
@@ -67,12 +32,9 @@
                 </button>
               </div>
               <!-- Gmail Connection Status -->
-              <div
-                class="border-l border-primary-400 pl-4 flex items-center space-x-2"
-              >
+              <div class="border-l border-primary-400 pl-4 flex items-center space-x-2">
                 <template v-if="gmailStatus.authorized">
-                  <span class="text-sm"
-                  >{{ gmailStatus.connectedEmail || 'Gmail Connected' }}</span>
+                  <span class="text-sm">{{ gmailStatus.connectedEmail || 'Gmail Connected' }}</span>
                   <button
                     @click="disconnectGmail"
                     class="px-2 py-1 text-xs rounded bg-primary-700 hover:bg-primary-800 transition-colors"
@@ -95,17 +57,10 @@
       </nav>
 
       <!-- Gmail Not Connected Banner -->
-      <div
-        v-if="!gmailStatus.authorized"
-        class="bg-yellow-50 border-l-4 border-yellow-400 p-4"
-      >
+      <div v-if="!gmailStatus.authorized" class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
         <div class="max-w-7xl mx-auto flex items-center">
           <div class="flex-shrink-0">
-            <svg
-              class="h-5 w-5 text-yellow-400"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
+            <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
               <path
                 fill-rule="evenodd"
                 d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -115,8 +70,7 @@
           </div>
           <div class="ml-3 flex-1">
             <p class="text-sm text-yellow-700">
-              Connect your Gmail account to start scanning for unsubscribe
-              opportunities.
+              Connect your Gmail account to start scanning for unsubscribe opportunities.
             </p>
           </div>
           <div class="ml-4">
@@ -155,24 +109,16 @@
           <!-- Stats Cards -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white rounded-lg shadow-material p-6">
-              <div class="text-sm font-medium text-gray-500">
-                Total Processed
-              </div>
-              <div class="text-3xl font-bold text-gray-900">
-                {{ stats.total }}
-              </div>
+              <div class="text-sm font-medium text-gray-500">Total Processed</div>
+              <div class="text-3xl font-bold text-gray-900">{{ stats.total }}</div>
             </div>
             <div class="bg-white rounded-lg shadow-material p-6">
               <div class="text-sm font-medium text-gray-500">Successful</div>
-              <div class="text-3xl font-bold text-green-600">
-                {{ stats.success }}
-              </div>
+              <div class="text-3xl font-bold text-green-600">{{ stats.success }}</div>
             </div>
             <div class="bg-white rounded-lg shadow-material p-6">
               <div class="text-sm font-medium text-gray-500">Failed</div>
-              <div class="text-3xl font-bold text-red-600">
-                {{ stats.failed }}
-              </div>
+              <div class="text-3xl font-bold text-red-600">{{ stats.failed }}</div>
             </div>
             <div class="bg-white rounded-lg shadow-material p-6">
               <div class="text-sm font-medium text-gray-500">Success Rate</div>
@@ -208,43 +154,18 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Sender
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Method
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Status
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Time
-                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Sender</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Method</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Time</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  <tr
-                    v-for="item in recentActivity"
-                    :key="item.id"
-                    class="hover:bg-gray-50"
-                  >
-                    <td class="px-4 py-3 text-sm text-gray-900">
-                      {{ item.sender }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">
-                      {{ item.method }}
-                    </td>
+                  <tr v-for="item in recentActivity" :key="item.id" class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm text-gray-900">{{ item.sender }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ item.method }}</td>
                     <td class="px-4 py-3">
-                      <span :class="statusClass(item.status)"
-                      >{{ item.status }}</span>
+                      <span :class="statusClass(item.status)">{{ item.status }}</span>
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-500">
                       {{ formatTime(item.attemptedAt) }}
@@ -275,51 +196,25 @@
                 />
               </svg>
               <p class="text-gray-500">No failed unsubscribes</p>
-              <p class="text-gray-400 text-sm mt-1">
-                Failed attempts will appear here for review
-              </p>
+              <p class="text-gray-400 text-sm mt-1">Failed attempts will appear here for review</p>
             </div>
             <div v-else class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Sender
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Reason
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Retries
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Actions
-                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Sender</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Reason</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Retries</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  <tr
-                    v-for="item in failedAttempts"
-                    :key="item.id"
-                    class="hover:bg-gray-50"
-                  >
-                    <td class="px-4 py-3 text-sm text-gray-900">
-                      {{ item.sender }}
-                    </td>
+                  <tr v-for="item in failedAttempts" :key="item.id" class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm text-gray-900">{{ item.sender }}</td>
                     <td class="px-4 py-3 text-sm text-gray-500">
                       {{ item.failureReason || 'Unknown' }}
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">
-                      {{ item.retryCount }}
-                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ item.retryCount }}</td>
                     <td class="px-4 py-3 text-sm">
                       <button
                         @click="viewDetails(item)"
@@ -382,43 +277,17 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Type
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Value
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Notes
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Actions
-                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Value</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Notes</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  <tr
-                    v-for="item in allowList"
-                    :key="item.id"
-                    class="hover:bg-gray-50"
-                  >
-                    <td class="px-4 py-3 text-sm text-gray-900">
-                      {{ item.type }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-900 font-mono">
-                      {{ item.value }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">
-                      {{ item.notes || '-' }}
-                    </td>
+                  <tr v-for="item in allowList" :key="item.id" class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm text-gray-900">{{ item.type }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900 font-mono">{{ item.value }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ item.notes || '-' }}</td>
                     <td class="px-4 py-3 text-sm">
                       <button
                         @click="removeFromAllowList(item.id)"
@@ -461,46 +330,18 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Domain
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Total
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Success
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Failed
-                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Domain</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Total</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Success</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Failed</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  <tr
-                    v-for="item in domainStats"
-                    :key="item.domain"
-                    class="hover:bg-gray-50"
-                  >
-                    <td class="px-4 py-3 text-sm text-gray-900 font-mono">
-                      {{ item.domain }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">
-                      {{ item.total }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-green-600">
-                      {{ item.success }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-red-600">
-                      {{ item.failed }}
-                    </td>
+                  <tr v-for="item in domainStats" :key="item.domain" class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm text-gray-900 font-mono">{{ item.domain }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ item.total }}</td>
+                    <td class="px-4 py-3 text-sm text-green-600">{{ item.success }}</td>
+                    <td class="px-4 py-3 text-sm text-red-600">{{ item.failed }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -524,12 +365,7 @@
                   class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 cursor-pointer"
                 >
                   Import
-                  <input
-                    type="file"
-                    @change="importPatterns"
-                    accept=".json"
-                    class="hidden"
-                  />
+                  <input type="file" @change="importPatterns" accept=".json" class="hidden" />
                 </label>
               </div>
             </div>
@@ -556,48 +392,22 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Name
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Type
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
-                      Selector
-                    </th>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
-                    >
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Selector</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">
                       Match Count
                     </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  <tr
-                    v-for="item in patterns"
-                    :key="item.id"
-                    class="hover:bg-gray-50"
-                  >
-                    <td class="px-4 py-3 text-sm text-gray-900">
-                      {{ item.name }}
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">
-                      {{ item.type }}
-                    </td>
-                    <td
-                      class="px-4 py-3 text-sm text-gray-500 font-mono truncate max-w-xs"
-                    >
+                  <tr v-for="item in patterns" :key="item.id" class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm text-gray-900">{{ item.name }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ item.type }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500 font-mono truncate max-w-xs">
                       {{ item.selector }}
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">
-                      {{ item.matchCount }}
-                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ item.matchCount }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -615,19 +425,14 @@
           <h3 class="text-lg font-semibold mb-4">Add to Allow List</h3>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Type</label>
-              <select
-                v-model="newEntry.type"
-                class="w-full border rounded-md px-3 py-2"
-              >
+              <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+              <select v-model="newEntry.type" class="w-full border rounded-md px-3 py-2">
                 <option value="email">Email</option>
                 <option value="domain">Domain</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Value</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
               <input
                 v-model="newEntry.value"
                 type="text"
@@ -636,8 +441,7 @@
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Notes (optional)</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
               <input
                 v-model="newEntry.notes"
                 type="text"
@@ -667,41 +471,27 @@
         v-if="selectedItem"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
       >
-        <div
-          class="bg-white rounded-lg shadow-material-xl p-6 w-2/3 max-h-[80vh] overflow-y-auto"
-        >
+        <div class="bg-white rounded-lg shadow-material-xl p-6 w-2/3 max-h-[80vh] overflow-y-auto">
           <h3 class="text-lg font-semibold mb-4">Unsubscribe Details</h3>
           <div class="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <span class="font-medium">Sender:</span> {{ selectedItem.sender }}
-            </div>
-            <div>
-              <span class="font-medium">Domain:</span> {{
-              selectedItem.senderDomain }}
-            </div>
-            <div>
-              <span class="font-medium">Method:</span> {{ selectedItem.method }}
-            </div>
+            <div><span class="font-medium">Sender:</span> {{ selectedItem.sender }}</div>
+            <div><span class="font-medium">Domain:</span> {{ selectedItem.senderDomain }}</div>
+            <div><span class="font-medium">Method:</span> {{ selectedItem.method }}</div>
             <div>
               <span class="font-medium">Status:</span>
-              <span :class="statusClass(selectedItem.status)"
-              >{{ selectedItem.status }}</span>
+              <span :class="statusClass(selectedItem.status)">{{ selectedItem.status }}</span>
             </div>
             <div>
-              <span class="font-medium">Failure Reason:</span> {{
-              selectedItem.failureReason || 'N/A' }}
+              <span class="font-medium">Failure Reason:</span> {{ selectedItem.failureReason ||
+              'N/A' }}
             </div>
-            <div>
-              <span class="font-medium">Retries:</span> {{
-              selectedItem.retryCount }}
-            </div>
+            <div><span class="font-medium">Retries:</span> {{ selectedItem.retryCount }}</div>
           </div>
           <div v-if="selectedItem.failureDetails" class="mb-4">
             <span class="font-medium">Details:</span>
-            <pre
-              class="bg-gray-100 p-2 rounded mt-1 text-sm"
+            <pre class="bg-gray-100 p-2 rounded mt-1 text-sm">
+{{ selectedItem.failureDetails }}</pre
             >
-{{ selectedItem.failureDetails }}</pre>
           </div>
           <div v-if="selectedItem.screenshotPath" class="mb-4">
             <span class="font-medium">Screenshot:</span>
@@ -754,8 +544,8 @@
       async function fetchWithCsrf(url, options = {}) {
         const csrfToken = getCsrfToken();
         const headers = options.headers || {};
-        if (csrfToken && options.method && options.method !== "GET") {
-          headers["X-CSRF-Token"] = csrfToken;
+        if (csrfToken && options.method && options.method !== 'GET') {
+          headers['X-CSRF-Token'] = csrfToken;
         }
         return fetch(url, { ...options, headers });
       }
@@ -764,13 +554,13 @@
 
       createApp({
         setup() {
-          const currentTab = ref("dashboard");
+          const currentTab = ref('dashboard');
           const tabs = [
-            { id: "dashboard", label: "Dashboard" },
-            { id: "failed", label: "Failed" },
-            { id: "allowlist", label: "Allow List" },
-            { id: "domains", label: "Domains" },
-            { id: "patterns", label: "Patterns" },
+            { id: 'dashboard', label: 'Dashboard' },
+            { id: 'failed', label: 'Failed' },
+            { id: 'allowlist', label: 'Allow List' },
+            { id: 'domains', label: 'Domains' },
+            { id: 'patterns', label: 'Patterns' },
           ];
 
           const stats = ref({
@@ -788,7 +578,7 @@
           const patterns = ref([]);
           const selectedItem = ref(null);
           const showAddModal = ref(false);
-          const newEntry = ref({ type: "email", value: "", notes: "" });
+          const newEntry = ref({ type: 'email', value: '', notes: '' });
           const toasts = ref([]);
           const scanInProgress = ref(false);
           const gmailStatus = ref({
@@ -796,7 +586,7 @@
             connectedEmail: null,
           });
 
-          const showToast = (message, type = "success") => {
+          const showToast = (message, type = 'success') => {
             const id = Date.now();
             toasts.value.push({ id, message, type });
             setTimeout(() => {
@@ -806,133 +596,126 @@
 
           const fetchStats = async () => {
             try {
-              const res = await fetch("/api/stats");
+              const res = await fetch('/api/stats');
               stats.value = await res.json();
             } catch (e) {
-              console.error("Failed to fetch stats:", e);
+              console.error('Failed to fetch stats:', e);
             }
           };
 
           const fetchRecent = async () => {
             try {
-              const res = await fetch("/api/recent");
+              const res = await fetch('/api/recent');
               recentActivity.value = await res.json();
             } catch (e) {
-              console.error("Failed to fetch recent:", e);
+              console.error('Failed to fetch recent:', e);
             }
           };
 
           const fetchFailed = async () => {
             try {
-              const res = await fetch("/api/failed");
+              const res = await fetch('/api/failed');
               failedAttempts.value = await res.json();
             } catch (e) {
-              console.error("Failed to fetch failed:", e);
+              console.error('Failed to fetch failed:', e);
             }
           };
 
           const fetchAllowList = async () => {
             try {
-              const res = await fetch("/api/allowlist");
+              const res = await fetch('/api/allowlist');
               allowList.value = await res.json();
             } catch (e) {
-              console.error("Failed to fetch allow list:", e);
+              console.error('Failed to fetch allow list:', e);
             }
           };
 
           const fetchDomains = async () => {
             try {
-              const res = await fetch("/api/domains");
+              const res = await fetch('/api/domains');
               domainStats.value = await res.json();
             } catch (e) {
-              console.error("Failed to fetch domains:", e);
+              console.error('Failed to fetch domains:', e);
             }
           };
 
           const fetchPatterns = async () => {
             try {
-              const res = await fetch("/api/patterns");
+              const res = await fetch('/api/patterns');
               patterns.value = await res.json();
             } catch (e) {
-              console.error("Failed to fetch patterns:", e);
+              console.error('Failed to fetch patterns:', e);
             }
           };
 
           const fetchScanStatus = async () => {
             try {
-              const res = await fetch("/api/scan/status");
+              const res = await fetch('/api/scan/status');
               const data = await res.json();
               scanInProgress.value = data.inProgress;
             } catch (e) {
-              console.error("Failed to fetch scan status:", e);
+              console.error('Failed to fetch scan status:', e);
             }
           };
 
           const fetchGmailStatus = async () => {
             try {
-              const res = await fetch("/oauth/status");
+              const res = await fetch('/oauth/status');
               gmailStatus.value = await res.json();
             } catch (e) {
-              console.error("Failed to fetch Gmail status:", e);
+              console.error('Failed to fetch Gmail status:', e);
             }
           };
 
           const connectGmail = () => {
-            window.location.href = "/oauth/authorize";
+            window.location.href = '/oauth/authorize';
           };
 
           const disconnectGmail = async () => {
             try {
-              await fetchWithCsrf("/oauth/revoke", { method: "POST" });
-              showToast("Gmail disconnected");
+              await fetchWithCsrf('/oauth/revoke', { method: 'POST' });
+              showToast('Gmail disconnected');
               await fetchGmailStatus();
             } catch (e) {
-              showToast("Failed to disconnect Gmail", "error");
+              showToast('Failed to disconnect Gmail', 'error');
             }
           };
 
           const triggerScan = async () => {
             try {
               scanInProgress.value = true;
-              const res = await fetchWithCsrf("/api/scan", {
-                method: "POST",
+              const res = await fetchWithCsrf('/api/scan', {
+                method: 'POST',
               });
               if (res.ok) {
-                showToast("Scan started");
+                showToast('Scan started');
                 // Poll for completion
                 const pollInterval = setInterval(async () => {
                   await fetchScanStatus();
                   if (!scanInProgress.value) {
                     clearInterval(pollInterval);
-                    showToast("Scan complete");
+                    showToast('Scan complete');
                     await fetchStats();
                     await fetchRecent();
                   }
                 }, 2000);
               } else {
                 const data = await res.json();
-                showToast(
-                  data.error || "Failed to start scan",
-                  "error",
-                );
+                showToast(data.error || 'Failed to start scan', 'error');
                 scanInProgress.value = false;
               }
             } catch (e) {
-              showToast("Failed to start scan", "error");
+              showToast('Failed to start scan', 'error');
               scanInProgress.value = false;
             }
           };
 
           const statusClass = (status) => {
             const classes = {
-              success:
-                "px-2 py-1 text-xs rounded-full bg-green-100 text-green-800",
-              failed:
-                "px-2 py-1 text-xs rounded-full bg-red-100 text-red-800",
-              uncertain:
-                "px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800",
-              pending:
-                "px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800",
+              success: 'px-2 py-1 text-xs rounded-full bg-green-100 text-green-800',
+              failed: 'px-2 py-1 text-xs rounded-full bg-red-100 text-red-800',
+              uncertain: 'px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800',
+              pending: 'px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800',
             };
             return classes[status] || classes.pending;
           };
@@ -948,58 +731,58 @@
           const retryUnsubscribe = async (id) => {
             try {
               await fetchWithCsrf(`/api/failed/${id}/retry`, {
-                method: "POST",
+                method: 'POST',
               });
-              showToast("Retry scheduled");
+              showToast('Retry scheduled');
               await fetchFailed();
             } catch (e) {
-              showToast("Failed to schedule retry", "error");
+              showToast('Failed to schedule retry', 'error');
             }
           };
 
           const markResolved = async (id) => {
             try {
               await fetchWithCsrf(`/api/failed/${id}/resolve`, {
-                method: "POST",
+                method: 'POST',
               });
-              showToast("Marked as resolved");
+              showToast('Marked as resolved');
               await fetchFailed();
               await fetchStats();
             } catch (e) {
-              showToast("Failed to mark resolved", "error");
+              showToast('Failed to mark resolved', 'error');
             }
           };
 
           const addToAllowList = async () => {
             try {
-              await fetchWithCsrf("/api/allowlist", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+              await fetchWithCsrf('/api/allowlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newEntry.value),
               });
-              showToast("Added to allow list");
+              showToast('Added to allow list');
               showAddModal.value = false;
-              newEntry.value = { type: "email", value: "", notes: "" };
+              newEntry.value = { type: 'email', value: '', notes: '' };
               await fetchAllowList();
             } catch (e) {
-              showToast("Failed to add entry", "error");
+              showToast('Failed to add entry', 'error');
             }
           };
 
           const removeFromAllowList = async (id) => {
             try {
               await fetchWithCsrf(`/api/allowlist/${id}`, {
-                method: "DELETE",
+                method: 'DELETE',
               });
-              showToast("Removed from allow list");
+              showToast('Removed from allow list');
               await fetchAllowList();
             } catch (e) {
-              showToast("Failed to remove entry", "error");
+              showToast('Failed to remove entry', 'error');
             }
           };
 
           const exportPatterns = () => {
-            window.location.href = "/api/patterns/export";
+            window.location.href = '/api/patterns/export';
           };
 
           const importPatterns = async (event) => {
@@ -1010,19 +793,16 @@
             reader.onload = async (e) => {
               try {
                 const data = JSON.parse(e.target.result);
-                const res = await fetchWithCsrf(
-                  "/api/patterns/import",
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data),
-                  },
-                );
+                const res = await fetchWithCsrf('/api/patterns/import', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(data),
+                });
                 const result = await res.json();
                 showToast(`Imported ${result.imported} patterns`);
                 await fetchPatterns();
               } catch (e) {
-                showToast("Failed to import patterns", "error");
+                showToast('Failed to import patterns', 'error');
               }
             };
             reader.readAsText(file);
@@ -1068,7 +848,7 @@
             disconnectGmail,
           };
         },
-      }).mount("#app");
+      }).mount('#app');
     </script>
   </body>
 </html>
