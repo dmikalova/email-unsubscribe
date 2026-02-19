@@ -46,6 +46,20 @@ app.get("/screenshots/:filename", async (c) => {
   }
 });
 
+// Serve favicon
+app.get("/favicon.svg", async (c) => {
+  try {
+    const svg = await Deno.readTextFile(
+      new URL("./public/favicon.svg", import.meta.url).pathname,
+    );
+    return new Response(svg, {
+      headers: { "Content-Type": "image/svg+xml" },
+    });
+  } catch {
+    return c.json({ error: "Not found" }, 404);
+  }
+});
+
 // Serve frontend
 app.get("/", async (c) => {
   try {
