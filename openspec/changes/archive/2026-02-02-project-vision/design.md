@@ -1,14 +1,21 @@
+# Design
+
 ## Context
 
-This is a greenfield personal project to automate email unsubscription. The system will scan a Gmail inbox, identify emails with unsubscribe options, and automatically complete unsubscribe flows - even multi-step ones requiring browser interaction.
+This is a greenfield personal project to automate email unsubscription. The
+system will scan a Gmail inbox, identify emails with unsubscribe options, and
+automatically complete unsubscribe flows - even multi-step ones requiring
+browser interaction.
 
-**Current state**: Manual unsubscription is tedious and inconsistent. No existing tooling in place.
+**Current state**: Manual unsubscription is tedious and inconsistent. No
+existing tooling in place.
 
 **Constraints**:
 
 - Single-user system (personal use only)
 - Must handle sensitive Gmail credentials securely
-- Unsubscribe pages vary wildly - some are one-click, others require forms or multiple steps
+- Unsubscribe pages vary wildly - some are one-click, others require forms or
+  multiple steps
 - Must run in the cloud with minimal maintenance (scheduled or continuous)
 
 **Stakeholders**: Just me (dmikalova)
@@ -66,12 +73,14 @@ This is a greenfield personal project to automate email unsubscription. The syst
 
 **Alternatives considered**:
 
-- Puppeteer: Similar capabilities, but Playwright has better cross-browser support and API
+- Puppeteer: Similar capabilities, but Playwright has better cross-browser
+  support and API
 - Direct HTTP requests: Won't work for JavaScript-dependent pages
 
 ### Database: PostgreSQL with Schema Isolation
 
-**Decision**: Use a dedicated schema within a shared Northflank PostgreSQL instance.
+**Decision**: Use a dedicated schema within a shared Northflank PostgreSQL
+instance.
 
 **Rationale**:
 
@@ -79,7 +88,8 @@ This is a greenfield personal project to automate email unsubscription. The syst
 - Schema-level isolation provides security between apps
 - PostgreSQL is reliable and well-supported on Northflank
 
-**Schema approach**: Create `email_unsubscribe` schema with app-specific user that only has access to that schema.
+**Schema approach**: Create `email_unsubscribe` schema with app-specific user
+that only has access to that schema.
 
 ### Web Framework: Hono
 
@@ -102,17 +112,22 @@ This is a greenfield personal project to automate email unsubscription. The syst
 
 ### Frontend: Vue.js with Headless UI and Tailwind
 
-**Decision**: Use Vue.js for the dashboard frontend with Headless UI for accessible components and Tailwind CSS for styling.
+**Decision**: Use Vue.js for the dashboard frontend with Headless UI for
+accessible components and Tailwind CSS for styling.
 
 **Rationale**:
 
 - Vue.js is simple and approachable with good TypeScript support
-- Headless UI provides unstyled, accessible components (dialogs, menus, dropdowns) without imposing design opinions
+- Headless UI provides unstyled, accessible components (dialogs, menus,
+  dropdowns) without imposing design opinions
 - Tailwind CSS enables rapid styling with utility classes
-- Full control over the look - can apply Material Design-inspired colors, shadows, and spacing
+- Full control over the look - can apply Material Design-inspired colors,
+  shadows, and spacing
 - Lighter than full component libraries like Vuetify
 
-**Styling approach**: Use Tailwind with Material Design color palette and elevation shadows. Headless UI handles interactive component logic (accessibility, keyboard nav) while Tailwind handles appearance.
+**Styling approach**: Use Tailwind with Material Design color palette and
+elevation shadows. Headless UI handles interactive component logic
+(accessibility, keyboard nav) while Tailwind handles appearance.
 
 **Alternatives considered**:
 
@@ -122,7 +137,8 @@ This is a greenfield personal project to automate email unsubscription. The syst
 
 ### Authentication: Google OAuth 2.0
 
-**Decision**: Reuse Google OAuth for both Gmail API access and dashboard authentication.
+**Decision**: Reuse Google OAuth for both Gmail API access and dashboard
+authentication.
 
 **Rationale**:
 
@@ -130,25 +146,30 @@ This is a greenfield personal project to automate email unsubscription. The syst
 - Restricts dashboard access to the same Google account that owns the Gmail
 - No separate auth system to maintain
 
-**Implementation**: OAuth flow stores tokens in database; session cookie for dashboard; restrict to single allowed email address.
+**Implementation**: OAuth flow stores tokens in database; session cookie for
+dashboard; restrict to single allowed email address.
 
 ### Unsubscribe Flow Handling: Pattern-Based with Fallback
 
-**Decision**: Implement pattern-based automation that learns common unsubscribe flows.
+**Decision**: Implement pattern-based automation that learns common unsubscribe
+flows.
 
 **Approach**:
 
-1. Extract unsubscribe URL from email headers (`List-Unsubscribe`) or body parsing
+1. Extract unsubscribe URL from email headers (`List-Unsubscribe`) or body
+   parsing
 2. Navigate to URL with headless browser
 3. Try known patterns (click button with "unsubscribe" text, submit forms)
 4. Log results; flag failures for review
 5. Iteratively add new patterns as edge cases emerge
 
-**Rationale**: Start simple, evolve based on real-world data. Perfect is the enemy of good - some unsubscribes will fail initially.
+**Rationale**: Start simple, evolve based on real-world data. Perfect is the
+enemy of good - some unsubscribes will fail initially.
 
 ### Execution Model: Scheduled scans
 
-**Decision**: Run email scans on a schedule (e.g., every 6 hours) using an in-process scheduler (e.g., `node-cron`).
+**Decision**: Run email scans on a schedule (e.g., every 6 hours) using an
+in-process scheduler (e.g., `node-cron`).
 
 **Rationale**:
 
@@ -159,24 +180,37 @@ This is a greenfield personal project to automate email unsubscription. The syst
 
 **Alternative considered**:
 
-- Gmail push notifications / Pub/Sub: Real-time but adds complexity (webhook endpoint, Pub/Sub setup)
-- IMAP IDLE: Continuous listening, but Gmail's IMAP implementation has quirks and OAuth complexity
+- Gmail push notifications / Pub/Sub: Real-time but adds complexity (webhook
+  endpoint, Pub/Sub setup)
+- IMAP IDLE: Continuous listening, but Gmail's IMAP implementation has quirks
+  and OAuth complexity
 
 ## Risks / Trade-offs
 
-**[Unsubscribe pages are unpredictable]** → Start with common patterns; log failures; iterate. Accept that some will require manual handling initially.
+**[Unsubscribe pages are unpredictable]** → Start with common patterns; log
+failures; iterate. Accept that some will require manual handling initially.
 
-**[Gmail API quotas]** → Batch operations; respect rate limits; scan periodically rather than continuously.
+**[Gmail API quotas]** → Batch operations; respect rate limits; scan
+periodically rather than continuously.
 
-**[Browser automation in containers is heavy]** → Use headless Chromium; ensure container has sufficient memory (~512MB minimum). Playwright containers are well-documented.
+**[Browser automation in containers is heavy]** → Use headless Chromium; ensure
+container has sufficient memory (~512MB minimum). Playwright containers are
+well-documented.
 
-**[OAuth token expiration]** → Store refresh tokens; implement automatic token refresh; alert if refresh fails.
+**[OAuth token expiration]** → Store refresh tokens; implement automatic token
+refresh; alert if refresh fails.
 
-**[Unsubscribe flow fails]** → Capture screenshots and page state on failure; surface in dashboard with URL and failure reason for debugging; iteratively add patterns.
+**[Unsubscribe flow fails]** → Capture screenshots and page state on failure;
+surface in dashboard with URL and failure reason for debugging; iteratively add
+patterns.
 
-**[Security of stored credentials]** → Encrypt tokens at rest; use Northflank secrets for sensitive config; restrict database access.
+**[Security of stored credentials]** → Encrypt tokens at rest; use Northflank
+secrets for sensitive config; restrict database access.
 
-**[Malicious unsubscribe links]** → Browser automation executes arbitrary external pages. Mitigations: run in isolated container, no persistent browser state, screenshot all interactions for audit. Accept residual risk for personal-use system.
+**[Malicious unsubscribe links]** → Browser automation executes arbitrary
+external pages. Mitigations: run in isolated container, no persistent browser
+state, screenshot all interactions for audit. Accept residual risk for
+personal-use system.
 
 ## Migration Plan
 
@@ -207,7 +241,12 @@ N/A - greenfield project. Initial deployment steps:
 
 ## Open Questions
 
-- **Chromium in container**: Playwright provides official Docker images, but need to verify they work well on Northflank. May need custom Dockerfile.
-- **Gmail API vs IMAP**: Using Gmail API for now, but IMAP might be simpler for some operations. Evaluate after initial implementation.
-- **Unsubscribe link extraction**: `List-Unsubscribe` header is ideal but not always present. Need fallback HTML parsing strategy.
-- **Execution model**: Scheduled scans are simpler, but Gmail push notifications would be more responsive. Start with scheduled, consider push later if latency matters.
+- **Chromium in container**: Playwright provides official Docker images, but
+  need to verify they work well on Northflank. May need custom Dockerfile.
+- **Gmail API vs IMAP**: Using Gmail API for now, but IMAP might be simpler for
+  some operations. Evaluate after initial implementation.
+- **Unsubscribe link extraction**: `List-Unsubscribe` header is ideal but not
+  always present. Need fallback HTML parsing strategy.
+- **Execution model**: Scheduled scans are simpler, but Gmail push notifications
+  would be more responsive. Start with scheduled, consider push later if latency
+  matters.

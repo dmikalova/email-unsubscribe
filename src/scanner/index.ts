@@ -10,14 +10,14 @@ export {
   normalizeEmail,
   parseListUnsubscribeHeader,
   type UnsubscribeInfo,
-} from './headers.ts';
+} from "./headers.ts";
 
 export {
   decodeBase64Url,
+  type ExtractedLink,
   extractUnsubscribeLinksFromHtml,
   getHtmlBodyFromPayload,
-  type ExtractedLink,
-} from './html.ts';
+} from "./html.ts";
 
 export {
   getProcessedEmailIds,
@@ -25,26 +25,31 @@ export {
   incrementScanStats,
   isEmailProcessed,
   markEmailProcessed,
-  updateScanState,
   type ScanState,
-} from './state.ts';
+  updateScanState,
+} from "./state.ts";
 
 export {
   addToAllowList,
+  type AllowListEntry,
   findInAllowList,
   getAllowList,
   isAllowed,
   removeFromAllowList,
-  type AllowListEntry,
-} from './allowlist.ts';
+} from "./allowlist.ts";
 
 export {
   clearIneffectiveFlag,
   getIneffectiveSenders,
   getSenderTracking,
   markSenderUnsubscribed,
-  trackSender,
   type SenderTracking,
-} from './tracking.ts';
+  trackSender,
+} from "./tracking.ts";
 
-export { isScanInProgress, scanEmails, type ScannedEmail, type ScanResult } from './scanner.ts';
+export {
+  isScanInProgress,
+  scanEmails,
+  type ScannedEmail,
+  type ScanResult,
+} from "./scanner.ts";

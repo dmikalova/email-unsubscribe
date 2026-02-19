@@ -1,6 +1,6 @@
 // Email header parsing utilities
 
-import type { GmailHeader } from '../gmail/index.ts';
+import type { GmailHeader } from "../gmail/index.ts";
 
 export interface UnsubscribeInfo {
   listUnsubscribe: string[];
@@ -10,7 +10,9 @@ export interface UnsubscribeInfo {
   httpUrls: string[];
 }
 
-export function parseListUnsubscribeHeader(headers: GmailHeader[]): UnsubscribeInfo {
+export function parseListUnsubscribeHeader(
+  headers: GmailHeader[],
+): UnsubscribeInfo {
   const result: UnsubscribeInfo = {
     listUnsubscribe: [],
     listUnsubscribePost: false,
@@ -19,15 +21,17 @@ export function parseListUnsubscribeHeader(headers: GmailHeader[]): UnsubscribeI
     httpUrls: [],
   };
 
-  const listUnsubscribe = getHeader(headers, 'List-Unsubscribe');
-  const listUnsubscribePost = getHeader(headers, 'List-Unsubscribe-Post');
+  const listUnsubscribe = getHeader(headers, "List-Unsubscribe");
+  const listUnsubscribePost = getHeader(headers, "List-Unsubscribe-Post");
 
   if (!listUnsubscribe) {
     return result;
   }
 
   // Check for RFC 8058 one-click support
-  if (listUnsubscribePost?.toLowerCase().includes('list-unsubscribe=one-click')) {
+  if (
+    listUnsubscribePost?.toLowerCase().includes("list-unsubscribe=one-click")
+  ) {
     result.listUnsubscribePost = true;
   }
 
@@ -37,9 +41,9 @@ export function parseListUnsubscribeHeader(headers: GmailHeader[]): UnsubscribeI
   result.listUnsubscribe = urls;
 
   for (const url of urls) {
-    if (url.startsWith('mailto:')) {
+    if (url.startsWith("mailto:")) {
       result.mailtoUrl = url;
-    } else if (url.startsWith('http://') || url.startsWith('https://')) {
+    } else if (url.startsWith("http://") || url.startsWith("https://")) {
       result.httpUrls.push(url);
 
       // If one-click is supported, the first HTTP URL is the one-click URL
@@ -65,18 +69,20 @@ function parseListUnsubscribeValue(value: string): string[] {
 }
 
 export function getHeader(headers: GmailHeader[], name: string): string | null {
-  const header = headers.find((h) => h.name.toLowerCase() === name.toLowerCase());
+  const header = headers.find((h) =>
+    h.name.toLowerCase() === name.toLowerCase()
+  );
   return header?.value ?? null;
 }
 
 export function getSender(headers: GmailHeader[]): string | null {
   // Try From header first, then Sender
-  const from = getHeader(headers, 'From');
+  const from = getHeader(headers, "From");
   if (from) {
     return extractEmailAddress(from);
   }
 
-  const sender = getHeader(headers, 'Sender');
+  const sender = getHeader(headers, "Sender");
   if (sender) {
     return extractEmailAddress(sender);
   }
@@ -108,7 +114,7 @@ export function normalizeEmail(email: string): string {
 }
 
 export function extractDomain(email: string): string {
-  const parts = email.split('@');
+  const parts = email.split("@");
   if (parts.length !== 2) {
     throw new Error(`Invalid email address: ${email}`);
   }
@@ -116,11 +122,11 @@ export function extractDomain(email: string): string {
 }
 
 export function getSubject(headers: GmailHeader[]): string | null {
-  return getHeader(headers, 'Subject');
+  return getHeader(headers, "Subject");
 }
 
 export function getDate(headers: GmailHeader[]): Date | null {
-  const dateStr = getHeader(headers, 'Date');
+  const dateStr = getHeader(headers, "Date");
   if (!dateStr) return null;
 
   try {

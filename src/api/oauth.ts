@@ -1,20 +1,20 @@
 // OAuth routes for Gmail authorization
 
-import { Hono } from 'hono';
-import { exchangeCodeForTokens, getAuthorizationUrl } from '../gmail/oauth.ts';
-import { hasValidTokens, storeTokens } from '../gmail/tokens.ts';
-import { logOAuthAuthorized } from '../tracker/audit.ts';
+import { Hono } from "hono";
+import { exchangeCodeForTokens, getAuthorizationUrl } from "../gmail/oauth.ts";
+import { hasValidTokens, storeTokens } from "../gmail/tokens.ts";
+import { logOAuthAuthorized } from "../tracker/audit.ts";
 
 export const oauth = new Hono();
 
 // Check authorization status
-oauth.get('/status', async (c) => {
+oauth.get("/status", async (c) => {
   const authorized = await hasValidTokens();
   return c.json({ authorized });
 });
 
 // Start OAuth flow
-oauth.get('/authorize', (c) => {
+oauth.get("/authorize", (c) => {
   const state = crypto.randomUUID();
   // In production, store state in session for CSRF protection
   const url = getAuthorizationUrl(state);
@@ -22,9 +22,9 @@ oauth.get('/authorize', (c) => {
 });
 
 // OAuth callback
-oauth.get('/callback', async (c) => {
-  const code = c.req.query('code');
-  const error = c.req.query('error');
+oauth.get("/callback", async (c) => {
+  const code = c.req.query("code");
+  const error = c.req.query("error");
 
   if (error) {
     return c.html(`
@@ -74,7 +74,7 @@ oauth.get('/callback', async (c) => {
       </html>
     `);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : "Unknown error";
     return c.html(`
       <!DOCTYPE html>
       <html>
@@ -90,8 +90,8 @@ oauth.get('/callback', async (c) => {
 });
 
 // Revoke authorization (delete tokens)
-oauth.post('/revoke', async (c) => {
-  const { deleteTokens } = await import('../gmail/tokens.ts');
+oauth.post("/revoke", async (c) => {
+  const { deleteTokens } = await import("../gmail/tokens.ts");
   await deleteTokens();
   return c.json({ success: true });
 });

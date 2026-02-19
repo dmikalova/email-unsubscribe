@@ -1,7 +1,7 @@
 // Database configuration and connection pooling
 // Configured for Supabase with Supavisor connection pooler (port 6543)
 
-import postgres from 'postgres';
+import postgres from "postgres";
 
 export interface DatabaseConfig {
   url: string;
@@ -16,18 +16,18 @@ export interface DatabaseConfig {
 let sql: postgres.Sql | null = null;
 
 export function getConfig(): DatabaseConfig {
-  const url = Deno.env.get('DATABASE_URL');
+  const url = Deno.env.get("DATABASE_URL");
   if (!url) {
-    throw new Error('DATABASE_URL environment variable is required');
+    throw new Error("DATABASE_URL environment variable is required");
   }
 
   return {
     url,
-    schema: Deno.env.get('DATABASE_SCHEMA') || 'email_unsubscribe',
-    max: parseInt(Deno.env.get('DATABASE_POOL_MAX') || '10'),
-    idleTimeout: parseInt(Deno.env.get('DATABASE_IDLE_TIMEOUT') || '30'),
-    connectTimeout: parseInt(Deno.env.get('DATABASE_CONNECT_TIMEOUT') || '10'),
-    acquireTimeout: parseInt(Deno.env.get('DATABASE_ACQUIRE_TIMEOUT') || '30'),
+    schema: Deno.env.get("DATABASE_SCHEMA") || "email_unsubscribe",
+    max: parseInt(Deno.env.get("DATABASE_POOL_MAX") || "10"),
+    idleTimeout: parseInt(Deno.env.get("DATABASE_IDLE_TIMEOUT") || "30"),
+    connectTimeout: parseInt(Deno.env.get("DATABASE_CONNECT_TIMEOUT") || "10"),
+    acquireTimeout: parseInt(Deno.env.get("DATABASE_ACQUIRE_TIMEOUT") || "30"),
   };
 }
 
@@ -43,7 +43,7 @@ export function getConnection(): postgres.Sql {
     idle_timeout: config.idleTimeout,
     connect_timeout: config.connectTimeout,
     // SSL is required for Supabase - the connection string should include sslmode=require
-    ssl: 'require',
+    ssl: "require",
     onnotice: () => {}, // Suppress notice messages
     transform: {
       undefined: null,
@@ -87,14 +87,13 @@ export async function withTransaction<T>(
       // Check if it's a transient error worth retrying
       // Includes pool exhaustion scenarios from Supavisor
       const errorMessage = lastError.message.toLowerCase();
-      const isTransient =
-        errorMessage.includes('deadlock') ||
-        errorMessage.includes('serialization') ||
-        errorMessage.includes('connection') ||
-        errorMessage.includes('timeout') ||
-        errorMessage.includes('pool') ||
-        errorMessage.includes('too many connections') ||
-        errorMessage.includes('remaining connection slots');
+      const isTransient = errorMessage.includes("deadlock") ||
+        errorMessage.includes("serialization") ||
+        errorMessage.includes("connection") ||
+        errorMessage.includes("timeout") ||
+        errorMessage.includes("pool") ||
+        errorMessage.includes("too many connections") ||
+        errorMessage.includes("remaining connection slots");
 
       if (!isTransient || attempt === retries - 1) {
         throw error;
@@ -127,12 +126,11 @@ export async function query<T>(
 
       // Check for transient errors including pool exhaustion
       const errorMessage = lastError.message.toLowerCase();
-      const isTransient =
-        errorMessage.includes('connection') ||
-        errorMessage.includes('timeout') ||
-        errorMessage.includes('pool') ||
-        errorMessage.includes('too many connections') ||
-        errorMessage.includes('remaining connection slots');
+      const isTransient = errorMessage.includes("connection") ||
+        errorMessage.includes("timeout") ||
+        errorMessage.includes("pool") ||
+        errorMessage.includes("too many connections") ||
+        errorMessage.includes("remaining connection slots");
 
       if (!isTransient || attempt === retries - 1) {
         throw error;

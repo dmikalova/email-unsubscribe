@@ -5,25 +5,28 @@ import {
   getHistory,
   getMessage,
   getProfile,
-  listMessages,
   type GmailMessage,
-} from '../gmail/index.ts';
-import { isAllowed } from './allowlist.ts';
+  listMessages,
+} from "../gmail/index.ts";
+import { isAllowed } from "./allowlist.ts";
 import {
   extractDomain,
   getSender,
   parseListUnsubscribeHeader,
   type UnsubscribeInfo,
-} from './headers.ts';
-import { extractUnsubscribeLinksFromHtml, getHtmlBodyFromPayload } from './html.ts';
+} from "./headers.ts";
+import {
+  extractUnsubscribeLinksFromHtml,
+  getHtmlBodyFromPayload,
+} from "./html.ts";
 import {
   getProcessedEmailIds,
   getScanState,
   incrementScanStats,
   isEmailProcessed,
   updateScanState,
-} from './state.ts';
-import { trackSender } from './tracking.ts';
+} from "./state.ts";
+import { trackSender } from "./tracking.ts";
 
 const INITIAL_BACKLOG_LIMIT = 1000;
 const BATCH_SIZE = 50;
@@ -53,7 +56,7 @@ export interface ScanResult {
 
 export async function scanEmails(limit?: number): Promise<ScanResult> {
   if (scanInProgress) {
-    throw new Error('Scan already in progress');
+    throw new Error("Scan already in progress");
   }
 
   scanInProgress = true;
@@ -108,7 +111,7 @@ async function performInitialScan(limit: number): Promise<ScanResult> {
 
     if (newMessageIds.length > 0) {
       // Fetch full messages
-      const messages = await batchGetMessages(newMessageIds, 'full');
+      const messages = await batchGetMessages(newMessageIds, "full");
 
       // Process each message
       for (const message of messages) {
@@ -135,7 +138,8 @@ async function performInitialScan(limit: number): Promise<ScanResult> {
     remaining -= listResponse.messages.length;
 
     // Update scan state
-    const lastEmailId = listResponse.messages[listResponse.messages.length - 1].id;
+    const lastEmailId =
+      listResponse.messages[listResponse.messages.length - 1].id;
     await updateScanState({ lastEmailId });
 
     // Check for more pages
@@ -160,9 +164,11 @@ async function performInitialScan(limit: number): Promise<ScanResult> {
   return result;
 }
 
-async function performIncrementalScan(lastHistoryId: string | null): Promise<ScanResult> {
+async function performIncrementalScan(
+  lastHistoryId: string | null,
+): Promise<ScanResult> {
   if (!lastHistoryId) {
-    throw new Error('No history ID available for incremental scan');
+    throw new Error("No history ID available for incremental scan");
   }
 
   console.log(`Starting incremental scan from history ID: ${lastHistoryId}`);
@@ -196,7 +202,7 @@ async function performIncrementalScan(lastHistoryId: string | null): Promise<Sca
                 }
 
                 // Fetch and process
-                const message = await getMessage(added.message.id, 'full');
+                const message = await getMessage(added.message.id, "full");
                 const scanned = await processMessage(message);
 
                 if (scanned) {
@@ -209,7 +215,10 @@ async function performIncrementalScan(lastHistoryId: string | null): Promise<Sca
                 }
                 result.scanned++;
               } catch (error) {
-                console.error(`Error processing message ${added.message.id}:`, error);
+                console.error(
+                  `Error processing message ${added.message.id}:`,
+                  error,
+                );
                 result.errors++;
               }
             }
@@ -224,7 +233,10 @@ async function performIncrementalScan(lastHistoryId: string | null): Promise<Sca
     }
 
     // Update history ID
-    await updateScanState({ lastHistoryId: newHistoryId, lastScanAt: new Date() });
+    await updateScanState({
+      lastHistoryId: newHistoryId,
+      lastScanAt: new Date(),
+    });
     await incrementScanStats(result.scanned, result.processed);
 
     console.log(
@@ -233,16 +245,23 @@ async function performIncrementalScan(lastHistoryId: string | null): Promise<Sca
     return result;
   } catch (error) {
     // If history is too old, need to do full scan
-    if (error instanceof Error && error.message.includes('full sync required')) {
-      console.log('History too old, switching to full scan');
-      await updateScanState({ isInitialBacklogComplete: false, lastHistoryId: null });
+    if (
+      error instanceof Error && error.message.includes("full sync required")
+    ) {
+      console.log("History too old, switching to full scan");
+      await updateScanState({
+        isInitialBacklogComplete: false,
+        lastHistoryId: null,
+      });
       return await performInitialScan(INITIAL_BACKLOG_LIMIT);
     }
     throw error;
   }
 }
 
-async function processMessage(message: GmailMessage): Promise<ScannedEmail | null> {
+async function processMessage(
+  message: GmailMessage,
+): Promise<ScannedEmail | null> {
   const headers = message.payload?.headers || [];
   const sender = getSender(headers);
 
@@ -270,8 +289,8 @@ async function processMessage(message: GmailMessage): Promise<ScannedEmail | nul
   }
 
   // Get subject and date
-  const subjectHeader = headers.find((h) => h.name.toLowerCase() === 'subject');
-  const dateHeader = headers.find((h) => h.name.toLowerCase() === 'date');
+  const subjectHeader = headers.find((h) => h.name.toLowerCase() === "subject");
+  const dateHeader = headers.find((h) => h.name.toLowerCase() === "date");
 
   return {
     id: message.id,

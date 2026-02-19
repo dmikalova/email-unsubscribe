@@ -1,9 +1,9 @@
 // Unit tests for HTML link extraction
 
-import { assertEquals } from '@std/assert';
-import { extractUnsubscribeLinksFromHtml } from '../../src/scanner/html.ts';
+import { assertEquals } from "@std/assert";
+import { extractUnsubscribeLinksFromHtml } from "../../src/scanner/html.ts";
 
-Deno.test('extractUnsubscribeLinksFromHtml - finds unsubscribe link by text', () => {
+Deno.test("extractUnsubscribeLinksFromHtml - finds unsubscribe link by text", () => {
   const html = `
     <html>
       <body>
@@ -15,10 +15,10 @@ Deno.test('extractUnsubscribeLinksFromHtml - finds unsubscribe link by text', ()
   const links = extractUnsubscribeLinksFromHtml(html);
 
   assertEquals(links.length, 1);
-  assertEquals(links[0].url, 'https://example.com/unsubscribe');
+  assertEquals(links[0].url, "https://example.com/unsubscribe");
 });
 
-Deno.test('extractUnsubscribeLinksFromHtml - finds unsubscribe link by URL pattern', () => {
+Deno.test("extractUnsubscribeLinksFromHtml - finds unsubscribe link by URL pattern", () => {
   const html = `
     <html>
       <body>
@@ -30,10 +30,10 @@ Deno.test('extractUnsubscribeLinksFromHtml - finds unsubscribe link by URL patte
   const links = extractUnsubscribeLinksFromHtml(html);
 
   assertEquals(links.length, 1);
-  assertEquals(links[0].url, 'https://example.com/unsubscribe?id=123');
+  assertEquals(links[0].url, "https://example.com/unsubscribe?id=123");
 });
 
-Deno.test('extractUnsubscribeLinksFromHtml - finds opt-out links', () => {
+Deno.test("extractUnsubscribeLinksFromHtml - finds opt-out links", () => {
   const html = `
     <html>
       <body>
@@ -47,7 +47,7 @@ Deno.test('extractUnsubscribeLinksFromHtml - finds opt-out links', () => {
   assertEquals(links.length, 1);
 });
 
-Deno.test('extractUnsubscribeLinksFromHtml - finds manage preferences links', () => {
+Deno.test("extractUnsubscribeLinksFromHtml - finds manage preferences links", () => {
   const html = `
     <html>
       <body>
@@ -61,7 +61,7 @@ Deno.test('extractUnsubscribeLinksFromHtml - finds manage preferences links', ()
   assertEquals(links.length >= 1, true);
 });
 
-Deno.test('extractUnsubscribeLinksFromHtml - ignores non-unsubscribe links', () => {
+Deno.test("extractUnsubscribeLinksFromHtml - ignores non-unsubscribe links", () => {
   const html = `
     <html>
       <body>
@@ -77,19 +77,19 @@ Deno.test('extractUnsubscribeLinksFromHtml - ignores non-unsubscribe links', () 
   assertEquals(links.length, 0);
 });
 
-Deno.test('extractUnsubscribeLinksFromHtml - handles empty HTML', () => {
-  const links = extractUnsubscribeLinksFromHtml('');
+Deno.test("extractUnsubscribeLinksFromHtml - handles empty HTML", () => {
+  const links = extractUnsubscribeLinksFromHtml("");
   assertEquals(links.length, 0);
 });
 
-Deno.test('extractUnsubscribeLinksFromHtml - handles malformed HTML', () => {
+Deno.test("extractUnsubscribeLinksFromHtml - handles malformed HTML", () => {
   const html = '<a href="https://example.com/unsubscribe">Unsubscribe';
 
   const links = extractUnsubscribeLinksFromHtml(html);
   assertEquals(links.length >= 0, true); // Should not throw
 });
 
-Deno.test('extractUnsubscribeLinksFromHtml - deduplicates links', () => {
+Deno.test("extractUnsubscribeLinksFromHtml - deduplicates links", () => {
   const html = `
     <html>
       <body>

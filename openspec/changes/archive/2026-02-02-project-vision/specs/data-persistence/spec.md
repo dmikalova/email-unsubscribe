@@ -1,8 +1,11 @@
+# Data Persistence
+
 ## ADDED Requirements
 
 ### Requirement: PostgreSQL schema isolation
 
-The system SHALL use a dedicated PostgreSQL schema within a shared database instance.
+The system SHALL use a dedicated PostgreSQL schema within a shared database
+instance.
 
 #### Scenario: Schema creation
 
@@ -12,7 +15,8 @@ The system SHALL use a dedicated PostgreSQL schema within a shared database inst
 #### Scenario: Credential isolation
 
 - **WHEN** connecting to the database
-- **THEN** the system SHALL use credentials that only have access to the `email_unsubscribe` schema
+- **THEN** the system SHALL use credentials that only have access to the
+  `email_unsubscribe` schema
 
 ### Requirement: Store OAuth tokens
 
@@ -21,7 +25,8 @@ The system SHALL persist OAuth tokens securely.
 #### Scenario: Token table
 
 - **WHEN** storing OAuth tokens
-- **THEN** the system SHALL store access_token, refresh_token, expiry, and encrypted_at fields
+- **THEN** the system SHALL store access_token, refresh_token, expiry, and
+  encrypted_at fields
 
 ### Requirement: Store allow list entries
 
@@ -30,7 +35,8 @@ The system SHALL persist allow list entries.
 #### Scenario: Allow list table
 
 - **WHEN** storing an allow list entry
-- **THEN** the system SHALL store the entry type (email/domain), value, and created_at timestamp
+- **THEN** the system SHALL store the entry type (email/domain), value, and
+  created_at timestamp
 
 ### Requirement: Store unsubscribe history
 
@@ -39,7 +45,8 @@ The system SHALL persist unsubscribe attempt history.
 #### Scenario: Unsubscribe history table
 
 - **WHEN** storing an unsubscribe attempt
-- **THEN** the system SHALL store sender, unsubscribe_url, attempted_at, status, and failure_reason
+- **THEN** the system SHALL store sender, unsubscribe_url, attempted_at, status,
+  and failure_reason
 
 ### Requirement: Store sender tracking data
 
@@ -48,7 +55,8 @@ The system SHALL persist sender tracking information for compliance monitoring.
 #### Scenario: Sender tracking table
 
 - **WHEN** tracking a sender
-- **THEN** the system SHALL store sender, first_seen, last_seen, unsubscribed_at, emails_after_unsubscribe count
+- **THEN** the system SHALL store sender, first_seen, last_seen,
+  unsubscribed_at, emails_after_unsubscribe count
 
 ### Requirement: Database migrations
 
@@ -90,7 +98,8 @@ The system SHALL implement reliable database access patterns.
 #### Scenario: Connection pooling
 
 - **WHEN** connecting to the database
-- **THEN** the system SHALL use connection pooling to handle connection limits efficiently
+- **THEN** the system SHALL use connection pooling to handle connection limits
+  efficiently
 
 #### Scenario: Transaction handling
 
@@ -99,5 +108,6 @@ The system SHALL implement reliable database access patterns.
 
 #### Scenario: Retry on transient errors
 
-- **WHEN** a database operation fails with a transient error (connection lost, deadlock)
+- **WHEN** a database operation fails with a transient error (connection lost,
+  deadlock)
 - **THEN** the system SHALL retry with exponential backoff

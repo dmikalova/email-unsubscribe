@@ -1,22 +1,26 @@
 // Browser-based unsubscribe automation using Playwright
 
-import { chromium, type Browser, type Page } from 'playwright';
-import { getPatterns, incrementPatternMatchCount, type Pattern } from './patterns.ts';
-import { validateUnsubscribeUrl } from './validation.ts';
+import { type Browser, chromium, type Page } from "playwright";
+import {
+  getPatterns,
+  incrementPatternMatchCount,
+  type Pattern,
+} from "./patterns.ts";
+import { validateUnsubscribeUrl } from "./validation.ts";
 
 export interface BrowserResult {
   success: boolean;
   uncertain: boolean;
   error?: string;
   errorCategory?:
-    | 'timeout'
-    | 'no_button_found'
-    | 'navigation_error'
-    | 'form_error'
-    | 'captcha_detected'
-    | 'login_required'
-    | 'network_error'
-    | 'unknown';
+    | "timeout"
+    | "no_button_found"
+    | "navigation_error"
+    | "form_error"
+    | "captcha_detected"
+    | "login_required"
+    | "network_error"
+    | "unknown";
   screenshotPath?: string;
   tracePath?: string;
   matchedPattern?: string;
@@ -35,7 +39,7 @@ let browser: Browser | null = null;
 
 export async function getBrowser(headless = true): Promise<Browser> {
   if (!browser) {
-    const wsEndpoint = Deno.env.get('PLAYWRIGHT_WS_ENDPOINT');
+    const wsEndpoint = Deno.env.get("PLAYWRIGHT_WS_ENDPOINT");
     if (wsEndpoint) {
       // Connect to remote Playwright server
       browser = await chromium.connect(wsEndpoint);
@@ -43,7 +47,7 @@ export async function getBrowser(headless = true): Promise<Browser> {
       // Launch locally (for development)
       browser = await chromium.launch({
         headless,
-        args: ['--disable-dev-shm-usage', '--no-sandbox'],
+        args: ["--disable-dev-shm-usage", "--no-sandbox"],
       });
     }
   }
@@ -64,8 +68,8 @@ export async function performBrowserUnsubscribe(
 ): Promise<BrowserResult> {
   const {
     timeout = DEFAULT_TIMEOUT,
-    screenshotsDir = './data/screenshots',
-    tracesDir = './data/traces',
+    screenshotsDir = "./data/screenshots",
+    tracesDir = "./data/traces",
     headless = true,
   } = options;
 
@@ -76,14 +80,14 @@ export async function performBrowserUnsubscribe(
       success: false,
       uncertain: false,
       error: validation.error,
-      errorCategory: 'unknown',
+      errorCategory: "unknown",
     };
   }
 
   const sanitizedUrl = validation.sanitizedUrl!;
   const browser = await getBrowser(headless);
   const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
   });
 
   // Start tracing for debugging
@@ -99,14 +103,14 @@ export async function performBrowserUnsubscribe(
 
     // Navigate to unsubscribe page
     try {
-      await page.goto(sanitizedUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(sanitizedUrl, { waitUntil: "domcontentloaded" });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
+      const message = error instanceof Error ? error.message : "Unknown error";
       return {
         success: false,
         uncertain: false,
         error: `Navigation failed: ${message}`,
-        errorCategory: 'navigation_error',
+        errorCategory: "navigation_error",
       };
     }
 
@@ -119,9 +123,9 @@ export async function performBrowserUnsubscribe(
     await page.screenshot({ path: screenshotPath, fullPage: true });
 
     // Load patterns
-    const buttonPatterns = await getPatterns('button_selector');
-    const successPatterns = await getPatterns('success_text');
-    const errorPatterns = await getPatterns('error_text');
+    const buttonPatterns = await getPatterns("button_selector");
+    const successPatterns = await getPatterns("success_text");
+    const errorPatterns = await getPatterns("error_text");
 
     // Check for CAPTCHA or login wall
     const pageContent = await page.content();
@@ -129,8 +133,8 @@ export async function performBrowserUnsubscribe(
       return {
         success: false,
         uncertain: false,
-        error: 'CAPTCHA detected',
-        errorCategory: 'captcha_detected',
+        error: "CAPTCHA detected",
+        errorCategory: "captcha_detected",
         screenshotPath,
       };
     }
@@ -139,8 +143,8 @@ export async function performBrowserUnsubscribe(
       return {
         success: false,
         uncertain: false,
-        error: 'Login required',
-        errorCategory: 'login_required',
+        error: "Login required",
+        errorCategory: "login_required",
         screenshotPath,
       };
     }
@@ -186,8 +190,8 @@ export async function performBrowserUnsubscribe(
       return {
         success: false,
         uncertain: false,
-        error: 'No unsubscribe button found',
-        errorCategory: 'no_button_found',
+        error: "No unsubscribe button found",
+        errorCategory: "no_button_found",
         screenshotPath,
       };
     }
@@ -218,7 +222,7 @@ export async function performBrowserUnsubscribe(
         success: false,
         uncertain: false,
         error: `Error text detected: ${errorPattern}`,
-        errorCategory: 'form_error',
+        errorCategory: "form_error",
         screenshotPath,
       };
     }
@@ -227,19 +231,19 @@ export async function performBrowserUnsubscribe(
     return {
       success: false,
       uncertain: true,
-      error: 'No clear success or error indicator',
+      error: "No clear success or error indicator",
       matchedPattern,
       screenshotPath,
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : "Unknown error";
 
     // Categorize error
-    let errorCategory: BrowserResult['errorCategory'] = 'unknown';
-    if (message.includes('timeout') || message.includes('Timeout')) {
-      errorCategory = 'timeout';
-    } else if (message.includes('net::') || message.includes('ERR_')) {
-      errorCategory = 'network_error';
+    let errorCategory: BrowserResult["errorCategory"] = "unknown";
+    if (message.includes("timeout") || message.includes("Timeout")) {
+      errorCategory = "timeout";
+    } else if (message.includes("net::") || message.includes("ERR_")) {
+      errorCategory = "network_error";
     }
 
     return {
@@ -293,7 +297,10 @@ async function tryGenericButtonDetection(page: Page): Promise<boolean> {
   return false;
 }
 
-async function checkForSuccessText(page: Page, patterns: Pattern[]): Promise<string | null> {
+async function checkForSuccessText(
+  page: Page,
+  patterns: Pattern[],
+): Promise<string | null> {
   const content = await page.content();
   const lowerContent = content.toLowerCase();
 
@@ -307,14 +314,14 @@ async function checkForSuccessText(page: Page, patterns: Pattern[]): Promise<str
 
   // Check generic success indicators
   const successIndicators = [
-    'successfully unsubscribed',
-    'you have been unsubscribed',
-    'unsubscribe successful',
-    'you are now unsubscribed',
-    'removed from our mailing list',
-    'email preferences updated',
-    'subscription canceled',
-    'you will no longer receive',
+    "successfully unsubscribed",
+    "you have been unsubscribed",
+    "unsubscribe successful",
+    "you are now unsubscribed",
+    "removed from our mailing list",
+    "email preferences updated",
+    "subscription canceled",
+    "you will no longer receive",
   ];
 
   for (const indicator of successIndicators) {
@@ -326,7 +333,10 @@ async function checkForSuccessText(page: Page, patterns: Pattern[]): Promise<str
   return null;
 }
 
-async function checkForErrorText(page: Page, patterns: Pattern[]): Promise<string | null> {
+async function checkForErrorText(
+  page: Page,
+  patterns: Pattern[],
+): Promise<string | null> {
   const content = await page.content();
   const lowerContent = content.toLowerCase();
 
@@ -340,12 +350,12 @@ async function checkForErrorText(page: Page, patterns: Pattern[]): Promise<strin
 
   // Check generic error indicators
   const errorIndicators = [
-    'error occurred',
-    'something went wrong',
-    'unable to process',
-    'link has expired',
-    'invalid request',
-    'please try again',
+    "error occurred",
+    "something went wrong",
+    "unable to process",
+    "link has expired",
+    "invalid request",
+    "please try again",
   ];
 
   for (const indicator of errorIndicators) {
@@ -359,11 +369,11 @@ async function checkForErrorText(page: Page, patterns: Pattern[]): Promise<strin
 
 function detectCaptcha(content: string): boolean {
   const captchaIndicators = [
-    'g-recaptcha',
-    'h-captcha',
-    'cf-turnstile',
-    'captcha',
-    'verify you are human',
+    "g-recaptcha",
+    "h-captcha",
+    "cf-turnstile",
+    "captcha",
+    "verify you are human",
     "verify you're human",
   ];
 
@@ -373,11 +383,11 @@ function detectCaptcha(content: string): boolean {
 
 function detectLoginRequired(content: string): boolean {
   const loginIndicators = [
-    'please log in',
-    'please sign in',
-    'login required',
-    'sign in to continue',
-    'authentication required',
+    "please log in",
+    "please sign in",
+    "login required",
+    "sign in to continue",
+    "authentication required",
   ];
 
   const lower = content.toLowerCase();

@@ -1,6 +1,7 @@
 // Tracker module exports
 
 export {
+  type FailureReason,
   getDomainStats,
   getFailedAttempts,
   getHistoryByDomain,
@@ -9,21 +10,23 @@ export {
   getUnsubscribeAttempt,
   incrementRetryCount,
   markAsResolved,
-  recordUnsubscribeAttempt,
-  updateAttemptStatus,
-  type FailureReason,
   type RecordAttemptInput,
+  recordUnsubscribeAttempt,
   type UnsubscribeAttempt,
   type UnsubscribeMethod,
   type UnsubscribeStats,
   type UnsubscribeStatus,
-} from './tracker.ts';
+  updateAttemptStatus,
+} from "./tracker.ts";
 
 export {
+  type AuditAction,
+  type AuditLogEntry,
   getAuditLog,
   log,
   logAllowlistAdd,
   logAllowlistRemove,
+  type LogInput,
   logOAuthAuthorized,
   logPatternExported,
   logPatternImported,
@@ -32,7 +35,4 @@ export {
   logUnsubscribeAttempt,
   logUnsubscribeFailed,
   logUnsubscribeSuccess,
-  type AuditAction,
-  type AuditLogEntry,
-  type LogInput,
-} from './audit.ts';
+} from "./audit.ts";

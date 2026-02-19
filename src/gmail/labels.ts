@@ -1,11 +1,15 @@
 // Gmail Label Management
 
-import { archiveMessage, getOrCreateLabel, modifyMessageLabels } from './client.ts';
+import {
+  archiveMessage,
+  getOrCreateLabel,
+  modifyMessageLabels,
+} from "./client.ts";
 
 export const LABEL_NAMES = {
-  SUCCESS: 'Unsubscribed/Success',
-  FAILED: 'Unsubscribed/Failed',
-  PENDING: 'Unsubscribed/Pending',
+  SUCCESS: "Unsubscribed/Success",
+  FAILED: "Unsubscribed/Failed",
+  PENDING: "Unsubscribed/Pending",
 } as const;
 
 let labelCache: Map<string, string> | null = null;
@@ -18,7 +22,7 @@ export async function initializeLabels(): Promise<void> {
     labelCache.set(name, label.id);
   }
 
-  console.log('Gmail labels initialized');
+  console.log("Gmail labels initialized");
 }
 
 export async function getLabelId(name: string): Promise<string> {
@@ -39,7 +43,10 @@ export async function labelMessageAsSuccess(messageId: string): Promise<void> {
   const failedLabelId = await getLabelId(LABEL_NAMES.FAILED);
   const pendingLabelId = await getLabelId(LABEL_NAMES.PENDING);
 
-  await modifyMessageLabels(messageId, [labelId], [failedLabelId, pendingLabelId]);
+  await modifyMessageLabels(messageId, [labelId], [
+    failedLabelId,
+    pendingLabelId,
+  ]);
 }
 
 export async function labelMessageAsFailed(messageId: string): Promise<void> {
@@ -47,7 +54,10 @@ export async function labelMessageAsFailed(messageId: string): Promise<void> {
   const successLabelId = await getLabelId(LABEL_NAMES.SUCCESS);
   const pendingLabelId = await getLabelId(LABEL_NAMES.PENDING);
 
-  await modifyMessageLabels(messageId, [labelId], [successLabelId, pendingLabelId]);
+  await modifyMessageLabels(messageId, [labelId], [
+    successLabelId,
+    pendingLabelId,
+  ]);
 }
 
 export async function labelMessageAsPending(messageId: string): Promise<void> {

@@ -1,8 +1,12 @@
+# Dagger CI
+
 ## ADDED Requirements
 
 ### Requirement: CI workflow calls reusable workflow
 
-The repository SHALL include a GitHub Actions workflow at `.github/workflows/ci.yaml` that calls a reusable Dagger workflow from the infra repo.
+The repository SHALL include a GitHub Actions workflow at
+`.github/workflows/ci.yaml` that calls a reusable Dagger workflow from the infra
+repo.
 
 #### Scenario: Workflow file exists
 
@@ -12,11 +16,13 @@ The repository SHALL include a GitHub Actions workflow at `.github/workflows/ci.
 #### Scenario: Workflow calls infra repo
 
 - **WHEN** CI runs
-- **THEN** it uses `uses: <infra-repo>/.github/workflows/dagger.yaml@main` to invoke the reusable workflow
+- **THEN** it uses `uses: <infra-repo>/.github/workflows/dagger.yaml@main` to
+  invoke the reusable workflow
 
 ### Requirement: Workflow passes required inputs
 
-The CI workflow SHALL pass the necessary inputs to the reusable workflow including the deployment contract path.
+The CI workflow SHALL pass the necessary inputs to the reusable workflow
+including the deployment contract path.
 
 #### Scenario: Contract path provided
 
@@ -31,7 +37,8 @@ The CI workflow SHALL pass the necessary inputs to the reusable workflow includi
 #### Scenario: PR number for previews
 
 - **WHEN** the workflow runs on a pull request
-- **THEN** it passes the PR number to the reusable workflow for preview environment naming
+- **THEN** it passes the PR number to the reusable workflow for preview
+  environment naming
 
 ### Requirement: Workflow triggers on appropriate events
 
@@ -54,7 +61,8 @@ The CI workflow SHALL trigger on pull requests and pushes to main.
 
 ### Requirement: Workflow has minimal configuration
 
-The CI workflow SHALL contain minimal configuration, delegating pipeline logic to the reusable workflow.
+The CI workflow SHALL contain minimal configuration, delegating pipeline logic
+to the reusable workflow.
 
 #### Scenario: No Dagger code in app repo
 
@@ -64,27 +72,33 @@ The CI workflow SHALL contain minimal configuration, delegating pipeline logic t
 #### Scenario: Workflow is simple
 
 - **WHEN** a developer reads `.github/workflows/ci.yaml`
-- **THEN** it contains only workflow triggers, inputs, and the reusable workflow call
+- **THEN** it contains only workflow triggers, inputs, and the reusable workflow
+  call
 
 ### Requirement: Workflow inherits secrets
 
-The CI workflow SHALL pass through necessary secrets to the reusable workflow using `secrets: inherit`.
+The CI workflow SHALL pass through necessary secrets to the reusable workflow
+using `secrets: inherit`.
 
 #### Scenario: GCP credentials available
 
 - **WHEN** the reusable workflow needs to authenticate to GCP
-- **THEN** it has access to the Workload Identity Federation configuration via inherited secrets
+- **THEN** it has access to the Workload Identity Federation configuration via
+  inherited secrets
 
 ### Requirement: Workload Identity Federation configured
 
-The repository SHALL have GitHub Actions configured with Workload Identity Federation for keyless GCP authentication.
+The repository SHALL have GitHub Actions configured with Workload Identity
+Federation for keyless GCP authentication.
 
 #### Scenario: No stored credentials
 
 - **WHEN** the CI workflow runs
-- **THEN** it uses OIDC token exchange to authenticate to GCP without any stored JSON keys
+- **THEN** it uses OIDC token exchange to authenticate to GCP without any stored
+  JSON keys
 
 #### Scenario: WIF provider configured
 
 - **WHEN** setting up the repository
-- **THEN** GitHub Actions environment is configured with the WIF provider and service account from the infra repo
+- **THEN** GitHub Actions environment is configured with the WIF provider and
+  service account from the infra repo

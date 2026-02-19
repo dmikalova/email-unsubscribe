@@ -1,22 +1,22 @@
 // Audit logging
 
-import { getConnection } from '../db/index.ts';
+import { getConnection } from "../db/index.ts";
 
 export type AuditAction =
-  | 'unsubscribe_attempt'
-  | 'unsubscribe_success'
-  | 'unsubscribe_failed'
-  | 'allowlist_add'
-  | 'allowlist_remove'
-  | 'session_created'
-  | 'session_expired'
-  | 'oauth_authorized'
-  | 'oauth_refreshed'
-  | 'oauth_revoked'
-  | 'scan_started'
-  | 'scan_completed'
-  | 'pattern_imported'
-  | 'pattern_exported';
+  | "unsubscribe_attempt"
+  | "unsubscribe_success"
+  | "unsubscribe_failed"
+  | "allowlist_add"
+  | "allowlist_remove"
+  | "session_created"
+  | "session_expired"
+  | "oauth_authorized"
+  | "oauth_refreshed"
+  | "oauth_revoked"
+  | "scan_started"
+  | "scan_completed"
+  | "pattern_imported"
+  | "pattern_exported";
 
 export interface AuditLogEntry {
   id: number;
@@ -118,7 +118,7 @@ export async function logUnsubscribeAttempt(
   ipAddress?: string,
 ): Promise<void> {
   await log({
-    action: 'unsubscribe_attempt',
+    action: "unsubscribe_attempt",
     details: { sender, url, method },
     ipAddress,
   });
@@ -130,7 +130,7 @@ export async function logUnsubscribeSuccess(
   ipAddress?: string,
 ): Promise<void> {
   await log({
-    action: 'unsubscribe_success',
+    action: "unsubscribe_success",
     details: { sender, method },
     ipAddress,
   });
@@ -142,7 +142,7 @@ export async function logUnsubscribeFailed(
   ipAddress?: string,
 ): Promise<void> {
   await log({
-    action: 'unsubscribe_failed',
+    action: "unsubscribe_failed",
     details: { sender, reason },
     ipAddress,
   });
@@ -154,7 +154,7 @@ export async function logAllowlistAdd(
   ipAddress?: string,
 ): Promise<void> {
   await log({
-    action: 'allowlist_add',
+    action: "allowlist_add",
     details: { type, value },
     ipAddress,
   });
@@ -166,7 +166,7 @@ export async function logAllowlistRemove(
   ipAddress?: string,
 ): Promise<void> {
   await log({
-    action: 'allowlist_remove',
+    action: "allowlist_remove",
     details: { type, value },
     ipAddress,
   });
@@ -174,7 +174,7 @@ export async function logAllowlistRemove(
 
 export async function logScanStarted(emailCount?: number): Promise<void> {
   await log({
-    action: 'scan_started',
+    action: "scan_started",
     details: emailCount ? { emailCount } : undefined,
   });
 }
@@ -185,28 +185,28 @@ export async function logScanCompleted(
   errors: number,
 ): Promise<void> {
   await log({
-    action: 'scan_completed',
+    action: "scan_completed",
     details: { scanned, processed, errors },
   });
 }
 
 export async function logOAuthAuthorized(email?: string): Promise<void> {
   await log({
-    action: 'oauth_authorized',
+    action: "oauth_authorized",
     details: email ? { email } : undefined,
   });
 }
 
 export async function logPatternImported(count: number): Promise<void> {
   await log({
-    action: 'pattern_imported',
+    action: "pattern_imported",
     details: { count },
   });
 }
 
 export async function logPatternExported(count: number): Promise<void> {
   await log({
-    action: 'pattern_exported',
+    action: "pattern_exported",
     details: { count },
   });
 }

@@ -1,3 +1,5 @@
+# Data Persistence
+
 ## ADDED Requirements
 
 ### Requirement: Supabase as database provider
@@ -11,12 +13,14 @@ The application SHALL use Supabase managed PostgreSQL as its database backend.
 
 ### Requirement: Connection pooler usage
 
-The application SHALL connect to Supabase via the Supavisor connection pooler to handle connection management efficiently.
+The application SHALL connect to Supabase via the Supavisor connection pooler to
+handle connection management efficiently.
 
 #### Scenario: Pooler connection string
 
 - **WHEN** configuring the database connection
-- **THEN** the connection string uses the Supabase pooler endpoint (port 6543) rather than direct connection
+- **THEN** the connection string uses the Supabase pooler endpoint (port 6543)
+  rather than direct connection
 
 #### Scenario: Transaction mode pooling
 
@@ -25,7 +29,8 @@ The application SHALL connect to Supabase via the Supavisor connection pooler to
 
 ### Requirement: Separate production and preview databases
 
-The system SHALL maintain separate Supabase projects for production and preview environments.
+The system SHALL maintain separate Supabase projects for production and preview
+environments.
 
 #### Scenario: Production isolation
 
@@ -39,7 +44,8 @@ The system SHALL maintain separate Supabase projects for production and preview 
 
 ### Requirement: Database migrations remain additive
 
-Database migrations SHALL continue to be additive-only, never dropping tables or columns, preserving existing data.
+Database migrations SHALL continue to be additive-only, never dropping tables or
+columns, preserving existing data.
 
 #### Scenario: Migration adds table
 
@@ -49,7 +55,8 @@ Database migrations SHALL continue to be additive-only, never dropping tables or
 #### Scenario: No down migrations
 
 - **WHEN** rolling back a deployment
-- **THEN** the database schema is not rolled back (use application-level compatibility)
+- **THEN** the database schema is not rolled back (use application-level
+  compatibility)
 
 ### Requirement: SSL connection required
 
@@ -62,30 +69,36 @@ All database connections SHALL use SSL/TLS encryption.
 
 ### Requirement: Connection string via Secret Manager
 
-The database connection string SHALL be stored in Google Secret Manager, not in environment variables or code.
+The database connection string SHALL be stored in Google Secret Manager, not in
+environment variables or code.
 
 #### Scenario: Secret retrieval at runtime
 
 - **WHEN** Cloud Run starts an instance
-- **THEN** it retrieves the `DATABASE_URL` from Secret Manager and injects it as an environment variable
+- **THEN** it retrieves the `DATABASE_URL` from Secret Manager and injects it as
+  an environment variable
 
 ### Requirement: Graceful handling of connection limits
 
-The application SHALL handle connection pool exhaustion gracefully without crashing.
+The application SHALL handle connection pool exhaustion gracefully without
+crashing.
 
 #### Scenario: Pool exhausted temporarily
 
 - **WHEN** all pooler connections are in use
-- **THEN** new requests wait briefly for a connection rather than failing immediately
+- **THEN** new requests wait briefly for a connection rather than failing
+  immediately
 
 #### Scenario: Prolonged exhaustion
 
 - **WHEN** connections cannot be obtained after the timeout
-- **THEN** the request fails with an appropriate error and the application continues running
+- **THEN** the request fails with an appropriate error and the application
+  continues running
 
 ### Requirement: Database accessible from Cloud Run
 
-The Supabase database SHALL be accessible from Cloud Run services without VPC configuration.
+The Supabase database SHALL be accessible from Cloud Run services without VPC
+configuration.
 
 #### Scenario: Public pooler endpoint
 
@@ -94,7 +107,8 @@ The Supabase database SHALL be accessible from Cloud Run services without VPC co
 
 ### Requirement: Supabase free tier compatible
 
-The database usage patterns SHALL remain compatible with Supabase's free tier constraints for cost efficiency.
+The database usage patterns SHALL remain compatible with Supabase's free tier
+constraints for cost efficiency.
 
 #### Scenario: Activity prevents pause
 

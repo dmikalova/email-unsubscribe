@@ -24,7 +24,8 @@ export function extractUnsubscribeLinksFromHtml(html: string): ExtractedLink[] {
 
   // Simple regex-based link extraction
   // Match <a> tags with href
-  const linkRegex = /<a\s+[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  const linkRegex =
+    /<a\s+[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
   let match;
 
   while ((match = linkRegex.exec(html)) !== null) {
@@ -33,13 +34,15 @@ export function extractUnsubscribeLinksFromHtml(html: string): ExtractedLink[] {
     const fullMatch = match[0];
 
     // Skip empty or invalid URLs
-    if (!url || !url.startsWith('http')) {
+    if (!url || !url.startsWith("http")) {
       continue;
     }
 
     // Check if this looks like an unsubscribe link
     const combinedText = `${url} ${text} ${fullMatch}`;
-    const matchesPattern = UNSUBSCRIBE_PATTERNS.some((pattern) => pattern.test(combinedText));
+    const matchesPattern = UNSUBSCRIBE_PATTERNS.some((pattern) =>
+      pattern.test(combinedText)
+    );
 
     if (matchesPattern) {
       const confidence = calculateConfidence(url, text, fullMatch);
@@ -61,7 +64,11 @@ export function extractUnsubscribeLinksFromHtml(html: string): ExtractedLink[] {
   });
 }
 
-function calculateConfidence(url: string, text: string, _fullMatch: string): number {
+function calculateConfidence(
+  url: string,
+  text: string,
+  _fullMatch: string,
+): number {
   let confidence = 0;
 
   // Check URL
@@ -97,15 +104,15 @@ function calculateConfidence(url: string, text: string, _fullMatch: string): num
 }
 
 function stripHtmlTags(html: string): string {
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
 }
 
 export function decodeBase64Url(data: string): string {
   // Convert URL-safe base64 to standard base64
-  const base64 = data.replace(/-/g, '+').replace(/_/g, '/');
+  const base64 = data.replace(/-/g, "+").replace(/_/g, "/");
 
   // Add padding if needed
-  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
 
   return atob(padded);
 }
@@ -116,14 +123,14 @@ export function getHtmlBodyFromPayload(payload: {
   parts?: { mimeType?: string; body?: { data?: string }; parts?: unknown[] }[];
 }): string | null {
   // Direct HTML body
-  if (payload.mimeType === 'text/html' && payload.body?.data) {
+  if (payload.mimeType === "text/html" && payload.body?.data) {
     return decodeBase64Url(payload.body.data);
   }
 
   // Check parts recursively
   if (payload.parts) {
     for (const part of payload.parts) {
-      if (part.mimeType === 'text/html' && part.body?.data) {
+      if (part.mimeType === "text/html" && part.body?.data) {
         return decodeBase64Url(part.body.data);
       }
 

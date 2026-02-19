@@ -1,13 +1,13 @@
 // Pattern management for unsubscribe automation
 
-import { getConnection } from '../db/index.ts';
+import { getConnection } from "../db/index.ts";
 
 export type PatternType =
-  | 'button_selector'
-  | 'form_selector'
-  | 'success_text'
-  | 'error_text'
-  | 'preference_center';
+  | "button_selector"
+  | "form_selector"
+  | "success_text"
+  | "error_text"
+  | "preference_center";
 
 export interface Pattern {
   id: number;
@@ -33,87 +33,117 @@ export interface PatternInput {
 export const DEFAULT_PATTERNS: PatternInput[] = [
   // Button selectors
   {
-    name: 'Unsubscribe button',
-    type: 'button_selector',
+    name: "Unsubscribe button",
+    type: "button_selector",
     selector: 'button:has-text("unsubscribe")',
     priority: 10,
   },
   {
-    name: 'Unsubscribe link',
-    type: 'button_selector',
+    name: "Unsubscribe link",
+    type: "button_selector",
     selector: 'a:has-text("unsubscribe")',
     priority: 9,
   },
   {
-    name: 'Opt-out button',
-    type: 'button_selector',
+    name: "Opt-out button",
+    type: "button_selector",
     selector: 'button:has-text("opt out")',
     priority: 8,
   },
   {
-    name: 'Remove me button',
-    type: 'button_selector',
+    name: "Remove me button",
+    type: "button_selector",
     selector: 'button:has-text("remove me")',
     priority: 7,
   },
   {
-    name: 'Confirm unsubscribe',
-    type: 'button_selector',
+    name: "Confirm unsubscribe",
+    type: "button_selector",
     selector: 'button:has-text("confirm")',
     priority: 6,
   },
-  { name: 'Yes button', type: 'button_selector', selector: 'button:has-text("yes")', priority: 5 },
-  { name: 'Submit input', type: 'button_selector', selector: 'input[type="submit"]', priority: 4 },
+  {
+    name: "Yes button",
+    type: "button_selector",
+    selector: 'button:has-text("yes")',
+    priority: 5,
+  },
+  {
+    name: "Submit input",
+    type: "button_selector",
+    selector: 'input[type="submit"]',
+    priority: 4,
+  },
 
   // Success text patterns
   {
-    name: 'Successfully unsubscribed',
-    type: 'success_text',
-    selector: 'successfully unsubscribed',
+    name: "Successfully unsubscribed",
+    type: "success_text",
+    selector: "successfully unsubscribed",
     priority: 10,
   },
   {
-    name: 'You have been unsubscribed',
-    type: 'success_text',
-    selector: 'you have been unsubscribed',
+    name: "You have been unsubscribed",
+    type: "success_text",
+    selector: "you have been unsubscribed",
     priority: 10,
   },
   {
-    name: 'Unsubscribe successful',
-    type: 'success_text',
-    selector: 'unsubscribe successful',
+    name: "Unsubscribe successful",
+    type: "success_text",
+    selector: "unsubscribe successful",
     priority: 10,
   },
   {
-    name: 'Removed from mailing list',
-    type: 'success_text',
-    selector: 'removed from our mailing list',
+    name: "Removed from mailing list",
+    type: "success_text",
+    selector: "removed from our mailing list",
     priority: 9,
   },
   {
-    name: 'No longer receive',
-    type: 'success_text',
-    selector: 'will no longer receive',
+    name: "No longer receive",
+    type: "success_text",
+    selector: "will no longer receive",
     priority: 8,
   },
   {
-    name: 'Preferences updated',
-    type: 'success_text',
-    selector: 'preferences updated',
+    name: "Preferences updated",
+    type: "success_text",
+    selector: "preferences updated",
     priority: 7,
   },
 
   // Error text patterns
-  { name: 'Link expired', type: 'error_text', selector: 'link has expired', priority: 10 },
-  { name: 'Error occurred', type: 'error_text', selector: 'error occurred', priority: 9 },
   {
-    name: 'Something went wrong',
-    type: 'error_text',
-    selector: 'something went wrong',
+    name: "Link expired",
+    type: "error_text",
+    selector: "link has expired",
+    priority: 10,
+  },
+  {
+    name: "Error occurred",
+    type: "error_text",
+    selector: "error occurred",
     priority: 9,
   },
-  { name: 'Invalid request', type: 'error_text', selector: 'invalid request', priority: 8 },
-  { name: 'Try again', type: 'error_text', selector: 'please try again', priority: 7 },
+  {
+    name: "Something went wrong",
+    type: "error_text",
+    selector: "something went wrong",
+    priority: 9,
+  },
+  {
+    name: "Invalid request",
+    type: "error_text",
+    selector: "invalid request",
+    priority: 8,
+  },
+  {
+    name: "Try again",
+    type: "error_text",
+    selector: "please try again",
+    priority: 7,
+  },
 ];
 
 export async function seedDefaultPatterns(): Promise<void> {
@@ -133,7 +163,7 @@ export async function seedDefaultPatterns(): Promise<void> {
     }
   });
 
-  console.log('Default patterns seeded');
+  console.log("Default patterns seeded");
 }
 
 export function getPatterns(type?: PatternType): Promise<Pattern[]> {
@@ -170,7 +200,9 @@ export async function addPattern(input: PatternInput): Promise<Pattern> {
 
   const rows = await sql<Pattern[]>`
     INSERT INTO patterns (name, type, selector, priority)
-    VALUES (${input.name}, ${input.type}, ${input.selector}, ${input.priority ?? 0})
+    VALUES (${input.name}, ${input.type}, ${input.selector}, ${
+    input.priority ?? 0
+  })
     RETURNING id, name, type, selector, priority,
               match_count as "matchCount",
               last_matched_at as "lastMatchedAt",
@@ -209,14 +241,14 @@ export async function incrementPatternMatchCount(id: number): Promise<void> {
 export interface PatternExport {
   version: string;
   exportedAt: string;
-  patterns: Omit<PatternInput, 'priority'>[];
+  patterns: Omit<PatternInput, "priority">[];
 }
 
 export async function exportPatterns(): Promise<PatternExport> {
   const patterns = await getPatterns();
 
   return {
-    version: '1.0',
+    version: "1.0",
     exportedAt: new Date().toISOString(),
     patterns: patterns
       .filter((p) => !p.isBuiltin) // Only export custom patterns

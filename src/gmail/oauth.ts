@@ -8,13 +8,13 @@ export interface OAuthConfig {
 }
 
 export function getOAuthConfig(): OAuthConfig {
-  const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-  const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
-  const redirectUri = Deno.env.get('GOOGLE_REDIRECT_URI');
+  const clientId = Deno.env.get("GOOGLE_CLIENT_ID");
+  const clientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET");
+  const redirectUri = Deno.env.get("GOOGLE_REDIRECT_URI");
 
   if (!clientId || !clientSecret || !redirectUri) {
     throw new Error(
-      'Missing required OAuth configuration. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI',
+      "Missing required OAuth configuration. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI",
     );
   }
 
@@ -23,10 +23,10 @@ export function getOAuthConfig(): OAuthConfig {
     clientSecret,
     redirectUri,
     scopes: [
-      'https://www.googleapis.com/auth/gmail.readonly',
-      'https://www.googleapis.com/auth/gmail.modify',
-      'https://www.googleapis.com/auth/gmail.labels',
-      'https://mail.google.com/', // Required for sending unsubscribe emails
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/gmail.labels",
+      "https://mail.google.com/", // Required for sending unsubscribe emails
     ],
   };
 }
@@ -36,14 +36,14 @@ export function getAuthorizationUrl(state?: string): string {
   const params = new URLSearchParams({
     client_id: config.clientId,
     redirect_uri: config.redirectUri,
-    response_type: 'code',
-    scope: config.scopes.join(' '),
-    access_type: 'offline',
-    prompt: 'consent',
+    response_type: "code",
+    scope: config.scopes.join(" "),
+    access_type: "offline",
+    prompt: "consent",
   });
 
   if (state) {
-    params.set('state', state);
+    params.set("state", state);
   }
 
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
@@ -57,19 +57,21 @@ export interface TokenResponse {
   scope: string;
 }
 
-export async function exchangeCodeForTokens(code: string): Promise<TokenResponse> {
+export async function exchangeCodeForTokens(
+  code: string,
+): Promise<TokenResponse> {
   const config = getOAuthConfig();
 
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
       client_id: config.clientId,
       client_secret: config.clientSecret,
       redirect_uri: config.redirectUri,
-      grant_type: 'authorization_code',
+      grant_type: "authorization_code",
       code,
     }),
   });
@@ -82,18 +84,20 @@ export async function exchangeCodeForTokens(code: string): Promise<TokenResponse
   return response.json();
 }
 
-export async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
+export async function refreshAccessToken(
+  refreshToken: string,
+): Promise<TokenResponse> {
   const config = getOAuthConfig();
 
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
       client_id: config.clientId,
       client_secret: config.clientSecret,
-      grant_type: 'refresh_token',
+      grant_type: "refresh_token",
       refresh_token: refreshToken,
     }),
   });

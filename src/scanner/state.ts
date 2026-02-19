@@ -1,6 +1,6 @@
 // Scan state management
 
-import { getConnection } from '../db/index.ts';
+import { getConnection } from "../db/index.ts";
 
 export interface ScanState {
   lastHistoryId: string | null;
@@ -31,7 +31,7 @@ export async function getScanState(): Promise<ScanState> {
   `;
 
   if (rows.length === 0) {
-    throw new Error('Scan state not initialized');
+    throw new Error("Scan state not initialized");
   }
 
   const row = rows[0];
@@ -45,23 +45,36 @@ export async function getScanState(): Promise<ScanState> {
   };
 }
 
-export async function updateScanState(updates: Partial<ScanState>): Promise<void> {
+export async function updateScanState(
+  updates: Partial<ScanState>,
+): Promise<void> {
   const sql = getConnection();
 
   await sql`
     UPDATE scan_state SET
-      last_history_id = COALESCE(${updates.lastHistoryId ?? null}, last_history_id),
+      last_history_id = COALESCE(${
+    updates.lastHistoryId ?? null
+  }, last_history_id),
       last_email_id = COALESCE(${updates.lastEmailId ?? null}, last_email_id),
       last_scan_at = COALESCE(${updates.lastScanAt ?? null}, last_scan_at),
-      emails_scanned = COALESCE(${updates.emailsScanned ?? null}, emails_scanned),
-      emails_processed = COALESCE(${updates.emailsProcessed ?? null}, emails_processed),
-      is_initial_backlog_complete = COALESCE(${updates.isInitialBacklogComplete ?? null}, is_initial_backlog_complete),
+      emails_scanned = COALESCE(${
+    updates.emailsScanned ?? null
+  }, emails_scanned),
+      emails_processed = COALESCE(${
+    updates.emailsProcessed ?? null
+  }, emails_processed),
+      is_initial_backlog_complete = COALESCE(${
+    updates.isInitialBacklogComplete ?? null
+  }, is_initial_backlog_complete),
       updated_at = NOW()
     WHERE id = 1
   `;
 }
 
-export async function incrementScanStats(scanned: number, processed: number): Promise<void> {
+export async function incrementScanStats(
+  scanned: number,
+  processed: number,
+): Promise<void> {
   const sql = getConnection();
 
   await sql`
@@ -96,7 +109,9 @@ export async function markEmailProcessed(emailId: string): Promise<void> {
   `;
 }
 
-export async function getProcessedEmailIds(emailIds: string[]): Promise<Set<string>> {
+export async function getProcessedEmailIds(
+  emailIds: string[],
+): Promise<Set<string>> {
   if (emailIds.length === 0) {
     return new Set();
   }

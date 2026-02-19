@@ -1,6 +1,7 @@
 # Local Development Guide
 
-This guide covers setting up and running the Email Unsubscribe application locally.
+This guide covers setting up and running the Email Unsubscribe application
+locally.
 
 ## Prerequisites
 
@@ -8,7 +9,8 @@ This guide covers setting up and running the Email Unsubscribe application local
 - [Docker](https://www.docker.com/) and Docker Compose
 - [Google Cloud Project](./setup-google.md) with Gmail API enabled
 - [direnv](https://direnv.net/) for automatic environment loading
-- [SOPS](https://github.com/mozilla/sops) and [age](https://github.com/FiloSottile/age) for secrets
+- [SOPS](https://github.com/mozilla/sops) and
+  [age](https://github.com/FiloSottile/age) for secrets
 
 ## Quick Start
 
@@ -87,7 +89,8 @@ docker run --name postgres-dev \
   -d postgres:16-alpine
 ```
 
-Or use an existing PostgreSQL instance, or connect to your Supabase preview database.
+Or use an existing PostgreSQL instance, or connect to your Supabase preview
+database.
 
 ### 4. Run Database Migrations
 
@@ -101,7 +104,7 @@ deno task migrate
 deno task dev
 ```
 
-The application will be available at http://localhost:8000
+The application will be available at <http://localhost:8000>
 
 ## Development Commands
 
@@ -157,12 +160,12 @@ email-unsubscribe/
 1. Add the route in `src/api/routes.ts`:
 
 ```typescript
-api.get('/my-endpoint', async (c) => {
-  return c.json({ data: 'example' });
+api.get("/my-endpoint", async (c) => {
+  return c.json({ data: "example" });
 });
 ```
 
-2. Add types if needed in the relevant module
+- Add types if needed in the relevant module
 
 ### Adding a Database Migration
 
@@ -249,7 +252,8 @@ kill -9 <PID>
 
 ### OAuth Redirect Mismatch
 
-Ensure `GOOGLE_REDIRECT_URI` exactly matches the URI configured in Google Cloud Console, including:
+Ensure `GOOGLE_REDIRECT_URI` exactly matches the URI configured in Google Cloud
+Console, including:
 
 - Protocol (http vs https)
 - Port number
