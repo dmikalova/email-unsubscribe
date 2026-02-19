@@ -15,6 +15,8 @@
   "tasks": {
     // Type-check without running
     "check": "deno check src/**/*.ts",
+    // Build CSS with Tailwind (production, minified)
+    "css:build": "deno run --permission-set scripts/build-css.ts",
     // Apply schema changes to database (fetches DATABASE_URL from Secret Manager)
     "db:apply": "deno run --allow-run --allow-env scripts/db.ts apply",
     // Show planned schema changes without applying
