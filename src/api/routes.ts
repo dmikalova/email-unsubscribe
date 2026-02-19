@@ -38,6 +38,15 @@ import {
 
 export const api = new Hono<AppEnv>();
 
+// Global error handler for API routes
+api.onError((err, c) => {
+  console.error("API error:", err.message);
+  if (err.message === "User not authenticated") {
+    return c.json({ error: "Not authenticated" }, 401);
+  }
+  return c.json({ error: "Internal server error" }, 500);
+});
+
 // Helper to get user ID from context
 function getUserId(c: Context<AppEnv>): string {
   const user = c.get("user");
