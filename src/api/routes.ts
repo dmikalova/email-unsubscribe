@@ -354,9 +354,13 @@ api.post("/scan", (c) => {
   }
 
   // Run scan in background, don't block response
-  scanEmails(userId).catch((err) => {
-    console.error("Scan failed:", err);
-  });
+  scanEmails(userId)
+    .then((result) => {
+      console.log(`[Scan] Completed for user ${userId}: ${result.scanned} scanned, ${result.processed} processed`);
+    })
+    .catch((err) => {
+      console.error(`[Scan] Failed for user ${userId}:`, err);
+    });
 
   return c.json({ success: true, message: "Scan started" });
 });
