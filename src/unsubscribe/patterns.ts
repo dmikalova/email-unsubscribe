@@ -148,20 +148,13 @@ export const DEFAULT_PATTERNS: PatternInput[] = [
 
 export function seedDefaultPatterns(): Promise<void> {
   return withDb(async (sql) => {
-    // Use a transaction to ensure search_path persists (required for Supavisor transaction pooler)
-    await sql.begin(async (tx) => {
-      await tx.unsafe(`SET search_path TO email_unsubscribe, public`);
-
-      for (const pattern of DEFAULT_PATTERNS) {
-        await tx.unsafe(
-          `INSERT INTO patterns (name, type, selector, priority, is_builtin)
-           VALUES ($1, $2, $3, $4, TRUE)
-           ON CONFLICT (name, type) DO NOTHING`,
-          [pattern.name, pattern.type, pattern.selector, pattern.priority ?? 0],
-        );
-      }
-    });
-
+    for (const pattern of DEFAULT_PATTERNS) {
+      await sql`
+        INSERT INTO patterns (name, type, selector, priority, is_builtin)
+        VALUES (${pattern.name}, ${pattern.type}, ${pattern.selector}, ${pattern.priority ?? 0}, TRUE)
+        ON CONFLICT (name, type) DO NOTHING
+      `;
+    }
     console.log("Default patterns seeded");
   });
 }
