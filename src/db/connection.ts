@@ -18,7 +18,9 @@ let sql: postgres.Sql | null = null;
 export function getConfig(): DatabaseConfig {
   const url = Deno.env.get("DATABASE_URL_TRANSACTION");
   if (!url) {
-    throw new Error("DATABASE_URL_TRANSACTION environment variable is required");
+    throw new Error(
+      "DATABASE_URL_TRANSACTION environment variable is required",
+    );
   }
 
   return {
