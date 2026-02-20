@@ -434,7 +434,7 @@
                     <th
                       class="px-4 py-3 text-left text-xs font-medium text-gray-500"
                     >
-                      Total
+                      Attempts
                     </th>
                     <th
                       class="px-4 py-3 text-left text-xs font-medium text-gray-500"
@@ -445,6 +445,16 @@
                       class="px-4 py-3 text-left text-xs font-medium text-gray-500"
                     >
                       Failed
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
+                    >
+                      Last Attempt
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500"
+                    >
+                      Status
                     </th>
                   </tr>
                 </thead>
@@ -458,13 +468,37 @@
                       {{ item.domain }}
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-500">
-                      {{ item.total }}
+                      {{ item.attemptCount }}
                     </td>
                     <td class="px-4 py-3 text-sm text-green-600">
-                      {{ item.success }}
+                      {{ item.successCount }}
                     </td>
                     <td class="px-4 py-3 text-sm text-red-600">
-                      {{ item.failed }}
+                      {{ item.failedCount }}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">
+                      {{ item.lastAttemptAt ? new Date(item.lastAttemptAt).toLocaleDateString() : '-' }}
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                      <span
+                        v-if="item.flaggedIneffective"
+                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
+                        :title="'Emails received after unsubscribe: ' + item.emailsAfterUnsubscribe"
+                      >
+                        Ineffective
+                      </span>
+                      <span
+                        v-else-if="item.successCount > 0"
+                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+                      >
+                        Compliant
+                      </span>
+                      <span
+                        v-else
+                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+                      >
+                        Pending
+                      </span>
                     </td>
                   </tr>
                 </tbody>
@@ -807,7 +841,7 @@
 
           const fetchDomains = async () => {
             try {
-              const res = await fetch("/api/domains");
+              const res = await fetch("/api/unsubscribe-logs");
               domainStats.value = await res.json();
             } catch (e) {
               console.error("Failed to fetch domains:", e);
