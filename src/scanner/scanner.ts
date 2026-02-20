@@ -113,7 +113,9 @@ async function performInitialScan(
   userId: string,
   limit: number,
 ): Promise<ScanResult> {
-  console.log(`[Scan] Starting initial scan for user ${userId} (limit: ${limit})`);
+  console.log(
+    `[Scan] Starting initial scan for user ${userId} (limit: ${limit})`,
+  );
 
   const result: ScanResult = {
     scanned: 0,
@@ -131,7 +133,9 @@ async function performInitialScan(
     batchNumber++;
     const batchSize = Math.min(remaining, BATCH_SIZE);
 
-    console.log(`[Scan] Batch ${batchNumber}: Fetching up to ${batchSize} message IDs...`);
+    console.log(
+      `[Scan] Batch ${batchNumber}: Fetching up to ${batchSize} message IDs...`,
+    );
 
     // List messages
     const listResponse = await listMessages(
@@ -142,27 +146,37 @@ async function performInitialScan(
     );
 
     if (!listResponse.messages || listResponse.messages.length === 0) {
-      console.log(`[Scan] Batch ${batchNumber}: No messages returned, ending scan`);
+      console.log(
+        `[Scan] Batch ${batchNumber}: No messages returned, ending scan`,
+      );
       break;
     }
 
-    console.log(`[Scan] Batch ${batchNumber}: Got ${listResponse.messages.length} message IDs`);
+    console.log(
+      `[Scan] Batch ${batchNumber}: Got ${listResponse.messages.length} message IDs`,
+    );
 
     // Get message IDs
     const messageIds = listResponse.messages.map((m) => m.id);
 
     // Check which are already processed
     const processedIds = await getProcessedEmailIds(userId, messageIds);
-    console.log(`[Scan] Batch ${batchNumber}: ${processedIds.size} already processed`);
+    console.log(
+      `[Scan] Batch ${batchNumber}: ${processedIds.size} already processed`,
+    );
 
     // Filter out already processed
     const newMessageIds = messageIds.filter((id) => !processedIds.has(id));
 
     if (newMessageIds.length > 0) {
-      console.log(`[Scan] Batch ${batchNumber}: Fetching ${newMessageIds.length} full messages...`);
+      console.log(
+        `[Scan] Batch ${batchNumber}: Fetching ${newMessageIds.length} full messages...`,
+      );
       // Fetch full messages
       const messages = await batchGetMessages(userId, newMessageIds, "full");
-      console.log(`[Scan] Batch ${batchNumber}: Processing ${messages.length} messages...`);
+      console.log(
+        `[Scan] Batch ${batchNumber}: Processing ${messages.length} messages...`,
+      );
 
       // Process each message
       for (const message of messages) {
@@ -178,7 +192,10 @@ async function performInitialScan(
           }
           result.scanned++;
         } catch (error) {
-          console.error(`[Scan] Error processing message ${message.id}:`, error);
+          console.error(
+            `[Scan] Error processing message ${message.id}:`,
+            error,
+          );
           result.errors++;
         }
       }

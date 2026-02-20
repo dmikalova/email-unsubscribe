@@ -2,209 +2,55 @@
 
 ## ADDED Requirements
 
-### Requirement: Authentication via login portal
+### Requirement: Gmail connection UI
 
-The system SHALL require authentication and delegate login to the centralized
-login portal.
+The system SHALL provide UI for users to connect and disconnect their Gmail
+account.
 
-#### Scenario: Unauthenticated access
+#### Scenario: Display connection status
 
-- **WHEN** a user accesses the dashboard without a valid session cookie
-- **THEN** the system SHALL redirect to
-  `https://login.{SESSION_DOMAIN}?returnUrl={current_url}`
+- **WHEN** loading the dashboard
+- **THEN** the system SHALL display Gmail connection status prominently
+- **AND** SHALL show the connected email address if connected
 
-#### Scenario: Authenticated access
+#### Scenario: Connect Gmail button
 
-- **WHEN** a user accesses the dashboard with a valid Supabase JWT in the
-  session cookie
-- **THEN** the system SHALL grant dashboard access
+- **WHEN** Gmail is not connected
+- **THEN** the system SHALL display a "Connect Gmail" button
+- **AND** clicking the button SHALL initiate the OAuth flow
 
-#### Scenario: Session validation
+#### Scenario: Disconnect Gmail button
 
-- **WHEN** validating a session cookie
-- **THEN** the system SHALL verify the JWT signature using ES256 with public
-  keys fetched from SUPABASE_URL JWKS endpoint
-- **AND** cache JWKS keys for 1 hour to handle key rotation
-- **AND** verify the JWT audience is "authenticated"
-- **AND** verify the JWT is not expired (with 60s clock skew tolerance)
+- **WHEN** Gmail is connected
+- **THEN** the system SHALL display a "Disconnect" button
+- **AND** clicking SHALL prompt for confirmation before disconnecting
 
-### Requirement: Session security
+#### Scenario: Connection required for scanning
 
-The system SHALL implement secure session handling.
+- **WHEN** Gmail is not connected and user clicks "Scan Now"
+- **THEN** the system SHALL display a message indicating Gmail must be connected
+  first
+- **AND** SHALL provide a link/button to connect Gmail
 
-#### Scenario: Secure cookies
+### Requirement: OAuth error handling UI
 
-- **WHEN** setting session cookies
-- **THEN** the system SHALL use Secure, HttpOnly, and SameSite=Strict flags
+The system SHALL display clear error messages for OAuth failures.
 
-#### Scenario: Session expiration
+#### Scenario: OAuth cancellation
 
-- **WHEN** a session has been idle for the configured timeout
-- **THEN** the system SHALL invalidate the session and require re-authentication
+- **WHEN** OAuth callback indicates user cancelled consent
+- **THEN** the system SHALL display "Gmail connection cancelled" message
+- **AND** SHALL return user to dashboard in disconnected state
 
-#### Scenario: CSRF protection
+#### Scenario: OAuth error
 
-- **WHEN** processing state-changing requests (POST, PUT, DELETE)
-- **THEN** the system SHALL validate CSRF tokens
+- **WHEN** OAuth callback indicates an error
+- **THEN** the system SHALL display a user-friendly error message
+- **AND** SHALL allow user to retry connection
 
-### Requirement: Rate limiting
+#### Scenario: Token revocation notification
 
-The system SHALL rate limit dashboard endpoints to prevent abuse.
-
-#### Scenario: Retry endpoint rate limit
-
-- **WHEN** the retry unsubscribe endpoint is called more than 10 times per
-  minute
-- **THEN** the system SHALL return 429 Too Many Requests
-
-#### Scenario: General rate limit
-
-- **WHEN** any endpoint receives more than 100 requests per minute from a
-  session
-- **THEN** the system SHALL return 429 Too Many Requests
-
-### Requirement: Display unsubscribe statistics
-
-The system SHALL display aggregate statistics about unsubscribe activity.
-
-#### Scenario: Stats overview
-
-- **WHEN** viewing the dashboard home
-- **THEN** the system SHALL display total unsubscribes attempted, success count,
-  failure count, and success rate
-
-#### Scenario: Recent activity
-
-- **WHEN** viewing the dashboard home
-- **THEN** the system SHALL display recent unsubscribe attempts with their
-  outcomes
-
-#### Scenario: Digest view
-
-- **WHEN** viewing the dashboard home
-- **THEN** the system SHALL display a digest summary: unsubscribes this week,
-  failures requiring attention, new senders detected, and ineffective
-  unsubscribe flags
-
-### Requirement: Domain grouping
-
-The system SHALL group related senders by domain for consolidated viewing.
-
-#### Scenario: Domain-based grouping
-
-- **WHEN** viewing sender statistics
-- **THEN** the system SHALL group senders by root domain (e.g., all
-  `*.amazon.com` together)
-
-#### Scenario: Domain stats
-
-- **WHEN** viewing a domain group
-- **THEN** the system SHALL display aggregate stats: total emails, total
-  unsubscribes, success rate across all senders in that domain
-
-#### Scenario: Expand domain details
-
-- **WHEN** clicking on a domain group
-- **THEN** the system SHALL show individual senders within that domain
-
-### Requirement: Display failed unsubscribes for debugging
-
-The system SHALL surface failed unsubscribe attempts prominently for debugging.
-
-#### Scenario: Failed unsubscribes list
-
-- **WHEN** viewing the failed unsubscribes page
-- **THEN** the system SHALL display failed attempts with sender, URL, failure
-  type, and timestamp
-
-#### Scenario: Failure details with screenshot
-
-- **WHEN** viewing a specific failed unsubscribe
-- **THEN** the system SHALL display the captured screenshot and full error
-  details
-
-#### Scenario: Replay trace download
-
-- **WHEN** viewing a specific failed unsubscribe that has a trace
-- **THEN** the system SHALL provide a download link for the Playwright trace
-  file for local replay
-
-#### Scenario: Mark as resolved
-
-- **WHEN** a failure has been manually handled
-- **THEN** the system SHALL provide an action to mark it as resolved
-
-### Requirement: Allow list management interface
-
-The system SHALL provide a UI for managing the sender allow list.
-
-#### Scenario: View allow list
-
-- **WHEN** viewing the allow list page
-- **THEN** the system SHALL display all allowed entries with their type and
-  creation date
-
-#### Scenario: Add to allow list
-
-- **WHEN** submitting the add to allow list form
-- **THEN** the system SHALL add the entry and display confirmation
-
-#### Scenario: Remove from allow list
-
-- **WHEN** clicking remove on an allow list entry
-- **THEN** the system SHALL remove the entry after confirmation
-
-### Requirement: Pattern management interface
-
-The system SHALL provide a UI for managing unsubscribe patterns.
-
-#### Scenario: View patterns
-
-- **WHEN** viewing the patterns page
-- **THEN** the system SHALL display all configured patterns with their match
-  counts
-
-#### Scenario: Export patterns
-
-- **WHEN** clicking export
-- **THEN** the system SHALL download all patterns as a JSON file
-
-#### Scenario: Import patterns
-
-- **WHEN** uploading a pattern file
-- **THEN** the system SHALL merge patterns and display import results
-
-### Requirement: Unsubscribe history view
-
-The system SHALL provide a searchable history of unsubscribe attempts.
-
-#### Scenario: History list
-
-- **WHEN** viewing the history page
-- **THEN** the system SHALL display unsubscribe attempts with sender, date, and
-  status
-
-#### Scenario: History filtering
-
-- **WHEN** filtering the history
-- **THEN** the system SHALL support filtering by status (success/failed) and
-  sender search
-
-#### Scenario: Retry failed unsubscribe
-
-- **WHEN** viewing a failed unsubscribe in history
-- **THEN** the system SHALL provide a retry action
-
-### Requirement: Subdomain deployment
-
-The system SHALL be deployable at email-unsubscribe.cddc39.tech.
-
-#### Scenario: Custom domain
-
-- **WHEN** deployed with DNS configured
-- **THEN** the dashboard SHALL be accessible at email-unsubscribe.cddc39.tech
-
-#### Scenario: HTTPS
-
-- **WHEN** accessing the dashboard
-- **THEN** the system SHALL serve over HTTPS (via Northflank TLS termination)
+- **WHEN** the system detects Gmail access has been revoked
+- **THEN** the system SHALL display a notification that Gmail needs to be
+  reconnected
+- **AND** SHALL show the "Connect Gmail" button
