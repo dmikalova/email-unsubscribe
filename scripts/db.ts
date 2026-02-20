@@ -2,7 +2,7 @@
 /**
  * Atlas database schema management wrapper
  *
- * Automatically fetches DATABASE_URL from Google Secret Manager,
+ * Automatically fetches DATABASE_URL_SESSION from Google Secret Manager,
  * or uses the environment variable if set.
  *
  * Usage:
@@ -16,15 +16,15 @@ const GCP_PROJECT = "mklv-infrastructure";
 
 async function getDatabaseUrl(): Promise<string> {
   // Check environment variable first
-  const envUrl = Deno.env.get("DATABASE_URL");
+  const envUrl = Deno.env.get("DATABASE_URL_SESSION");
   if (envUrl) {
-    console.log("Using DATABASE_URL from environment");
+    console.log("Using DATABASE_URL_SESSION from environment");
     return envUrl;
   }
 
-  // Fetch from Secret Manager
-  console.log("Fetching DATABASE_URL from Secret Manager...");
-  const secretName = `${APP_NAME}-database-url`;
+  // Fetch session pooler URL from Secret Manager (required for Atlas prepared statements)
+  console.log("Fetching DATABASE_URL_SESSION from Secret Manager...");
+  const secretName = `${APP_NAME}-database-url-session`;
 
   const command = new Deno.Command("gcloud", {
     args: [
