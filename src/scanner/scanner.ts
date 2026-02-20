@@ -8,6 +8,17 @@ import {
   type GmailMessage,
   listMessages,
 } from "../gmail/index.ts";
+import {
+  recordUnsubscribeAttempt,
+  type UnsubscribeMethod,
+} from "../tracker/tracker.ts";
+import {
+  hasMailtoOption,
+  isOneClickSupported,
+  performBrowserUnsubscribe,
+  performMailtoUnsubscribe,
+  performOneClickUnsubscribe,
+} from "../unsubscribe/index.ts";
 import { isAllowed } from "./allowlist.ts";
 import {
   extractDomain,
@@ -66,6 +77,150 @@ export interface ScanResult {
   skipped: number;
   errors: number;
   emails: ScannedEmail[];
+}
+
+interface ProcessUnsubscribeResult {
+  success: boolean;
+  method: UnsubscribeMethod | null;
+  error?: string;
+}
+
+/**
+ * Attempt to unsubscribe from an email using available methods.
+ * Tries methods in order: one-click → mailto → browser automation.
+ * Returns early on success, records attempt in tracker.
+ */
+async function processUnsubscribe(
+  userId: string,
+  email: ScannedEmail,
+): Promise<ProcessUnsubscribeResult> {
+  const { unsubscribeInfo, htmlLinks } = email;
+
+  // Check for available unsubscribe methods
+  const hasOneClick = isOneClickSupported(
+    unsubscribeInfo.listUnsubscribePost,
+    unsubscribeInfo.httpUrls,
+  );
+  const hasMailto = hasMailtoOption(unsubscribeInfo.mailtoUrl);
+  const hasBrowserUrl = unsubscribeInfo.httpUrls.length > 0 ||
+    htmlLinks.length > 0;
+
+  // No unsubscribe link available
+  if (!hasOneClick && !hasMailto && !hasBrowserUrl) {
+    console.log(
+      `[Unsubscribe] No unsubscribe method for userId=${userId} emailId=${email.id}`,
+    );
+    return { success: false, method: null };
+  }
+
+  // Try one-click (RFC 8058)
+  if (hasOneClick) {
+    const url = unsubscribeInfo.oneClickUrl ?? unsubscribeInfo.httpUrls[0];
+    console.log(
+      `[Unsubscribe] Trying one-click for userId=${userId} emailId=${email.id}`,
+    );
+
+    const result = await performOneClickUnsubscribe(url);
+
+    if (result.success) {
+      await recordUnsubscribeAttempt(userId, {
+        emailId: email.id,
+        sender: email.sender,
+        senderDomain: email.senderDomain,
+        unsubscribeUrl: url,
+        method: "one_click",
+        status: "success",
+      });
+      console.log(
+        `[Unsubscribe] One-click success for userId=${userId} emailId=${email.id}`,
+      );
+      return { success: true, method: "one_click" };
+    }
+
+    // One-click failed, continue to fallback methods
+    console.log(
+      `[Unsubscribe] One-click failed for userId=${userId}: ${result.error}`,
+    );
+  }
+
+  // Try mailto
+  if (hasMailto) {
+    console.log(
+      `[Unsubscribe] Trying mailto for userId=${userId} emailId=${email.id}`,
+    );
+
+    const result = await performMailtoUnsubscribe(
+      userId,
+      unsubscribeInfo.mailtoUrl!,
+    );
+
+    if (result.success) {
+      await recordUnsubscribeAttempt(userId, {
+        emailId: email.id,
+        sender: email.sender,
+        senderDomain: email.senderDomain,
+        unsubscribeUrl: unsubscribeInfo.mailtoUrl!,
+        method: "mailto",
+        status: "success",
+      });
+      console.log(
+        `[Unsubscribe] Mailto success for userId=${userId} emailId=${email.id}`,
+      );
+      return { success: true, method: "mailto" };
+    }
+
+    // Mailto failed, continue to browser
+    console.log(
+      `[Unsubscribe] Mailto failed for userId=${userId}: ${result.error}`,
+    );
+  }
+
+  // Try browser automation
+  if (hasBrowserUrl) {
+    const url = unsubscribeInfo.httpUrls[0] ??
+      htmlLinks.sort((a, b) => b.confidence - a.confidence)[0]?.url;
+
+    if (url) {
+      console.log(
+        `[Unsubscribe] Trying browser for userId=${userId} emailId=${email.id}`,
+      );
+
+      const result = await performBrowserUnsubscribe(url, email.id);
+
+      const status = result.success
+        ? "success"
+        : result.uncertain
+        ? "uncertain"
+        : "failed";
+
+      await recordUnsubscribeAttempt(userId, {
+        emailId: email.id,
+        sender: email.sender,
+        senderDomain: email.senderDomain,
+        unsubscribeUrl: url,
+        method: "browser",
+        status,
+        failureReason: result.errorCategory,
+        failureDetails: result.error,
+        screenshotPath: result.screenshotPath,
+        tracePath: result.tracePath,
+      });
+
+      if (result.success) {
+        console.log(
+          `[Unsubscribe] Browser success for userId=${userId} emailId=${email.id}`,
+        );
+        return { success: true, method: "browser" };
+      }
+
+      console.log(
+        `[Unsubscribe] Browser failed for userId=${userId}: ${result.error}`,
+      );
+      return { success: false, method: "browser", error: result.error };
+    }
+  }
+
+  return { success: false, method: null, error: "No methods succeeded" };
 }
 
 export function isScanInProgress(userId: string): boolean {
@@ -185,6 +340,15 @@ async function performInitialScan(
           if (scanned) {
             result.emails.push(scanned);
             if (!scanned.isAllowed && !scanned.alreadyProcessed) {
+              // Try to unsubscribe - wrapped in try/catch to continue on error
+              try {
+                await processUnsubscribe(userId, scanned);
+              } catch (unsubError) {
+                console.error(
+                  `[Scan] Unsubscribe error for userId=${userId} emailId=${message.id}:`,
+                  unsubError instanceof Error ? unsubError.message : unsubError,
+                );
+              }
               result.processed++;
             } else {
               result.skipped++;
@@ -301,6 +465,17 @@ async function performIncrementalScan(
                 if (scanned) {
                   result.emails.push(scanned);
                   if (!scanned.isAllowed && !scanned.alreadyProcessed) {
+                    // Try to unsubscribe - wrapped in try/catch to continue on error
+                    try {
+                      await processUnsubscribe(userId, scanned);
+                    } catch (unsubError) {
+                      console.error(
+                        `[Scan] Unsubscribe error for userId=${userId} emailId=${added.message.id}:`,
+                        unsubError instanceof Error
+                          ? unsubError.message
+                          : unsubError,
+                      );
+                    }
                     result.processed++;
                   } else {
                     result.skipped++;

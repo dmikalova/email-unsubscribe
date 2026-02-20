@@ -340,3 +340,45 @@ export function getDomainStats(
     `;
   });
 }
+
+export interface DomainUnsubscribeSummary {
+  domain: string;
+  attemptCount: number;
+  successCount: number;
+  failedCount: number;
+  lastAttemptAt: Date | null;
+  emailsAfterUnsubscribe: number;
+  flaggedIneffective: boolean;
+  flaggedAt: Date | null;
+}
+
+/**
+ * Get aggregated unsubscribe data by domain with followup tracking.
+ * Joins unsubscribe_history with sender_tracking for compliance data.
+ */
+export function getUnsubscribeLogs(
+  userId: string,
+  limit = 50,
+  offset = 0,
+): Promise<DomainUnsubscribeSummary[]> {
+  return withDb((sql) => {
+    return sql<DomainUnsubscribeSummary[]>`
+      SELECT
+        h.sender_domain as domain,
+        COUNT(h.id)::int as "attemptCount",
+        COUNT(h.id) FILTER (WHERE h.status = 'success')::int as "successCount",
+        COUNT(h.id) FILTER (WHERE h.status = 'failed' OR h.status = 'uncertain')::int as "failedCount",
+        MAX(h.attempted_at) as "lastAttemptAt",
+        COALESCE(MAX(t.emails_after_unsubscribe), 0)::int as "emailsAfterUnsubscribe",
+        COALESCE(bool_or(t.flagged_ineffective), false) as "flaggedIneffective",
+        MAX(t.flagged_at) as "flaggedAt"
+      FROM unsubscribe_history h
+      LEFT JOIN sender_tracking t
+        ON h.user_id = t.user_id AND h.sender_domain = t.sender_domain
+      WHERE h.user_id = ${userId}
+      GROUP BY h.sender_domain
+      ORDER BY "attemptCount" DESC, "lastAttemptAt" DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  });
+}

@@ -1,6 +1,7 @@
 // Tracker module exports
 
 export {
+  type DomainUnsubscribeSummary,
   type FailureReason,
   getDomainStats,
   getFailedAttempts,
@@ -8,6 +9,7 @@ export {
   getRecentAttempts,
   getStats,
   getUnsubscribeAttempt,
+  getUnsubscribeLogs,
   incrementRetryCount,
   markAsResolved,
   type RecordAttemptInput,

@@ -28,6 +28,7 @@ import {
   getRecentAttempts,
   getStats,
   getUnsubscribeAttempt,
+  getUnsubscribeLogs,
   incrementRetryCount,
   markAsResolved,
 } from "../tracker/index.ts";
@@ -73,6 +74,15 @@ api.get("/recent", async (c) => {
   const limit = parseInt(c.req.query("limit") || "20");
   const recent = await getRecentAttempts(userId, limit);
   return c.json(recent);
+});
+
+// Unsubscribe logs - aggregated by domain with followup tracking
+api.get("/unsubscribe-logs", async (c) => {
+  const userId = getUserId(c);
+  const limit = parseInt(c.req.query("limit") || "50");
+  const offset = parseInt(c.req.query("offset") || "0");
+  const logs = await getUnsubscribeLogs(userId, limit, offset);
+  return c.json(logs);
 });
 
 // Failed unsubscribes list
