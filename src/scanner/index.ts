@@ -48,8 +48,10 @@ export {
 } from "./tracking.ts";
 
 export {
+  getScanProgress,
   isScanInProgress,
   scanEmails,
   type ScannedEmail,
+  type ScanProgress,
   type ScanResult,
 } from "./scanner.ts";

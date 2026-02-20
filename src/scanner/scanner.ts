@@ -31,8 +31,22 @@ import { trackSender } from "./tracking.ts";
 const INITIAL_BACKLOG_LIMIT = 1000;
 const BATCH_SIZE = 50;
 
-// Per-user mutex for preventing concurrent scans
-const scansInProgress = new Set<string>();
+// Per-user scan progress tracking
+export interface ScanProgress {
+  inProgress: boolean;
+  scanned: number;
+  processed: number;
+  skipped: number;
+  errors: number;
+  limit: number;
+  startedAt: Date;
+}
+
+const scanProgress = new Map<string, ScanProgress>();
+
+export function getScanProgress(userId: string): ScanProgress | null {
+  return scanProgress.get(userId) ?? null;
+}
 
 export interface ScannedEmail {
   id: string;
@@ -54,28 +68,44 @@ export interface ScanResult {
   emails: ScannedEmail[];
 }
 
+export function isScanInProgress(userId: string): boolean {
+  return scanProgress.get(userId)?.inProgress ?? false;
+}
+
 export async function scanEmails(
   userId: string,
   limit?: number,
 ): Promise<ScanResult> {
-  if (scansInProgress.has(userId)) {
+  if (isScanInProgress(userId)) {
     throw new Error("Scan already in progress for this user");
   }
 
-  scansInProgress.add(userId);
+  const scanLimit = limit ?? INITIAL_BACKLOG_LIMIT;
+  scanProgress.set(userId, {
+    inProgress: true,
+    scanned: 0,
+    processed: 0,
+    skipped: 0,
+    errors: 0,
+    limit: scanLimit,
+    startedAt: new Date(),
+  });
 
   try {
     const state = await getScanState(userId);
 
     // If initial backlog is not complete, do initial scan
     if (!state.isInitialBacklogComplete) {
-      return await performInitialScan(userId, limit ?? INITIAL_BACKLOG_LIMIT);
+      return await performInitialScan(userId, scanLimit);
     }
 
     // Otherwise, do incremental scan using history API
     return await performIncrementalScan(userId, state.lastHistoryId);
   } finally {
-    scansInProgress.delete(userId);
+    const progress = scanProgress.get(userId);
+    if (progress) {
+      progress.inProgress = false;
+    }
   }
 }
 
@@ -154,6 +184,15 @@ async function performInitialScan(
     const lastEmailId =
       listResponse.messages[listResponse.messages.length - 1].id;
     await updateScanState(userId, { lastEmailId });
+
+    // Update live progress
+    const progress = scanProgress.get(userId);
+    if (progress) {
+      progress.scanned = result.scanned;
+      progress.processed = result.processed;
+      progress.skipped = result.skipped;
+      progress.errors = result.errors;
+    }
 
     console.log(
       `Scan batch ${batchNumber}: ${result.scanned}/${limit} emails (${result.processed} new, ${result.skipped} skipped, ${result.errors} errors)`,
@@ -332,8 +371,4 @@ async function processMessage(
     isAllowed: allowed,
     alreadyProcessed: false,
   };
-}
-
-export function isScanInProgress(userId: string): boolean {
-  return scansInProgress.has(userId);
 }
