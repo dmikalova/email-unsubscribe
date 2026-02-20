@@ -1,6 +1,6 @@
 // Audit logging
 
-import { getConnection } from "../db/index.ts";
+import { withDb } from "../db/index.ts";
 
 export type AuditAction =
   | "unsubscribe_attempt"
@@ -36,19 +36,19 @@ export interface LogInput {
   userAgent?: string;
 }
 
-export async function log(input: LogInput): Promise<void> {
-  const sql = getConnection();
-
-  await sql`
-    INSERT INTO audit_log (user_id, action, details, ip_address, user_agent)
-    VALUES (
-      ${input.userId ? input.userId : null}::uuid,
-      ${input.action},
-      ${input.details ? JSON.stringify(input.details) : null},
-      ${input.ipAddress ?? null},
-      ${input.userAgent ?? null}
-    )
-  `;
+export function log(input: LogInput): Promise<void> {
+  return withDb(async (sql) => {
+    await sql`
+      INSERT INTO audit_log (user_id, action, details, ip_address, user_agent)
+      VALUES (
+        ${input.userId ? input.userId : null}::uuid,
+        ${input.action},
+        ${input.details ? JSON.stringify(input.details) : null},
+        ${input.ipAddress ?? null},
+        ${input.userAgent ?? null}
+      )
+    `;
+  });
 }
 
 export function getAuditLog(
@@ -60,58 +60,59 @@ export function getAuditLog(
     since?: Date;
   } = {},
 ): Promise<AuditLogEntry[]> {
-  const sql = getConnection();
   const { action, limit = 100, offset = 0, since } = options;
 
-  if (action && since) {
+  return withDb((sql) => {
+    if (action && since) {
+      return sql<AuditLogEntry[]>`
+        SELECT id, action, details,
+               ip_address as "ipAddress",
+               user_agent as "userAgent",
+               created_at as "createdAt"
+        FROM audit_log
+        WHERE user_id = ${userId}::uuid AND action = ${action} AND created_at >= ${since}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+    }
+
+    if (action) {
+      return sql<AuditLogEntry[]>`
+        SELECT id, action, details,
+               ip_address as "ipAddress",
+               user_agent as "userAgent",
+               created_at as "createdAt"
+        FROM audit_log
+        WHERE user_id = ${userId}::uuid AND action = ${action}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+    }
+
+    if (since) {
+      return sql<AuditLogEntry[]>`
+        SELECT id, action, details,
+               ip_address as "ipAddress",
+               user_agent as "userAgent",
+               created_at as "createdAt"
+        FROM audit_log
+        WHERE user_id = ${userId}::uuid AND created_at >= ${since}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+    }
+
     return sql<AuditLogEntry[]>`
       SELECT id, action, details,
              ip_address as "ipAddress",
              user_agent as "userAgent",
              created_at as "createdAt"
       FROM audit_log
-      WHERE user_id = ${userId}::uuid AND action = ${action} AND created_at >= ${since}
+      WHERE user_id = ${userId}::uuid
       ORDER BY created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
-  }
-
-  if (action) {
-    return sql<AuditLogEntry[]>`
-      SELECT id, action, details,
-             ip_address as "ipAddress",
-             user_agent as "userAgent",
-             created_at as "createdAt"
-      FROM audit_log
-      WHERE user_id = ${userId}::uuid AND action = ${action}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  }
-
-  if (since) {
-    return sql<AuditLogEntry[]>`
-      SELECT id, action, details,
-             ip_address as "ipAddress",
-             user_agent as "userAgent",
-             created_at as "createdAt"
-      FROM audit_log
-      WHERE user_id = ${userId}::uuid AND created_at >= ${since}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  }
-
-  return sql<AuditLogEntry[]>`
-    SELECT id, action, details,
-           ip_address as "ipAddress",
-           user_agent as "userAgent",
-           created_at as "createdAt"
-    FROM audit_log
-    WHERE user_id = ${userId}::uuid
-    ORDER BY created_at DESC
-    LIMIT ${limit} OFFSET ${offset}
-  `;
+  });
 }
 
 // Convenience functions for common audit events

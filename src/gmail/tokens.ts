@@ -1,6 +1,6 @@
 // Token storage and retrieval with encryption
 
-import { getConnection } from "../db/index.ts";
+import { withDb } from "../db/index.ts";
 import { decrypt, encrypt } from "./encryption.ts";
 import { refreshAccessToken, type TokenResponse } from "./oauth.ts";
 
@@ -23,67 +23,67 @@ export async function storeTokens(
   const refreshTokenEncrypted = await encrypt(tokens.refresh_token || "");
   const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
-  const sql = getConnection();
-
-  await sql`
-    INSERT INTO oauth_tokens (
-      user_id, access_token_encrypted, refresh_token_encrypted,
-      token_type, scope, connected_email, expires_at, updated_at
-    ) VALUES (
-      ${userId}::uuid, ${accessTokenEncrypted}, ${refreshTokenEncrypted},
-      ${tokens.token_type}, ${tokens.scope}, ${
-    connectedEmail || null
-  }, ${expiresAt}, NOW()
-    )
-    ON CONFLICT (user_id) DO UPDATE SET
-      access_token_encrypted = EXCLUDED.access_token_encrypted,
-      refresh_token_encrypted = CASE
-        WHEN EXCLUDED.refresh_token_encrypted != '' THEN EXCLUDED.refresh_token_encrypted
-        ELSE oauth_tokens.refresh_token_encrypted
-      END,
-      token_type = EXCLUDED.token_type,
-      scope = EXCLUDED.scope,
-      connected_email = COALESCE(EXCLUDED.connected_email, oauth_tokens.connected_email),
-      expires_at = EXCLUDED.expires_at,
-      updated_at = NOW()
-  `;
+  return withDb(async (sql) => {
+    await sql`
+      INSERT INTO oauth_tokens (
+        user_id, access_token_encrypted, refresh_token_encrypted,
+        token_type, scope, connected_email, expires_at, updated_at
+      ) VALUES (
+        ${userId}::uuid, ${accessTokenEncrypted}, ${refreshTokenEncrypted},
+        ${tokens.token_type}, ${tokens.scope}, ${
+      connectedEmail || null
+    }, ${expiresAt}, NOW()
+      )
+      ON CONFLICT (user_id) DO UPDATE SET
+        access_token_encrypted = EXCLUDED.access_token_encrypted,
+        refresh_token_encrypted = CASE
+          WHEN EXCLUDED.refresh_token_encrypted != '' THEN EXCLUDED.refresh_token_encrypted
+          ELSE oauth_tokens.refresh_token_encrypted
+        END,
+        token_type = EXCLUDED.token_type,
+        scope = EXCLUDED.scope,
+        connected_email = COALESCE(EXCLUDED.connected_email, oauth_tokens.connected_email),
+        expires_at = EXCLUDED.expires_at,
+        updated_at = NOW()
+    `;
+  });
 }
 
-export async function getTokens(userId: string): Promise<StoredTokens | null> {
-  const sql = getConnection();
+export function getTokens(userId: string): Promise<StoredTokens | null> {
+  return withDb(async (sql) => {
+    const rows = await sql<
+      {
+        user_id: string;
+        access_token_encrypted: Uint8Array;
+        refresh_token_encrypted: Uint8Array;
+        token_type: string;
+        scope: string | null;
+        connected_email: string | null;
+        expires_at: Date;
+      }[]
+    >`
+      SELECT user_id, access_token_encrypted, refresh_token_encrypted,
+             token_type, scope, connected_email, expires_at
+      FROM oauth_tokens
+      WHERE user_id = ${userId}::uuid
+    `;
 
-  const rows = await sql<
-    {
-      user_id: string;
-      access_token_encrypted: Uint8Array;
-      refresh_token_encrypted: Uint8Array;
-      token_type: string;
-      scope: string | null;
-      connected_email: string | null;
-      expires_at: Date;
-    }[]
-  >`
-    SELECT user_id, access_token_encrypted, refresh_token_encrypted,
-           token_type, scope, connected_email, expires_at
-    FROM oauth_tokens
-    WHERE user_id = ${userId}::uuid
-  `;
+    if (rows.length === 0) {
+      return null;
+    }
 
-  if (rows.length === 0) {
-    return null;
-  }
+    const row = rows[0];
 
-  const row = rows[0];
-
-  return {
-    userId: row.user_id,
-    accessToken: await decrypt(row.access_token_encrypted),
-    refreshToken: await decrypt(row.refresh_token_encrypted),
-    tokenType: row.token_type,
-    scope: row.scope,
-    connectedEmail: row.connected_email,
-    expiresAt: row.expires_at,
-  };
+    return {
+      userId: row.user_id,
+      accessToken: await decrypt(row.access_token_encrypted),
+      refreshToken: await decrypt(row.refresh_token_encrypted),
+      tokenType: row.token_type,
+      scope: row.scope,
+      connectedEmail: row.connected_email,
+      expiresAt: row.expires_at,
+    };
+  });
 }
 
 export async function getValidAccessToken(userId: string): Promise<string> {
@@ -121,9 +121,10 @@ export async function getValidAccessToken(userId: string): Promise<string> {
   return tokens.accessToken;
 }
 
-export async function deleteTokens(userId: string): Promise<void> {
-  const sql = getConnection();
-  await sql`DELETE FROM oauth_tokens WHERE user_id = ${userId}::uuid`;
+export function deleteTokens(userId: string): Promise<void> {
+  return withDb(async (sql) => {
+    await sql`DELETE FROM oauth_tokens WHERE user_id = ${userId}::uuid`;
+  });
 }
 
 export async function hasValidTokens(userId: string): Promise<boolean> {
