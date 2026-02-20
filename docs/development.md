@@ -160,8 +160,8 @@ email-unsubscribe/
 1. Add the route in `src/api/routes.ts`:
 
 ```typescript
-api.get('/my-endpoint', async (c) => {
-  return c.json({ data: 'example' });
+api.get("/my-endpoint", async (c) => {
+  return c.json({ data: "example" });
 });
 ```
 

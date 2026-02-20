@@ -1,18 +1,18 @@
 // Token encryption utilities using AES-256-GCM
 
-const ALGORITHM = 'AES-GCM';
+const ALGORITHM = "AES-GCM";
 const IV_LENGTH = 12;
 
 function getEncryptionKey(): Uint8Array {
-  const keyBase64 = Deno.env.get('ENCRYPTION_KEY_BASE64');
+  const keyBase64 = Deno.env.get("ENCRYPTION_KEY_BASE64");
   if (!keyBase64) {
-    throw new Error('ENCRYPTION_KEY_BASE64 environment variable is required');
+    throw new Error("ENCRYPTION_KEY_BASE64 environment variable is required");
   }
 
   const keyBytes = Uint8Array.from(atob(keyBase64), (c) => c.charCodeAt(0));
   if (keyBytes.length !== 32) {
     throw new Error(
-      'ENCRYPTION_KEY_BASE64 must be 32 bytes (256 bits) base64 encoded',
+      "ENCRYPTION_KEY_BASE64 must be 32 bytes (256 bits) base64 encoded",
     );
   }
 
@@ -22,11 +22,11 @@ function getEncryptionKey(): Uint8Array {
 async function getCryptoKey(): Promise<CryptoKey> {
   const keyBytes = getEncryptionKey();
   return await crypto.subtle.importKey(
-    'raw',
+    "raw",
     keyBytes.buffer as ArrayBuffer,
     { name: ALGORITHM },
     false,
-    ['encrypt', 'decrypt'],
+    ["encrypt", "decrypt"],
   );
 }
 
@@ -35,7 +35,11 @@ export async function encrypt(plaintext: string): Promise<Uint8Array> {
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
   const encodedText = new TextEncoder().encode(plaintext);
 
-  const ciphertext = await crypto.subtle.encrypt({ name: ALGORITHM, iv }, key, encodedText);
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: ALGORITHM, iv },
+    key,
+    encodedText,
+  );
 
   // Combine IV + ciphertext (which includes auth tag)
   const result = new Uint8Array(iv.length + ciphertext.byteLength);
@@ -52,7 +56,11 @@ export async function decrypt(encrypted: Uint8Array): Promise<string> {
   const iv = encrypted.slice(0, IV_LENGTH);
   const ciphertext = encrypted.slice(IV_LENGTH);
 
-  const decrypted = await crypto.subtle.decrypt({ name: ALGORITHM, iv }, key, ciphertext);
+  const decrypted = await crypto.subtle.decrypt(
+    { name: ALGORITHM, iv },
+    key,
+    ciphertext,
+  );
 
   return new TextDecoder().decode(decrypted);
 }
