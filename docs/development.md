@@ -64,7 +64,7 @@ Add your secrets (see `secrets/google.sops.json.example` for format):
 {
   "GOOGLE_CLIENT_ID": "your-client-id.apps.googleusercontent.com",
   "GOOGLE_CLIENT_SECRET": "your-client-secret",
-  "ENCRYPTION_KEY": "your-32-byte-hex-encryption-key"
+  "EMAIL_UNSUBSCRIBE_ENCRYPTION_KEY_BASE64": "your-32-byte-base64-encryption-key"
 }
 ```
 
@@ -160,8 +160,8 @@ email-unsubscribe/
 1. Add the route in `src/api/routes.ts`:
 
 ```typescript
-api.get("/my-endpoint", async (c) => {
-  return c.json({ data: "example" });
+api.get('/my-endpoint', async (c) => {
+  return c.json({ data: 'example' });
 });
 ```
 

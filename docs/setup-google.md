@@ -85,7 +85,7 @@ openssl rand -base64 32
 Add to your `.env` file:
 
 ```bash
-ENCRYPTION_KEY=your-generated-encryption-key
+EMAIL_UNSUBSCRIBE_ENCRYPTION_KEY_BASE64=your-generated-encryption-key
 ```
 
 ## Verification (Production)

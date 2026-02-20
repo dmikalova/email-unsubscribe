@@ -38,12 +38,12 @@ Run with Supabase for PostgreSQL.
 
 ### Required Secrets (via Secret Manager)
 
-| Secret                 | Description                                   |
-| ---------------------- | --------------------------------------------- |
-| `DATABASE_URL`         | Supabase pooler connection string (port 6543) |
-| `GOOGLE_CLIENT_ID`     | OAuth 2.0 client ID for Gmail API             |
-| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 client secret                       |
-| `ENCRYPTION_KEY`       | 32-byte hex key for encrypting OAuth tokens   |
+| Secret                                    | Description                                    |
+| ----------------------------------------- | ---------------------------------------------- |
+| `DATABASE_URL`                            | Supabase pooler connection string (port 6543)  |
+| `GOOGLE_CLIENT_ID`                        | OAuth 2.0 client ID for Gmail API              |
+| `GOOGLE_CLIENT_SECRET`                    | OAuth 2.0 client secret                        |
+| `EMAIL_UNSUBSCRIBE_ENCRYPTION_KEY_BASE64` | 32-byte base64 key for encrypting OAuth tokens |
 
 ### Optional Configuration
 
