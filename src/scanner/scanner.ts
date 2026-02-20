@@ -95,8 +95,10 @@ async function performInitialScan(
 
   let pageToken: string | undefined;
   let remaining = limit;
+  let batchNumber = 0;
 
   while (remaining > 0) {
+    batchNumber++;
     const batchSize = Math.min(remaining, BATCH_SIZE);
 
     // List messages
@@ -152,6 +154,10 @@ async function performInitialScan(
     const lastEmailId =
       listResponse.messages[listResponse.messages.length - 1].id;
     await updateScanState(userId, { lastEmailId });
+
+    console.log(
+      `Scan batch ${batchNumber}: ${result.scanned}/${limit} emails (${result.processed} new, ${result.skipped} skipped, ${result.errors} errors)`,
+    );
 
     // Check for more pages
     if (!listResponse.nextPageToken) {
