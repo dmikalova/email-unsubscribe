@@ -6,7 +6,11 @@ import {
   getAllowList,
   removeFromAllowList,
 } from "../scanner/index.ts";
-import { isScanInProgress, scanEmails } from "../scanner/scanner.ts";
+import {
+  getScanProgress,
+  isScanInProgress,
+  scanEmails,
+} from "../scanner/scanner.ts";
 import {
   clearIneffectiveFlag,
   getIneffectiveSenders,
@@ -336,7 +340,11 @@ api.get("/live", (c) => {
 // Scanner endpoints
 api.get("/scan/status", (c) => {
   const userId = getUserId(c);
-  return c.json({ inProgress: isScanInProgress(userId) });
+  const progress = getScanProgress(userId);
+  if (progress) {
+    return c.json(progress);
+  }
+  return c.json({ inProgress: false });
 });
 
 api.post("/scan", (c) => {
