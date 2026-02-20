@@ -1,5 +1,5 @@
 // Unit tests for encryption module
-// Note: These tests require ENCRYPTION_KEY environment variable to be set
+// Note: These tests require ENCRYPTION_KEY_BASE64 environment variable to be set
 
 import { assertEquals, assertNotEquals } from "@std/assert";
 
@@ -7,7 +7,7 @@ import { assertEquals, assertNotEquals } from "@std/assert";
 const TEST_KEY = btoa("12345678901234567890123456789012");
 
 Deno.test("encryption - encrypts and decrypts data correctly", async () => {
-  Deno.env.set("ENCRYPTION_KEY", TEST_KEY);
+  Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
   // Dynamic import to use the env var
   const { encrypt, decrypt } = await import("../../src/gmail/encryption.ts");
@@ -20,7 +20,7 @@ Deno.test("encryption - encrypts and decrypts data correctly", async () => {
 });
 
 Deno.test("encryption - produces different ciphertext for same input (random IV)", async () => {
-  Deno.env.set("ENCRYPTION_KEY", TEST_KEY);
+  Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
   const { encrypt } = await import("../../src/gmail/encryption.ts");
 
@@ -36,7 +36,7 @@ Deno.test("encryption - produces different ciphertext for same input (random IV)
 });
 
 Deno.test("encryption - handles empty string", async () => {
-  Deno.env.set("ENCRYPTION_KEY", TEST_KEY);
+  Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
   const { encrypt, decrypt } = await import("../../src/gmail/encryption.ts");
 
@@ -47,7 +47,7 @@ Deno.test("encryption - handles empty string", async () => {
 });
 
 Deno.test("encryption - handles unicode characters", async () => {
-  Deno.env.set("ENCRYPTION_KEY", TEST_KEY);
+  Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
   const { encrypt, decrypt } = await import("../../src/gmail/encryption.ts");
 
@@ -59,7 +59,7 @@ Deno.test("encryption - handles unicode characters", async () => {
 });
 
 Deno.test("encryption - handles long strings", async () => {
-  Deno.env.set("ENCRYPTION_KEY", TEST_KEY);
+  Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
   const { encrypt, decrypt } = await import("../../src/gmail/encryption.ts");
 

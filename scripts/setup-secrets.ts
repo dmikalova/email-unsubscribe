@@ -10,12 +10,11 @@
  * - export SOPS_AGE_KEY_FILE=~/.age/key.txt (in shell profile)
  */
 
-import { existsSync } from "node:fs";
+import { existsSync } from 'node:fs';
 
-const SECRETS_FILE = "secrets/google.sops.json";
-const SOPS_CONFIG = ".sops.yaml";
-const AGE_KEY_FILE = Deno.env.get("SOPS_AGE_KEY_FILE") ??
-  `${Deno.env.get("HOME")}/.age/key.txt`;
+const SECRETS_FILE = 'secrets/google.sops.json';
+const SOPS_CONFIG = '.sops.yaml';
+const AGE_KEY_FILE = Deno.env.get('SOPS_AGE_KEY_FILE') ?? `${Deno.env.get('HOME')}/.age/key.txt`;
 
 interface Secret {
   envVar: string;
@@ -25,16 +24,16 @@ interface Secret {
 
 const SECRETS: Secret[] = [
   {
-    envVar: "GOOGLE_CLIENT_ID",
-    prompt: "Google OAuth Client ID",
+    envVar: 'GOOGLE_CLIENT_ID',
+    prompt: 'Google OAuth Client ID',
   },
   {
-    envVar: "GOOGLE_CLIENT_SECRET",
-    prompt: "Google OAuth Client Secret",
+    envVar: 'GOOGLE_CLIENT_SECRET',
+    prompt: 'Google OAuth Client Secret',
   },
   {
-    envVar: "ENCRYPTION_KEY",
-    prompt: "Encryption Key (32 hex chars)",
+    envVar: 'ENCRYPTION_KEY_BASE64',
+    prompt: 'Encryption Key (32 bytes, base64 encoded)',
     autoGenerate: true,
   },
 ];
@@ -48,13 +47,11 @@ const colors = {
   dim: (s: string) => `\x1b[2m${s}\x1b[0m`,
 };
 
-async function run(
-  cmd: string[],
-): Promise<{ success: boolean; output: string }> {
+async function run(cmd: string[]): Promise<{ success: boolean; output: string }> {
   const command = new Deno.Command(cmd[0], {
     args: cmd.slice(1),
-    stdout: "piped",
-    stderr: "piped",
+    stdout: 'piped',
+    stderr: 'piped',
     env: { ...Deno.env.toObject() },
   });
 
@@ -72,35 +69,35 @@ async function prompt(message: string): Promise<string> {
 
 async function checkTools(): Promise<boolean> {
   // Check sops
-  const sops = await run(["which", "sops"]);
+  const sops = await run(['which', 'sops']);
   if (!sops.success) {
-    console.log(colors.red("Error: sops is not installed."));
-    console.log("Install with: brew install sops");
+    console.log(colors.red('Error: sops is not installed.'));
+    console.log('Install with: brew install sops');
     return false;
   }
 
   // Check age
-  const age = await run(["which", "age"]);
+  const age = await run(['which', 'age']);
   if (!age.success) {
-    console.log(colors.red("Error: age is not installed."));
-    console.log("Install with: brew install age");
+    console.log(colors.red('Error: age is not installed.'));
+    console.log('Install with: brew install age');
     return false;
   }
 
   // Check age key exists
   if (!existsSync(AGE_KEY_FILE)) {
     console.log(colors.red(`Error: age key not found at ${AGE_KEY_FILE}`));
-    console.log("Generate with: age-keygen -o ~/.age/key.txt");
+    console.log('Generate with: age-keygen -o ~/.age/key.txt');
     return false;
   }
 
-  console.log(colors.green("✓ sops and age installed"));
+  console.log(colors.green('✓ sops and age installed'));
   console.log(colors.green(`✓ age key found at ${AGE_KEY_FILE}`));
   return true;
 }
 
 async function getAgePublicKey(): Promise<string | null> {
-  const { success, output } = await run(["age-keygen", "-y", AGE_KEY_FILE]);
+  const { success, output } = await run(['age-keygen', '-y', AGE_KEY_FILE]);
   return success ? output : null;
 }
 
@@ -129,7 +126,7 @@ async function decryptSecrets(): Promise<Record<string, string> | null> {
     return null;
   }
 
-  const { success, output } = await run(["sops", "-d", SECRETS_FILE]);
+  const { success, output } = await run(['sops', '-d', SECRETS_FILE]);
   if (!success) {
     return null;
   }
@@ -141,9 +138,7 @@ async function decryptSecrets(): Promise<Record<string, string> | null> {
   }
 }
 
-async function encryptSecrets(
-  secrets: Record<string, string>,
-): Promise<boolean> {
+async function encryptSecrets(secrets: Record<string, string>): Promise<boolean> {
   // Write plaintext JSON first
   const plaintext = JSON.stringify(secrets, null, 4);
 
@@ -152,7 +147,7 @@ async function encryptSecrets(
   await Deno.writeTextFile(tempFile, plaintext);
 
   // Encrypt in place
-  const { success } = await run(["sops", "-e", "-i", tempFile]);
+  const { success } = await run(['sops', '-e', '-i', tempFile]);
 
   if (success) {
     // Move to final location
@@ -173,19 +168,19 @@ function generateHexKey(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
   return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 function maskValue(value: string): string {
   if (value.length > 12) {
     return `${value.slice(0, 4)}...${value.slice(-4)}`;
   }
-  return "****";
+  return '****';
 }
 
 async function main() {
-  console.log(colors.blue("=== SOPS Secrets Setup ===\n"));
+  console.log(colors.blue('=== SOPS Secrets Setup ===\n'));
 
   if (!(await checkTools())) {
     Deno.exit(1);
@@ -194,7 +189,7 @@ async function main() {
   // Get age public key
   const publicKey = await getAgePublicKey();
   if (!publicKey) {
-    console.log(colors.red("Error: Could not get age public key"));
+    console.log(colors.red('Error: Could not get age public key'));
     Deno.exit(1);
   }
 
@@ -202,9 +197,7 @@ async function main() {
 
   // Update .sops.yaml with the correct public key
   if (await updateSopsConfig(publicKey)) {
-    console.log(
-      colors.green(`✓ Updated ${SOPS_CONFIG} with your age public key\n`),
-    );
+    console.log(colors.green(`✓ Updated ${SOPS_CONFIG} with your age public key\n`));
   } else {
     console.log(colors.red(`Error: Could not update ${SOPS_CONFIG}`));
     Deno.exit(1);
@@ -213,7 +206,7 @@ async function main() {
   // Load existing secrets
   const secrets = (await decryptSecrets()) ?? {};
 
-  console.log(colors.blue("Enter your secrets:\n"));
+  console.log(colors.blue('Enter your secrets:\n'));
 
   for (const secret of SECRETS) {
     const existing = secrets[secret.envVar];
@@ -222,50 +215,48 @@ async function main() {
 
     if (existing) {
       console.log(`${secret.envVar}: ${colors.yellow(maskValue(existing))}`);
-      input = await prompt("  New value (Enter to keep): ");
+      input = await prompt('  New value (Enter to keep): ');
     } else {
-      console.log(`${secret.envVar}: ${colors.dim("(not set)")}`);
+      console.log(`${secret.envVar}: ${colors.dim('(not set)')}`);
       if (secret.autoGenerate) {
-        input = await prompt("  Value (Enter to auto-generate): ");
+        input = await prompt('  Value (Enter to auto-generate): ');
       } else {
-        input = await prompt("  Value: ");
+        input = await prompt('  Value: ');
       }
     }
 
-    if (input === "") {
+    if (input === '') {
       if (existing) {
         // Keep existing
       } else if (secret.autoGenerate) {
         secrets[secret.envVar] = generateHexKey();
-        console.log(colors.green("  Generated random key"));
+        console.log(colors.green('  Generated random key'));
       }
     } else {
       secrets[secret.envVar] = input;
-      console.log(colors.green("  Set"));
+      console.log(colors.green('  Set'));
     }
 
-    console.log("");
+    console.log('');
   }
 
   // Ensure secrets directory exists
   try {
-    await Deno.mkdir("secrets", { recursive: true });
+    await Deno.mkdir('secrets', { recursive: true });
   } catch {
     // ignore if exists
   }
 
   // Save encrypted secrets
   if (await encryptSecrets(secrets)) {
-    console.log(
-      colors.green(`✓ Secrets encrypted and saved to ${SECRETS_FILE}`),
-    );
-    console.log("");
-    console.log(colors.blue("Next steps:"));
-    console.log("  1. Run: direnv allow");
-    console.log("  2. Verify: echo $GOOGLE_CLIENT_ID");
-    console.log("  3. Commit the encrypted secrets file to git");
+    console.log(colors.green(`✓ Secrets encrypted and saved to ${SECRETS_FILE}`));
+    console.log('');
+    console.log(colors.blue('Next steps:'));
+    console.log('  1. Run: direnv allow');
+    console.log('  2. Verify: echo $GOOGLE_CLIENT_ID');
+    console.log('  3. Commit the encrypted secrets file to git');
   } else {
-    console.log(colors.red("Error: Failed to encrypt secrets"));
+    console.log(colors.red('Error: Failed to encrypt secrets'));
     Deno.exit(1);
   }
 }
