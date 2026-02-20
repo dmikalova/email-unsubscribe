@@ -4,7 +4,10 @@ export {
   closeConnection,
   getConfig,
   getConnection,
+  getSchema,
   query,
+  SCHEMA,
+  withDb,
   withTransaction,
 } from "./connection.ts";
 

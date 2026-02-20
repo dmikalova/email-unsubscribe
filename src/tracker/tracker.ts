@@ -1,6 +1,6 @@
 // Compliance tracker - records unsubscribe attempts and outcomes
 
-import { getConnection } from "../db/index.ts";
+import { withDb } from "../db/index.ts";
 import {
   archiveAndLabelSuccess,
   labelMessageAsFailed,
@@ -55,36 +55,36 @@ export async function recordUnsubscribeAttempt(
   userId: string,
   input: RecordAttemptInput,
 ): Promise<UnsubscribeAttempt> {
-  const sql = getConnection();
+  const attempt = await withDb(async (sql) => {
+    const rows = await sql<UnsubscribeAttempt[]>`
+      INSERT INTO unsubscribe_history (
+        user_id, email_id, sender, sender_domain, unsubscribe_url,
+        method, status, failure_reason, failure_details,
+        screenshot_path, trace_path, completed_at
+      ) VALUES (
+        ${userId},
+        ${input.emailId},
+        ${input.sender},
+        ${input.senderDomain},
+        ${input.unsubscribeUrl ?? null},
+        ${input.method},
+        ${input.status},
+        ${input.failureReason ?? null},
+        ${input.failureDetails ?? null},
+        ${input.screenshotPath ?? null},
+        ${input.tracePath ?? null},
+        ${input.status !== "pending" ? new Date() : null}
+      )
+      RETURNING id, email_id as "emailId", sender, sender_domain as "senderDomain",
+                unsubscribe_url as "unsubscribeUrl", method, status,
+                failure_reason as "failureReason", failure_details as "failureDetails",
+                screenshot_path as "screenshotPath", trace_path as "tracePath",
+                attempted_at as "attemptedAt", completed_at as "completedAt",
+                retry_count as "retryCount"
+    `;
 
-  const rows = await sql<UnsubscribeAttempt[]>`
-    INSERT INTO unsubscribe_history (
-      user_id, email_id, sender, sender_domain, unsubscribe_url,
-      method, status, failure_reason, failure_details,
-      screenshot_path, trace_path, completed_at
-    ) VALUES (
-      ${userId},
-      ${input.emailId},
-      ${input.sender},
-      ${input.senderDomain},
-      ${input.unsubscribeUrl ?? null},
-      ${input.method},
-      ${input.status},
-      ${input.failureReason ?? null},
-      ${input.failureDetails ?? null},
-      ${input.screenshotPath ?? null},
-      ${input.tracePath ?? null},
-      ${input.status !== "pending" ? new Date() : null}
-    )
-    RETURNING id, email_id as "emailId", sender, sender_domain as "senderDomain",
-              unsubscribe_url as "unsubscribeUrl", method, status,
-              failure_reason as "failureReason", failure_details as "failureDetails",
-              screenshot_path as "screenshotPath", trace_path as "tracePath",
-              attempted_at as "attemptedAt", completed_at as "completedAt",
-              retry_count as "retryCount"
-  `;
-
-  const attempt = rows[0];
+    return rows[0];
+  });
 
   // Handle side effects based on status
   if (input.status === "success") {
@@ -124,24 +124,24 @@ async function handleFailure(userId: string, emailId: string): Promise<void> {
   }
 }
 
-export async function getUnsubscribeAttempt(
+export function getUnsubscribeAttempt(
   userId: string,
   id: number,
 ): Promise<UnsubscribeAttempt | null> {
-  const sql = getConnection();
+  return withDb(async (sql) => {
+    const rows = await sql<UnsubscribeAttempt[]>`
+      SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
+             unsubscribe_url as "unsubscribeUrl", method, status,
+             failure_reason as "failureReason", failure_details as "failureDetails",
+             screenshot_path as "screenshotPath", trace_path as "tracePath",
+             attempted_at as "attemptedAt", completed_at as "completedAt",
+             retry_count as "retryCount"
+      FROM unsubscribe_history
+      WHERE user_id = ${userId} AND id = ${id}
+    `;
 
-  const rows = await sql<UnsubscribeAttempt[]>`
-    SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
-           unsubscribe_url as "unsubscribeUrl", method, status,
-           failure_reason as "failureReason", failure_details as "failureDetails",
-           screenshot_path as "screenshotPath", trace_path as "tracePath",
-           attempted_at as "attemptedAt", completed_at as "completedAt",
-           retry_count as "retryCount"
-    FROM unsubscribe_history
-    WHERE user_id = ${userId} AND id = ${id}
-  `;
-
-  return rows[0] ?? null;
+    return rows[0] ?? null;
+  });
 }
 
 export function getFailedAttempts(
@@ -149,72 +149,72 @@ export function getFailedAttempts(
   limit = 50,
   offset = 0,
 ): Promise<UnsubscribeAttempt[]> {
-  const sql = getConnection();
-
-  return sql<UnsubscribeAttempt[]>`
-    SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
-           unsubscribe_url as "unsubscribeUrl", method, status,
-           failure_reason as "failureReason", failure_details as "failureDetails",
-           screenshot_path as "screenshotPath", trace_path as "tracePath",
-           attempted_at as "attemptedAt", completed_at as "completedAt",
-           retry_count as "retryCount"
-    FROM unsubscribe_history
-    WHERE user_id = ${userId} AND (status = 'failed' OR status = 'uncertain')
-    ORDER BY attempted_at DESC
-    LIMIT ${limit} OFFSET ${offset}
-  `;
+  return withDb((sql) => {
+    return sql<UnsubscribeAttempt[]>`
+      SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
+             unsubscribe_url as "unsubscribeUrl", method, status,
+             failure_reason as "failureReason", failure_details as "failureDetails",
+             screenshot_path as "screenshotPath", trace_path as "tracePath",
+             attempted_at as "attemptedAt", completed_at as "completedAt",
+             retry_count as "retryCount"
+      FROM unsubscribe_history
+      WHERE user_id = ${userId} AND (status = 'failed' OR status = 'uncertain')
+      ORDER BY attempted_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  });
 }
 
 export function getRecentAttempts(
   userId: string,
   limit = 20,
 ): Promise<UnsubscribeAttempt[]> {
-  const sql = getConnection();
-
-  return sql<UnsubscribeAttempt[]>`
-    SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
-           unsubscribe_url as "unsubscribeUrl", method, status,
-           failure_reason as "failureReason", failure_details as "failureDetails",
-           screenshot_path as "screenshotPath", trace_path as "tracePath",
-           attempted_at as "attemptedAt", completed_at as "completedAt",
-           retry_count as "retryCount"
-    FROM unsubscribe_history
-    WHERE user_id = ${userId}
-    ORDER BY attempted_at DESC
-    LIMIT ${limit}
-  `;
+  return withDb((sql) => {
+    return sql<UnsubscribeAttempt[]>`
+      SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
+             unsubscribe_url as "unsubscribeUrl", method, status,
+             failure_reason as "failureReason", failure_details as "failureDetails",
+             screenshot_path as "screenshotPath", trace_path as "tracePath",
+             attempted_at as "attemptedAt", completed_at as "completedAt",
+             retry_count as "retryCount"
+      FROM unsubscribe_history
+      WHERE user_id = ${userId}
+      ORDER BY attempted_at DESC
+      LIMIT ${limit}
+    `;
+  });
 }
 
-export async function markAsResolved(
+export function markAsResolved(
   userId: string,
   id: number,
 ): Promise<void> {
-  const sql = getConnection();
-
-  await sql`
-    UPDATE unsubscribe_history
-    SET status = 'success', completed_at = NOW()
-    WHERE user_id = ${userId} AND id = ${id}
-  `;
+  return withDb(async (sql) => {
+    await sql`
+      UPDATE unsubscribe_history
+      SET status = 'success', completed_at = NOW()
+      WHERE user_id = ${userId} AND id = ${id}
+    `;
+  });
 }
 
-export async function incrementRetryCount(
+export function incrementRetryCount(
   userId: string,
   id: number,
 ): Promise<number> {
-  const sql = getConnection();
+  return withDb(async (sql) => {
+    const rows = await sql<{ retry_count: number }[]>`
+      UPDATE unsubscribe_history
+      SET retry_count = retry_count + 1, status = 'pending'
+      WHERE user_id = ${userId} AND id = ${id}
+      RETURNING retry_count
+    `;
 
-  const rows = await sql<{ retry_count: number }[]>`
-    UPDATE unsubscribe_history
-    SET retry_count = retry_count + 1, status = 'pending'
-    WHERE user_id = ${userId} AND id = ${id}
-    RETURNING retry_count
-  `;
-
-  return rows[0]?.retry_count ?? 0;
+    return rows[0]?.retry_count ?? 0;
+  });
 }
 
-export async function updateAttemptStatus(
+export function updateAttemptStatus(
   userId: string,
   id: number,
   status: UnsubscribeStatus,
@@ -225,25 +225,25 @@ export async function updateAttemptStatus(
     tracePath?: string;
   },
 ): Promise<void> {
-  const sql = getConnection();
-
-  await sql`
-    UPDATE unsubscribe_history
-    SET
-      status = ${status},
-      failure_reason = COALESCE(${
-    details?.failureReason ?? null
-  }, failure_reason),
-      failure_details = COALESCE(${
-    details?.failureDetails ?? null
-  }, failure_details),
-      screenshot_path = COALESCE(${
-    details?.screenshotPath ?? null
-  }, screenshot_path),
-      trace_path = COALESCE(${details?.tracePath ?? null}, trace_path),
-      completed_at = ${status !== "pending" ? new Date() : null}
-    WHERE user_id = ${userId} AND id = ${id}
-  `;
+  return withDb(async (sql) => {
+    await sql`
+      UPDATE unsubscribe_history
+      SET
+        status = ${status},
+        failure_reason = COALESCE(${
+      details?.failureReason ?? null
+    }, failure_reason),
+        failure_details = COALESCE(${
+      details?.failureDetails ?? null
+    }, failure_details),
+        screenshot_path = COALESCE(${
+      details?.screenshotPath ?? null
+    }, screenshot_path),
+        trace_path = COALESCE(${details?.tracePath ?? null}, trace_path),
+        completed_at = ${status !== "pending" ? new Date() : null}
+      WHERE user_id = ${userId} AND id = ${id}
+    `;
+  });
 }
 
 export interface UnsubscribeStats {
@@ -255,69 +255,69 @@ export interface UnsubscribeStats {
   successRate: number;
 }
 
-export async function getStats(userId: string): Promise<UnsubscribeStats> {
-  const sql = getConnection();
+export function getStats(userId: string): Promise<UnsubscribeStats> {
+  return withDb(async (sql) => {
+    const rows = await sql<{ status: string; count: string }[]>`
+      SELECT status, COUNT(*)::text as count
+      FROM unsubscribe_history
+      WHERE user_id = ${userId}
+      GROUP BY status
+    `;
 
-  const rows = await sql<{ status: string; count: string }[]>`
-    SELECT status, COUNT(*)::text as count
-    FROM unsubscribe_history
-    WHERE user_id = ${userId}
-    GROUP BY status
-  `;
+    const stats: UnsubscribeStats = {
+      total: 0,
+      success: 0,
+      failed: 0,
+      uncertain: 0,
+      pending: 0,
+      successRate: 0,
+    };
 
-  const stats: UnsubscribeStats = {
-    total: 0,
-    success: 0,
-    failed: 0,
-    uncertain: 0,
-    pending: 0,
-    successRate: 0,
-  };
+    for (const row of rows) {
+      const count = parseInt(row.count);
+      stats.total += count;
 
-  for (const row of rows) {
-    const count = parseInt(row.count);
-    stats.total += count;
-
-    switch (row.status) {
-      case "success":
-        stats.success = count;
-        break;
-      case "failed":
-        stats.failed = count;
-        break;
-      case "uncertain":
-        stats.uncertain = count;
-        break;
-      case "pending":
-        stats.pending = count;
-        break;
+      switch (row.status) {
+        case "success":
+          stats.success = count;
+          break;
+        case "failed":
+          stats.failed = count;
+          break;
+        case "uncertain":
+          stats.uncertain = count;
+          break;
+        case "pending":
+          stats.pending = count;
+          break;
+      }
     }
-  }
 
-  if (stats.total > 0) {
-    stats.successRate = (stats.success / stats.total) * 100;
-  }
+    if (stats.total > 0) {
+      stats.successRate = (stats.success / stats.total) * 100;
+    }
 
-  return stats;
+    return stats;
+  });
 }
 
 export function getHistoryByDomain(
   userId: string,
   domain: string,
 ): Promise<UnsubscribeAttempt[]> {
-  const sql = getConnection();
-
-  return sql<UnsubscribeAttempt[]>`
-    SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
-           unsubscribe_url as "unsubscribeUrl", method, status,
-           failure_reason as "failureReason", failure_details as "failureDetails",
-           screenshot_path as "screenshotPath", trace_path as "tracePath",
-           attempted_at as "attemptedAt", completed_at as "completedAt",
-           retry_count as "retryCount"
-    FROM unsubscribe_history
-    WHERE user_id = ${userId} AND sender_domain = ${domain}
-    ORDER BY attempted_at DESC
-  `;
+  return withDb((sql) => {
+    return sql<UnsubscribeAttempt[]>`
+      SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
+             unsubscribe_url as "unsubscribeUrl", method, status,
+             failure_reason as "failureReason", failure_details as "failureDetails",
+             screenshot_path as "screenshotPath", trace_path as "tracePath",
+             attempted_at as "attemptedAt", completed_at as "completedAt",
+             retry_count as "retryCount"
+      FROM unsubscribe_history
+      WHERE user_id = ${userId} AND sender_domain = ${domain}
+      ORDER BY attempted_at DESC
+    `;
+  });
 }
 
 export function getDomainStats(
@@ -325,18 +325,18 @@ export function getDomainStats(
 ): Promise<
   { domain: string; total: number; success: number; failed: number }[]
 > {
-  const sql = getConnection();
-
-  return sql`
-    SELECT
-      sender_domain as domain,
-      COUNT(*)::int as total,
-      COUNT(*) FILTER (WHERE status = 'success')::int as success,
-      COUNT(*) FILTER (WHERE status = 'failed' OR status = 'uncertain')::int as failed
-    FROM unsubscribe_history
-    WHERE user_id = ${userId}
-    GROUP BY sender_domain
-    ORDER BY total DESC
-    LIMIT 50
-  `;
+  return withDb((sql) => {
+    return sql`
+      SELECT
+        sender_domain as domain,
+        COUNT(*)::int as total,
+        COUNT(*) FILTER (WHERE status = 'success')::int as success,
+        COUNT(*) FILTER (WHERE status = 'failed' OR status = 'uncertain')::int as failed
+      FROM unsubscribe_history
+      WHERE user_id = ${userId}
+      GROUP BY sender_domain
+      ORDER BY total DESC
+      LIMIT 50
+    `;
+  });
 }

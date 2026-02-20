@@ -31,6 +31,19 @@ export function getConfig(): DatabaseConfig {
   };
 }
 
+// Schema name for queries
+let schemaName: string | null = null;
+
+export function getSchema(): string {
+  if (!schemaName) {
+    schemaName = Deno.env.get("DATABASE_SCHEMA") || "email_unsubscribe";
+  }
+  return schemaName;
+}
+
+// Schema constant for SQL queries - exported for query builders
+export const SCHEMA = "email_unsubscribe";
+
 export function getConnection(): postgres.Sql {
   if (sql) {
     return sql;
@@ -50,10 +63,6 @@ export function getConnection(): postgres.Sql {
     },
     // Disable prepared statements - required for Supavisor transaction pooler
     prepare: false,
-    // Set search_path on each new connection so queries find the schema's tables
-    connection: {
-      search_path: `${config.schema}, public`,
-    },
   });
 
   return sql;
@@ -68,16 +77,19 @@ export async function closeConnection(): Promise<void> {
 
 // Transaction wrapper with automatic retry on transient errors
 // Handles pool exhaustion gracefully with exponential backoff
+// Sets search_path for Supavisor transaction pooling compatibility
 export async function withTransaction<T>(
   fn: (sql: postgres.TransactionSql) => Promise<T>,
   retries = 3,
 ): Promise<T> {
   const connection = getConnection();
+  const schema = getSchema();
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const result = (await connection.begin(async (tx) => {
+        await tx.unsafe(`SET LOCAL search_path TO ${schema}, public`);
         return await fn(tx);
       })) as T;
       return result;
@@ -111,16 +123,22 @@ export async function withTransaction<T>(
 
 // Simple query helper with retry logic
 // Handles pool exhaustion and transient connection errors
+// Wraps queries in a transaction with search_path set (required for Supavisor pooling)
 export async function query<T>(
   queryFn: (sql: postgres.Sql) => Promise<T>,
   retries = 3,
 ): Promise<T> {
   const connection = getConnection();
+  const schema = getSchema();
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      return await queryFn(connection);
+      // Use begin to ensure search_path is set for the query
+      return await connection.begin(async (tx) => {
+        await tx.unsafe(`SET LOCAL search_path TO ${schema}, public`);
+        return await queryFn(tx as unknown as postgres.Sql);
+      }) as T;
     } catch (error) {
       lastError = error as Error;
 
@@ -144,4 +162,21 @@ export async function query<T>(
   }
 
   throw lastError;
+}
+
+/**
+ * Execute a database function with search_path set.
+ * Required for Supavisor transaction pooling where session settings don't persist.
+ * Wraps the function in a transaction to ensure search_path is set.
+ */
+export async function withDb<T>(
+  fn: (sql: postgres.Sql) => Promise<T>,
+): Promise<T> {
+  const connection = getConnection();
+  const schema = getSchema();
+
+  return (await connection.begin(async (tx) => {
+    await tx.unsafe(`SET LOCAL search_path TO ${schema}, public`);
+    return await fn(tx as unknown as postgres.Sql);
+  })) as T;
 }

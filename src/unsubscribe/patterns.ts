@@ -1,6 +1,6 @@
 // Pattern management for unsubscribe automation
 
-import { getConnection } from "../db/index.ts";
+import { withDb } from "../db/index.ts";
 
 export type PatternType =
   | "button_selector"
@@ -146,30 +146,42 @@ export const DEFAULT_PATTERNS: PatternInput[] = [
   },
 ];
 
-export async function seedDefaultPatterns(): Promise<void> {
-  const sql = getConnection();
+export function seedDefaultPatterns(): Promise<void> {
+  return withDb(async (sql) => {
+    // Use a transaction to ensure search_path persists (required for Supavisor transaction pooler)
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SET search_path TO email_unsubscribe, public`);
 
-  // Use a transaction to ensure search_path persists (required for Supavisor transaction pooler)
-  await sql.begin(async (tx) => {
-    await tx.unsafe(`SET search_path TO email_unsubscribe, public`);
+      for (const pattern of DEFAULT_PATTERNS) {
+        await tx.unsafe(
+          `INSERT INTO patterns (name, type, selector, priority, is_builtin)
+           VALUES ($1, $2, $3, $4, TRUE)
+           ON CONFLICT (name, type) DO NOTHING`,
+          [pattern.name, pattern.type, pattern.selector, pattern.priority ?? 0],
+        );
+      }
+    });
 
-    for (const pattern of DEFAULT_PATTERNS) {
-      await tx.unsafe(
-        `INSERT INTO patterns (name, type, selector, priority, is_builtin)
-         VALUES ($1, $2, $3, $4, TRUE)
-         ON CONFLICT (name, type) DO NOTHING`,
-        [pattern.name, pattern.type, pattern.selector, pattern.priority ?? 0],
-      );
-    }
+    console.log("Default patterns seeded");
   });
-
-  console.log("Default patterns seeded");
 }
 
 export function getPatterns(type?: PatternType): Promise<Pattern[]> {
-  const sql = getConnection();
+  return withDb((sql) => {
+    if (type) {
+      return sql<Pattern[]>`
+        SELECT id, name, type, selector, priority,
+               match_count as "matchCount",
+               last_matched_at as "lastMatchedAt",
+               is_builtin as "isBuiltin",
+               created_at as "createdAt",
+               updated_at as "updatedAt"
+        FROM patterns
+        WHERE type = ${type}
+        ORDER BY priority DESC, match_count DESC
+      `;
+    }
 
-  if (type) {
     return sql<Pattern[]>`
       SELECT id, name, type, selector, priority,
              match_count as "matchCount",
@@ -178,64 +190,52 @@ export function getPatterns(type?: PatternType): Promise<Pattern[]> {
              created_at as "createdAt",
              updated_at as "updatedAt"
       FROM patterns
-      WHERE type = ${type}
-      ORDER BY priority DESC, match_count DESC
+      ORDER BY type, priority DESC, match_count DESC
     `;
-  }
-
-  return sql<Pattern[]>`
-    SELECT id, name, type, selector, priority,
-           match_count as "matchCount",
-           last_matched_at as "lastMatchedAt",
-           is_builtin as "isBuiltin",
-           created_at as "createdAt",
-           updated_at as "updatedAt"
-    FROM patterns
-    ORDER BY type, priority DESC, match_count DESC
-  `;
+  });
 }
 
-export async function addPattern(input: PatternInput): Promise<Pattern> {
-  const sql = getConnection();
+export function addPattern(input: PatternInput): Promise<Pattern> {
+  return withDb(async (sql) => {
+    const rows = await sql<Pattern[]>`
+      INSERT INTO patterns (name, type, selector, priority)
+      VALUES (${input.name}, ${input.type}, ${input.selector}, ${
+      input.priority ?? 0
+    })
+      RETURNING id, name, type, selector, priority,
+                match_count as "matchCount",
+                last_matched_at as "lastMatchedAt",
+                is_builtin as "isBuiltin",
+                created_at as "createdAt",
+                updated_at as "updatedAt"
+    `;
 
-  const rows = await sql<Pattern[]>`
-    INSERT INTO patterns (name, type, selector, priority)
-    VALUES (${input.name}, ${input.type}, ${input.selector}, ${
-    input.priority ?? 0
-  })
-    RETURNING id, name, type, selector, priority,
-              match_count as "matchCount",
-              last_matched_at as "lastMatchedAt",
-              is_builtin as "isBuiltin",
-              created_at as "createdAt",
-              updated_at as "updatedAt"
-  `;
-
-  return rows[0];
+    return rows[0];
+  });
 }
 
-export async function deletePattern(id: number): Promise<boolean> {
-  const sql = getConnection();
+export function deletePattern(id: number): Promise<boolean> {
+  return withDb(async (sql) => {
+    // Don't delete built-in patterns
+    const result = await sql`
+      DELETE FROM patterns
+      WHERE id = ${id} AND is_builtin = FALSE
+    `;
 
-  // Don't delete built-in patterns
-  const result = await sql`
-    DELETE FROM patterns
-    WHERE id = ${id} AND is_builtin = FALSE
-  `;
-
-  return result.count > 0;
+    return result.count > 0;
+  });
 }
 
-export async function incrementPatternMatchCount(id: number): Promise<void> {
-  const sql = getConnection();
-
-  await sql`
-    UPDATE patterns SET
-      match_count = match_count + 1,
-      last_matched_at = NOW(),
-      updated_at = NOW()
-    WHERE id = ${id}
-  `;
+export function incrementPatternMatchCount(id: number): Promise<void> {
+  return withDb(async (sql) => {
+    await sql`
+      UPDATE patterns SET
+        match_count = match_count + 1,
+        last_matched_at = NOW(),
+        updated_at = NOW()
+      WHERE id = ${id}
+    `;
+  });
 }
 
 export interface PatternExport {
