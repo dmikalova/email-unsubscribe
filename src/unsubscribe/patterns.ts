@@ -151,7 +151,9 @@ export function seedDefaultPatterns(): Promise<void> {
     for (const pattern of DEFAULT_PATTERNS) {
       await sql`
         INSERT INTO patterns (name, type, selector, priority, is_builtin)
-        VALUES (${pattern.name}, ${pattern.type}, ${pattern.selector}, ${pattern.priority ?? 0}, TRUE)
+        VALUES (${pattern.name}, ${pattern.type}, ${pattern.selector}, ${
+        pattern.priority ?? 0
+      }, TRUE)
         ON CONFLICT (name, type) DO NOTHING
       `;
     }
