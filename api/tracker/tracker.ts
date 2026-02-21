@@ -153,7 +153,7 @@ export function getFailedAttempts(
     // Only show the most recent attempt per sender that is failed/uncertain
     return sql<UnsubscribeAttempt[]>`
       WITH latest_per_sender AS (
-        SELECT DISTINCT ON (sender) 
+        SELECT DISTINCT ON (sender)
                id, email_id, sender, sender_domain, unsubscribe_url, method, status,
                failure_reason, failure_details, screenshot_path, trace_path,
                attempted_at, completed_at, retry_count
@@ -183,7 +183,7 @@ export function getRecentAttempts(
     // Only show the most recent attempt per sender
     return sql<UnsubscribeAttempt[]>`
       WITH latest_per_sender AS (
-        SELECT DISTINCT ON (sender) 
+        SELECT DISTINCT ON (sender)
                id, email_id, sender, sender_domain, unsubscribe_url, method, status,
                failure_reason, failure_details, screenshot_path, trace_path,
                attempted_at, completed_at, retry_count
@@ -387,22 +387,33 @@ export function getUnsubscribeLogs(
   offset = 0,
 ): Promise<DomainUnsubscribeSummary[]> {
   return withDb((sql) => {
+    // Extract root domain (last 2 parts) from sender_domain
+    // e.g., mail.google.com -> google.com, newsletters.example.co.uk -> co.uk (simplified)
     return sql<DomainUnsubscribeSummary[]>`
+      WITH root_domains AS (
+        SELECT
+          h.*,
+          CASE
+            WHEN h.sender_domain ~ '^[^.]+\.[^.]+$' THEN h.sender_domain
+            ELSE SUBSTRING(h.sender_domain FROM '([^.]+\.[^.]+)$')
+          END as root_domain
+        FROM unsubscribe_history h
+        WHERE h.user_id = ${userId}
+      )
       SELECT
-        h.sender_domain as domain,
-        COUNT(h.id)::int as "attemptCount",
-        COUNT(h.id) FILTER (WHERE h.status = 'success')::int as "successCount",
-        COUNT(h.id) FILTER (WHERE h.status = 'failed' OR h.status = 'uncertain')::int as "failedCount",
-        MAX(h.attempted_at) as "lastAttemptAt",
+        r.root_domain as domain,
+        COUNT(r.id)::int as "attemptCount",
+        COUNT(r.id) FILTER (WHERE r.status = 'success')::int as "successCount",
+        COUNT(r.id) FILTER (WHERE r.status = 'failed' OR r.status = 'uncertain')::int as "failedCount",
+        MAX(r.attempted_at) as "lastAttemptAt",
         COALESCE(MAX(t.emails_after_unsubscribe), 0)::int as "emailsAfterUnsubscribe",
         COALESCE(bool_or(t.flagged_ineffective), false) as "flaggedIneffective",
         MAX(t.flagged_at) as "flaggedAt"
-      FROM unsubscribe_history h
+      FROM root_domains r
       LEFT JOIN sender_tracking t
-        ON h.user_id = t.user_id AND h.sender_domain = t.sender_domain
-      WHERE h.user_id = ${userId}
-      GROUP BY h.sender_domain
-      ORDER BY "attemptCount" DESC, "lastAttemptAt" DESC
+        ON r.user_id = t.user_id AND r.sender_domain = t.sender_domain
+      GROUP BY r.root_domain
+      ORDER BY r.root_domain ASC
       LIMIT ${limit} OFFSET ${offset}
     `;
   });

@@ -428,6 +428,8 @@ async function checkForSuccessText(
     "email preferences updated",
     "subscription canceled",
     "you will no longer receive",
+    "✅ success",
+    "success",
   ];
 
   for (const indicator of successIndicators) {
