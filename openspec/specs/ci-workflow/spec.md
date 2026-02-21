@@ -1,23 +1,22 @@
-# Dagger CI
+# CI Workflow
 
 ## ADDED Requirements
 
 ### Requirement: CI workflow calls reusable workflow
 
 The repository SHALL include a GitHub Actions workflow at
-`.github/workflows/ci.yaml` that calls a reusable Dagger workflow from the infra
-repo.
+`.github/workflows/cicd.yaml` that calls a reusable workflow from github-meta.
 
 #### Scenario: Workflow file exists
 
 - **WHEN** a developer clones the repository
 - **THEN** a workflow file exists at `.github/workflows/ci.yaml`
 
-#### Scenario: Workflow calls infra repo
+#### Scenario: Workflow calls github-meta repo
 
 - **WHEN** CI runs
-- **THEN** it uses `uses: <infra-repo>/.github/workflows/dagger.yaml@main` to
-  invoke the reusable workflow
+- **THEN** it uses `uses: dmikalova/github-meta/.github/workflows/deno-cloudrun.yaml@main`
+  to invoke the reusable workflow
 
 ### Requirement: Workflow passes required inputs
 
@@ -64,10 +63,10 @@ The CI workflow SHALL trigger on pull requests and pushes to main.
 The CI workflow SHALL contain minimal configuration, delegating pipeline logic
 to the reusable workflow.
 
-#### Scenario: No Dagger code in app repo
+#### Scenario: No pipeline code in app repo
 
-- **WHEN** a developer looks for Dagger modules in the app repo
-- **THEN** they find none - all Dagger logic lives in the infra repo
+- **WHEN** a developer looks for CI/CD logic in the app repo
+- **THEN** they find none - all pipeline logic lives in the github-meta repo
 
 #### Scenario: Workflow is simple
 

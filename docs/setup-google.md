@@ -54,10 +54,10 @@ application.
    - **Name**: Email Unsubscribe Web Client
    - **Authorized JavaScript origins**:
      - `http://localhost:8000` (development)
-     - `https://email-unsubscribe.cddc39.tech` (production)
+     - `https://email-unsubscribe.mklv.tech` (production)
    - **Authorized redirect URIs**:
      - `http://localhost:8000/oauth/callback` (development)
-     - `https://email-unsubscribe.cddc39.tech/oauth/callback` (production)
+     - `https://email-unsubscribe.mklv.tech/oauth/callback` (production)
 5. Click "Create"
 6. Copy the **Client ID** and **Client Secret**
 

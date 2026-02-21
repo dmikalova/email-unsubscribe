@@ -1,7 +1,7 @@
 // Google Cloud Storage helper for trace file uploads
 //
 // Uses the GCS REST API with Cloud Run's default credentials.
-// Uploads are placed in the bucket specified by STORAGE_BUCKET env var.
+// Uploads are placed in the bucket specified by PRIVATE_BUCKET_NAME env var.
 
 interface UploadOptions {
   contentType?: string;
@@ -35,9 +35,9 @@ export async function uploadToGcs(
   remotePath: string,
   options: UploadOptions = {},
 ): Promise<string> {
-  const bucket = Deno.env.get("STORAGE_BUCKET");
+  const bucket = Deno.env.get("PRIVATE_BUCKET_NAME");
   if (!bucket) {
-    throw new Error("STORAGE_BUCKET environment variable not set");
+    throw new Error("PRIVATE_BUCKET_NAME environment variable not set");
   }
 
   const { contentType = "application/octet-stream" } = options;
@@ -96,5 +96,5 @@ export async function uploadAndCleanup(
  * Check if GCS storage is configured.
  */
 export function isStorageConfigured(): boolean {
-  return !!Deno.env.get("STORAGE_BUCKET");
+  return !!Deno.env.get("PRIVATE_BUCKET_NAME");
 }

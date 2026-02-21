@@ -5,27 +5,38 @@ Run with Supabase for PostgreSQL.
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    GitHub Actions                            │
-│  (calls reusable Dagger workflow from infra repo)           │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Google Cloud Run                            │
-│  - Scale to zero when idle                                  │
-│  - Source deploys via Buildpacks                            │
-│  - Secrets from Secret Manager                              │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Supabase                                  │
-│  - Managed PostgreSQL                                       │
-│  - Supavisor connection pooler                              │
-│  - Separate prod/preview projects                           │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#BBDEFB', 'primaryTextColor': '#0D47A1', 'primaryBorderColor': '#1976D2', 'lineColor': '#757575'}}}%%
+flowchart TD
+    subgraph GitHub["GitHub"]
+        Actions[GitHub Actions]
+    end
+
+    subgraph GCP["Google Cloud"]
+        Run[Cloud Run]
+        Secrets[Secret Manager]
+    end
+
+    subgraph Supabase["Supabase"]
+        DB[(PostgreSQL)]
+        Pooler[Supavisor]
+    end
+
+    Actions -->|Deploy| Run
+    Run --> Secrets
+    Run --> Pooler
+    Pooler --> DB
+
+    %% Material Blue 100/700 - GitHub
+    classDef github fill:#BBDEFB,stroke:#1976D2,color:#0D47A1
+    %% Material Deep Purple 100/700 - GCP
+    classDef gcp fill:#D1C4E9,stroke:#512DA8,color:#311B92
+    %% Material Amber 100/700 - Database
+    classDef database fill:#FFECB3,stroke:#FFA000,color:#FF6F00
+
+    class Actions github
+    class Run,Secrets gcp
+    class DB,Pooler database
 ```
 
 ## Prerequisites
@@ -56,11 +67,11 @@ Run with Supabase for PostgreSQL.
 
 ## Deployment Contract
 
-The [`deploy.config.ts`](../mklv.config.mts) file defines this application's
+The [`mklv.config.json`](../mklv.config.json) file defines this application's
 runtime requirements:
 
 - Runtime: Deno 2.0+
-- Entry point: `src/main.ts`
+- Entry point: `api/main.ts`
 - Health check: `/health` returning HTTP 200
 - Resources: 256MB min, 512MB recommended
 
@@ -101,7 +112,7 @@ reusable Dagger workflow from the infra repo.
 The application connects to Supabase via the Supavisor connection pooler:
 
 ```
-postgresql://postgres.[project-ref]:[password]@aws-0-us-west-1.pooler.supabase.com:6543/postgres?sslmode=require
+postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres?sslmode=require
 ```
 
 Key configuration:

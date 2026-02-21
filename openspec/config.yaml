@@ -28,7 +28,7 @@ context: |
 
   # Deployment
   - Google Cloud Run (serverless, scale-to-zero)
-  - CI/CD via GitHub Actions calling Dagger workflows
+  - CI/CD via GitHub Actions calling reusable workflows from github-meta
   - Secure credential management via environment variables
 
   # Database Migrations
