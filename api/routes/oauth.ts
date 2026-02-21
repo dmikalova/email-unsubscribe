@@ -1,30 +1,32 @@
 // OAuth routes for Gmail authorization
 
-import { Hono } from "hono";
-import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { deleteAllUserData, exportAllUserData } from "../db/user-data.ts";
-import { exchangeCodeForTokens, getAuthorizationUrl } from "../gmail/oauth.ts";
+import { Hono } from 'hono';
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
+import { deleteAllUserData, exportAllUserData } from '../db/user-data.ts';
+import { exchangeCodeForTokens, getAuthorizationUrl } from '../gmail/oauth.ts';
 import {
   checkTokenHealth,
   deleteTokens,
   getTokens,
+  getValidAccessToken,
   hasValidTokens,
   storeTokens,
-} from "../gmail/tokens.ts";
-import { logOAuthAuthorized, logOAuthRevoked } from "../tracker/audit.ts";
-import type { AppEnv } from "../types.ts";
+  updateConnectedEmail,
+} from '../gmail/tokens.ts';
+import { logOAuthAuthorized, logOAuthRevoked } from '../tracker/audit.ts';
+import type { AppEnv } from '../types.ts';
 
 // Cookie name for Gmail connection state
-const GMAIL_COOKIE = "gmail_connected";
+const GMAIL_COOKIE = 'gmail_connected';
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
 export const oauth = new Hono<AppEnv>();
 
 // Check authorization status
-oauth.get("/status", async (c) => {
-  const user = c.get("user");
+oauth.get('/status', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ authorized: false, error: "Not authenticated" });
+    return c.json({ authorized: false, error: 'Not authenticated' });
   }
 
   // Fast path: check cookie first
@@ -44,16 +46,35 @@ oauth.get("/status", async (c) => {
 
   // Slow path: check database
   const authorized = await hasValidTokens(user.userId);
-  const tokens = authorized ? await getTokens(user.userId) : null;
+  let tokens = authorized ? await getTokens(user.userId) : null;
+
+  // Backfill connected email if missing (for tokens stored before we tracked email)
+  if (authorized && tokens && !tokens.connectedEmail) {
+    try {
+      const accessToken = await getValidAccessToken(user.userId);
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (userInfoResponse.ok) {
+        const userInfo = await userInfoResponse.json();
+        if (userInfo.email) {
+          await updateConnectedEmail(user.userId, userInfo.email);
+          tokens = { ...tokens, connectedEmail: userInfo.email };
+        }
+      }
+    } catch {
+      // Non-fatal: proceed without email
+    }
+  }
 
   // Set cookie if authorized
   if (authorized && tokens?.connectedEmail) {
     setCookie(c, GMAIL_COOKIE, tokens.connectedEmail, {
       httpOnly: true,
       secure: true,
-      sameSite: "Lax",
+      sameSite: 'Lax',
       maxAge: COOKIE_MAX_AGE,
-      path: "/",
+      path: '/',
     });
   }
 
@@ -64,10 +85,10 @@ oauth.get("/status", async (c) => {
 });
 
 // Start OAuth flow
-oauth.get("/authorize", (c) => {
-  const user = c.get("user");
+oauth.get('/authorize', (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   // Store userId in state for callback verification
@@ -80,10 +101,10 @@ oauth.get("/authorize", (c) => {
 });
 
 // OAuth callback
-oauth.get("/callback", async (c) => {
-  const code = c.req.query("code");
-  const error = c.req.query("error");
-  const stateParam = c.req.query("state");
+oauth.get('/callback', async (c) => {
+  const code = c.req.query('code');
+  const error = c.req.query('error');
+  const stateParam = c.req.query('state');
 
   if (error) {
     return c.html(`
@@ -119,7 +140,7 @@ oauth.get("/callback", async (c) => {
     const state = JSON.parse(atob(stateParam));
     userId = state.userId;
     if (!userId) {
-      throw new Error("Missing userId in state");
+      throw new Error('Missing userId in state');
     }
   } catch {
     return c.html(`
@@ -141,12 +162,9 @@ oauth.get("/callback", async (c) => {
     // Fetch connected email from Google userinfo
     let connectedEmail: string | undefined;
     try {
-      const userInfoResponse = await fetch(
-        "https://www.googleapis.com/oauth2/v2/userinfo",
-        {
-          headers: { Authorization: `Bearer ${tokens.access_token}` },
-        },
-      );
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      });
       if (userInfoResponse.ok) {
         const userInfo = await userInfoResponse.json();
         connectedEmail = userInfo.email;
@@ -163,16 +181,16 @@ oauth.get("/callback", async (c) => {
       setCookie(c, GMAIL_COOKIE, connectedEmail, {
         httpOnly: true,
         secure: true,
-        sameSite: "Lax",
+        sameSite: 'Lax',
         maxAge: COOKIE_MAX_AGE,
-        path: "/",
+        path: '/',
       });
     }
 
     // Redirect immediately to dashboard
-    return c.redirect("/");
+    return c.redirect('/');
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return c.html(`
       <!DOCTYPE html>
       <html>
@@ -188,10 +206,10 @@ oauth.get("/callback", async (c) => {
 });
 
 // Revoke authorization (delete tokens)
-oauth.post("/revoke", async (c) => {
-  const user = c.get("user");
+oauth.post('/revoke', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   await deleteTokens(user.userId);
@@ -204,10 +222,10 @@ oauth.post("/revoke", async (c) => {
 });
 
 // Token health check endpoint
-oauth.get("/health", async (c) => {
-  const user = c.get("user");
+oauth.get('/health', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   const health = await checkTokenHealth(user.userId);
@@ -215,34 +233,34 @@ oauth.get("/health", async (c) => {
 });
 
 // Export all user data (GDPR data portability)
-oauth.get("/data/export", async (c) => {
-  const user = c.get("user");
+oauth.get('/data/export', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   const data = await exportAllUserData(user.userId);
   return new Response(JSON.stringify(data, null, 2), {
     headers: {
-      "Content-Type": "application/json",
-      "Content-Disposition": `attachment; filename="user-data-${
-        new Date().toISOString().split("T")[0]
+      'Content-Type': 'application/json',
+      'Content-Disposition': `attachment; filename="user-data-${
+        new Date().toISOString().split('T')[0]
       }.json"`,
     },
   });
 });
 
 // Delete all user data (GDPR right to erasure)
-oauth.delete("/data", async (c) => {
-  const user = c.get("user");
+oauth.delete('/data', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   const result = await deleteAllUserData(user.userId);
   return c.json({
     success: true,
-    message: "All user data has been deleted",
+    message: 'All user data has been deleted',
     ...result,
   });
 });

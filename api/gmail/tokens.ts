@@ -179,3 +179,16 @@ export async function checkTokenHealth(userId: string): Promise<TokenHealth> {
     };
   }
 }
+
+export function updateConnectedEmail(
+  userId: string,
+  email: string,
+): Promise<void> {
+  return withDb(async (sql) => {
+    await sql`
+      UPDATE oauth_tokens
+      SET connected_email = ${email}, updated_at = NOW()
+      WHERE user_id = ${userId}::uuid
+    `;
+  });
+}
