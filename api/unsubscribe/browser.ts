@@ -558,11 +558,14 @@ function detectLoginRequired(content: string): boolean {
     "sign in with your",
     "log in to your account",
     "enter your password",
+    "sign in\nto continue", // Google sign-in page has newline
+    "email or phone", // Google sign-in form field
   ];
 
   // Check for known login-required domains in the content
   const loginDomains = [
     "informeddelivery.usps.com",
+    "accounts.google.com",
   ];
 
   const lower = content.toLowerCase();
