@@ -12,10 +12,10 @@ interface UploadOptions {
  */
 async function getAccessToken(): Promise<string> {
   const metadataUrl =
-    'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token';
+    "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
 
   const response = await fetch(metadataUrl, {
-    headers: { 'Metadata-Flavor': 'Google' },
+    headers: { "Metadata-Flavor": "Google" },
   });
 
   if (!response.ok) {
@@ -35,12 +35,12 @@ export async function uploadToGcs(
   remotePath: string,
   options: UploadOptions = {},
 ): Promise<string> {
-  const bucket = Deno.env.get('STORAGE_BUCKET');
+  const bucket = Deno.env.get("STORAGE_BUCKET");
   if (!bucket) {
-    throw new Error('STORAGE_BUCKET environment variable not set');
+    throw new Error("STORAGE_BUCKET environment variable not set");
   }
 
-  const { contentType = 'application/octet-stream' } = options;
+  const { contentType = "application/octet-stream" } = options;
 
   // Read the file
   const fileContent = await Deno.readFile(localPath);
@@ -49,13 +49,16 @@ export async function uploadToGcs(
   const token = await getAccessToken();
 
   // Upload via GCS JSON API
-  const uploadUrl = `https://storage.googleapis.com/upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(remotePath)}`;
+  const uploadUrl =
+    `https://storage.googleapis.com/upload/storage/v1/b/${bucket}/o?uploadType=media&name=${
+      encodeURIComponent(remotePath)
+    }`;
 
   const response = await fetch(uploadUrl, {
-    method: 'POST',
+    method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': contentType,
+      "Content-Type": contentType,
     },
     body: fileContent,
   });
@@ -93,5 +96,5 @@ export async function uploadAndCleanup(
  * Check if GCS storage is configured.
  */
 export function isStorageConfigured(): boolean {
-  return !!Deno.env.get('STORAGE_BUCKET');
+  return !!Deno.env.get("STORAGE_BUCKET");
 }
