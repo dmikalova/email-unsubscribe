@@ -1,7 +1,10 @@
 // Unit tests for HTML link extraction
 
 import { assertEquals } from "@std/assert";
-import { extractUnsubscribeLinksFromHtml } from "../../src/scanner/html.ts";
+import {
+  type ExtractedLink,
+  extractUnsubscribeLinksFromHtml,
+} from "../../api/scanner/html.ts";
 
 Deno.test("extractUnsubscribeLinksFromHtml - finds unsubscribe link by text", () => {
   const html = `
@@ -100,7 +103,7 @@ Deno.test("extractUnsubscribeLinksFromHtml - deduplicates links", () => {
   `;
 
   const links = extractUnsubscribeLinksFromHtml(html);
-  const uniqueUrls = new Set(links.map((l) => l.url));
+  const uniqueUrls = new Set(links.map((l: ExtractedLink) => l.url));
 
   assertEquals(uniqueUrls.size, links.length);
 });

@@ -8,9 +8,9 @@ import cssnano from "npm:cssnano@7";
 import postcss from "npm:postcss@8";
 import tailwindcss from "npm:tailwindcss@3";
 
-const inputPath = new URL("../src/public/input.css", import.meta.url).pathname;
+const inputPath = new URL("../api/public/input.css", import.meta.url).pathname;
 const outputPath =
-  new URL("../src/public/output.css", import.meta.url).pathname;
+  new URL("../api/public/output.css", import.meta.url).pathname;
 const configPath = new URL("../tailwind.config.js", import.meta.url).pathname;
 
 // Read input CSS

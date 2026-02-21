@@ -1,6 +1,6 @@
 // Shared types for Hono app
 
-import type { SessionData } from "./api/middleware.ts";
+import type { SessionData } from "./routes/middleware.ts";
 
 // Define the app environment types
 export type AppEnv = {

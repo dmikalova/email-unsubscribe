@@ -772,23 +772,23 @@
             { id: "domains", label: "Domains" },
             { id: "patterns", label: "Patterns" },
           ];
-          const validTabs = tabs.map(t => t.id);
-          
+          const validTabs = tabs.map((t) => t.id);
+
           // Initialize from URL hash
           const getTabFromHash = () => {
             const hash = window.location.hash.slice(1);
             return validTabs.includes(hash) ? hash : "dashboard";
           };
-          
+
           const currentTab = ref(getTabFromHash());
-          
+
           // Update URL when tab changes
           watch(currentTab, (newTab) => {
             window.location.hash = newTab;
           });
-          
+
           // Handle browser back/forward
-          window.addEventListener('hashchange', () => {
+          window.addEventListener("hashchange", () => {
             currentTab.value = getTabFromHash();
           });
 
