@@ -122,7 +122,7 @@ onMounted(() => {
   <!-- Gmail Status Banner -->
   <div class="bg-gray-100 border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between min-h-[36px]">
         <template v-if="gmailLoading">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@ onMounted(() => {
             </svg>
             <span class="text-sm text-gray-700">Checking Gmail connection...</span>
           </div>
-          <div></div>
+          <div class="w-[100px]"></div>
         </template>
         <template v-else-if="gmailStatus.authorized">
           <div class="flex items-center gap-2">
