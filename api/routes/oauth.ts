@@ -60,25 +60,29 @@ oauth.get('/status', async (c) => {
 
   // Backfill connected email if missing (for tokens stored before we tracked email)
   if (authorized && tokens && !tokens.connectedEmail) {
-    console.log('[OAuth Status] Attempting to backfill email from Google API');
+    console.log('[OAuth Status] Attempting to backfill email from Gmail API');
     try {
       const accessToken = await getValidAccessToken(user.userId);
       console.log(`[OAuth Status] Got access token: ${accessToken.slice(0, 10)}...`);
-      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      console.log(`[OAuth Status] Google userinfo response: ${userInfoResponse.status}`);
-      if (userInfoResponse.ok) {
-        const userInfo = await userInfoResponse.json();
-        console.log(`[OAuth Status] Google userinfo email: ${userInfo.email || 'none'}`);
-        if (userInfo.email) {
-          await updateConnectedEmail(user.userId, userInfo.email);
-          tokens = { ...tokens, connectedEmail: userInfo.email };
-          console.log(`[OAuth Status] Updated DB with email: ${userInfo.email}`);
+      // Use Gmail's getProfile endpoint which works with existing Gmail scopes
+      const profileResponse = await fetch(
+        'https://gmail.googleapis.com/gmail/v1/users/me/profile',
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
+      console.log(`[OAuth Status] Gmail profile response: ${profileResponse.status}`);
+      if (profileResponse.ok) {
+        const profile = await profileResponse.json();
+        console.log(`[OAuth Status] Gmail profile email: ${profile.emailAddress || 'none'}`);
+        if (profile.emailAddress) {
+          await updateConnectedEmail(user.userId, profile.emailAddress);
+          tokens = { ...tokens, connectedEmail: profile.emailAddress };
+          console.log(`[OAuth Status] Updated DB with email: ${profile.emailAddress}`);
         }
       } else {
-        const errorText = await userInfoResponse.text();
-        console.log(`[OAuth Status] Google API error: ${errorText}`);
+        const errorText = await profileResponse.text();
+        console.log(`[OAuth Status] Gmail API error: ${errorText}`);
       }
     } catch (err) {
       console.log(`[OAuth Status] Backfill error: ${err}`);
@@ -99,7 +103,9 @@ oauth.get('/status', async (c) => {
   }
 
   console.log(
-    `[OAuth Status] Returning: authorized=${authorized}, connectedEmail=${tokens?.connectedEmail || 'null'}`,
+    `[OAuth Status] Returning: authorized=${authorized}, connectedEmail=${
+      tokens?.connectedEmail || 'null'
+    }`,
   );
   return c.json({
     authorized,
@@ -183,20 +189,23 @@ oauth.get('/callback', async (c) => {
     const tokens = await exchangeCodeForTokens(code);
     console.log(`[OAuth Callback] Got tokens for userId=${userId}`);
 
-    // Fetch connected email from Google userinfo
+    // Fetch connected email from Gmail profile (uses existing Gmail scopes)
     let connectedEmail: string | undefined;
     try {
-      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: { Authorization: `Bearer ${tokens.access_token}` },
-      });
-      console.log(`[OAuth Callback] Google userinfo response: ${userInfoResponse.status}`);
-      if (userInfoResponse.ok) {
-        const userInfo = await userInfoResponse.json();
-        connectedEmail = userInfo.email;
-        console.log(`[OAuth Callback] Got email from Google: ${connectedEmail}`);
+      const profileResponse = await fetch(
+        'https://gmail.googleapis.com/gmail/v1/users/me/profile',
+        {
+          headers: { Authorization: `Bearer ${tokens.access_token}` },
+        },
+      );
+      console.log(`[OAuth Callback] Gmail profile response: ${profileResponse.status}`);
+      if (profileResponse.ok) {
+        const profile = await profileResponse.json();
+        connectedEmail = profile.emailAddress;
+        console.log(`[OAuth Callback] Got email from Gmail: ${connectedEmail}`);
       } else {
-        const errorText = await userInfoResponse.text();
-        console.log(`[OAuth Callback] Google API error: ${errorText}`);
+        const errorText = await profileResponse.text();
+        console.log(`[OAuth Callback] Gmail API error: ${errorText}`);
       }
     } catch (err) {
       console.log(`[OAuth Callback] Error fetching email: ${err}`);
