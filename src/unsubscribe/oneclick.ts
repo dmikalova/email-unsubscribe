@@ -36,7 +36,7 @@ export async function performOneClickUnsubscribe(
     });
 
     if (response.ok) {
-      console.log(`One-click unsubscribe successful for ${sanitizedUrl}`);
+      console.log("One-click unsubscribe successful");
       return {
         success: true,
         statusCode: response.status,
@@ -44,9 +44,6 @@ export async function performOneClickUnsubscribe(
     }
 
     // Non-2xx response - may need fallback to browser
-    console.log(
-      `One-click failed with status ${response.status} for ${sanitizedUrl}`,
-    );
     return {
       success: false,
       statusCode: response.status,
@@ -55,7 +52,6 @@ export async function performOneClickUnsubscribe(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error(`One-click unsubscribe error for ${sanitizedUrl}:`, message);
 
     return {
       success: false,
