@@ -109,7 +109,7 @@ function stripHtmlTags(html: string): string {
 }
 
 // Decode common HTML entities in URLs
-function decodeHtmlEntities(str: string): string {
+export function decodeHtmlEntities(str: string): string {
   return str
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")

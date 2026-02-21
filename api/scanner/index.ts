@@ -14,6 +14,7 @@ export {
 
 export {
   decodeBase64Url,
+  decodeHtmlEntities,
   type ExtractedLink,
   extractUnsubscribeLinksFromHtml,
   getHtmlBodyFromPayload,
