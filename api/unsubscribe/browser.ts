@@ -9,6 +9,17 @@ import {
 import { validateUnsubscribeUrl } from "./validation.ts";
 import { isStorageConfigured, uploadAndCleanup } from "../storage.ts";
 
+// Helper to extract visible text from page for logging
+async function getVisiblePageText(page: Page): Promise<string> {
+  try {
+    return await page.evaluate(
+      "document.body?.innerText?.replace(/\\\\s+/g, ' ').trim().slice(0, 500) || ''",
+    );
+  } catch {
+    return "[Unable to extract text]";
+  }
+}
+
 export interface BrowserResult {
   success: boolean;
   uncertain: boolean;
@@ -119,6 +130,11 @@ export async function performBrowserUnsubscribe(
     // Wait for page to settle
     await page.waitForTimeout(1000);
 
+    // Log visible page text for debugging
+    const initialText = await getVisiblePageText(page);
+    console.log(`[Unsubscribe] URL: ${sanitizedUrl}`);
+    console.log(`[Unsubscribe] Initial page text: ${initialText}`);
+
     // Take initial screenshot
     screenshotPath = `${screenshotsDir}/${emailId}-initial.png`;
     await Deno.mkdir(screenshotsDir, { recursive: true });
@@ -204,6 +220,10 @@ export async function performBrowserUnsubscribe(
 
     // Wait for navigation or content change
     await page.waitForTimeout(2000);
+
+    // Log post-click page text for debugging
+    const postClickText = await getVisiblePageText(page);
+    console.log(`[Unsubscribe] Post-click page text: ${postClickText}`);
 
     // Take post-click screenshot
     const finalScreenshotPath = `${screenshotsDir}/${emailId}-final.png`;
@@ -338,6 +358,40 @@ async function tryGenericButtonDetection(page: Page): Promise<boolean> {
 
 // Handle multi-step unsubscribe forms that require selecting a reason
 async function handleReasonSelection(page: Page): Promise<boolean> {
+  // First, try to handle dropdown/select menus
+  const selectSelectors = [
+    'select[name*="reason" i]',
+    'select[name*="why" i]',
+    'select[id*="reason" i]',
+    'select[id*="unsubscribe" i]',
+    "select", // Generic fallback for single select on page
+  ];
+
+  for (const selector of selectSelectors) {
+    try {
+      const selects = await page.$$(selector);
+      for (const select of selects) {
+        // Get all options
+        const options = await select.$$("option");
+        if (options.length > 1) {
+          // Select the second option (first is usually placeholder)
+          // Or find one with relevant text
+          for (let i = 1; i < options.length; i++) {
+            const text = await options[i].textContent();
+            if (text) {
+              await select.selectOption({ index: i });
+              console.log(`Selected dropdown option: ${text.trim()}`);
+              await page.waitForTimeout(500);
+              return true;
+            }
+          }
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+
   // Look for radio buttons related to unsubscribe reasons
   const reasonSelectors = [
     // Radio buttons with common reason-related names/labels
@@ -420,16 +474,16 @@ async function checkForSuccessText(
 
   // Check generic success indicators
   const successIndicators = [
+    "✅ success",
+    "email preferences updated",
+    "removed from our mailing list",
+    "subscription canceled",
+    "success",
     "successfully unsubscribed",
-    "you have been unsubscribed",
     "unsubscribe successful",
     "you are now unsubscribed",
-    "removed from our mailing list",
-    "email preferences updated",
-    "subscription canceled",
+    "you have been unsubscribed",
     "you will no longer receive",
-    "✅ success",
-    "success",
   ];
 
   for (const indicator of successIndicators) {
@@ -464,6 +518,11 @@ async function checkForErrorText(
     "link has expired",
     "invalid request",
     "please try again",
+    "invalid token",
+    "missing token",
+    "token expired",
+    "link is no longer valid",
+    "link is invalid",
   ];
 
   for (const indicator of errorIndicators) {
@@ -496,8 +555,23 @@ function detectLoginRequired(content: string): boolean {
     "login required",
     "sign in to continue",
     "authentication required",
+    "sign in with your",
+    "log in to your account",
+    "enter your password",
+  ];
+
+  // Check for known login-required domains in the content
+  const loginDomains = [
+    "informeddelivery.usps.com",
   ];
 
   const lower = content.toLowerCase();
+
+  // Check URL patterns that indicate login is required
+  if (loginDomains.some((domain) => lower.includes(domain))) {
+    // USPS Informed Delivery always requires login
+    return true;
+  }
+
   return loginIndicators.some((indicator) => lower.includes(indicator));
 }
