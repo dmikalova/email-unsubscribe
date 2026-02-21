@@ -29,7 +29,8 @@ export function extractUnsubscribeLinksFromHtml(html: string): ExtractedLink[] {
   let match;
 
   while ((match = linkRegex.exec(html)) !== null) {
-    const url = match[1];
+    // Decode HTML entities in URL (e.g., &amp; -> &)
+    const url = decodeHtmlEntities(match[1]);
     const text = stripHtmlTags(match[2]).trim();
     const fullMatch = match[0];
 
@@ -105,6 +106,22 @@ function calculateConfidence(
 
 function stripHtmlTags(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+}
+
+// Decode common HTML entities in URLs
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(
+      /&#x([0-9a-fA-F]+);/g,
+      (_, hex) => String.fromCharCode(parseInt(hex, 16)),
+    )
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)));
 }
 
 export function decodeBase64Url(data: string): string {

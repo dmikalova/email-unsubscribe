@@ -1,9 +1,13 @@
 // Gmail Label Management
 
-import { archiveMessage, getOrCreateLabel, modifyMessageLabels } from './client.ts';
+import {
+  archiveMessage,
+  getOrCreateLabel,
+  modifyMessageLabels,
+} from "./client.ts";
 
 // Parent label that contains all sub-labels
-const PARENT_LABEL = 'Unsubscribed';
+const PARENT_LABEL = "Unsubscribed";
 
 export const LABEL_NAMES = {
   SUCCESS: `${PARENT_LABEL}/Success`,
@@ -30,7 +34,10 @@ export async function initializeLabels(userId: string): Promise<void> {
   console.log(`[Labels] Initialized for user ${userId}`);
 }
 
-export async function getLabelId(userId: string, name: string): Promise<string> {
+export async function getLabelId(
+  userId: string,
+  name: string,
+): Promise<string> {
   let cache = userLabelCache.get(userId);
   if (!cache) {
     await initializeLabels(userId);
@@ -45,28 +52,46 @@ export async function getLabelId(userId: string, name: string): Promise<string> 
   return id;
 }
 
-export async function labelMessageAsSuccess(userId: string, messageId: string): Promise<void> {
+export async function labelMessageAsSuccess(
+  userId: string,
+  messageId: string,
+): Promise<void> {
   const labelId = await getLabelId(userId, LABEL_NAMES.SUCCESS);
   const failedLabelId = await getLabelId(userId, LABEL_NAMES.FAILED);
   const pendingLabelId = await getLabelId(userId, LABEL_NAMES.PENDING);
 
-  await modifyMessageLabels(userId, messageId, [labelId], [failedLabelId, pendingLabelId]);
+  await modifyMessageLabels(userId, messageId, [labelId], [
+    failedLabelId,
+    pendingLabelId,
+  ]);
 }
 
-export async function labelMessageAsFailed(userId: string, messageId: string): Promise<void> {
+export async function labelMessageAsFailed(
+  userId: string,
+  messageId: string,
+): Promise<void> {
   const labelId = await getLabelId(userId, LABEL_NAMES.FAILED);
   const successLabelId = await getLabelId(userId, LABEL_NAMES.SUCCESS);
   const pendingLabelId = await getLabelId(userId, LABEL_NAMES.PENDING);
 
-  await modifyMessageLabels(userId, messageId, [labelId], [successLabelId, pendingLabelId]);
+  await modifyMessageLabels(userId, messageId, [labelId], [
+    successLabelId,
+    pendingLabelId,
+  ]);
 }
 
-export async function labelMessageAsPending(userId: string, messageId: string): Promise<void> {
+export async function labelMessageAsPending(
+  userId: string,
+  messageId: string,
+): Promise<void> {
   const labelId = await getLabelId(userId, LABEL_NAMES.PENDING);
   await modifyMessageLabels(userId, messageId, [labelId], []);
 }
 
-export async function archiveAndLabelSuccess(userId: string, messageId: string): Promise<void> {
+export async function archiveAndLabelSuccess(
+  userId: string,
+  messageId: string,
+): Promise<void> {
   await labelMessageAsSuccess(userId, messageId);
   await archiveMessage(userId, messageId);
 }
