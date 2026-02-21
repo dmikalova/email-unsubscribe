@@ -8,7 +8,7 @@ import {
   csrfSetupMiddleware,
   oauth,
   rateLimitMiddleware,
-} from "./api/index.ts";
+} from "./routes/index.ts";
 import type { AppEnv } from "./types.ts";
 
 export const app = new Hono<AppEnv>();
@@ -74,14 +74,42 @@ app.get("/output.css", async (c) => {
   }
 });
 
-// Serve frontend
-app.get("/", async (c) => {
+// Serve built frontend assets
+app.get("/assets/*", async (c) => {
+  const path = c.req.path;
+  const distDir = new URL("./public/dist", import.meta.url).pathname;
   try {
-    const html = await Deno.readTextFile(
-      new URL("./public/index.html", import.meta.url).pathname,
-    );
+    const file = await Deno.readFile(`${distDir}${path}`);
+    const ext = path.split(".").pop();
+    const contentType = ext === "js"
+      ? "application/javascript"
+      : ext === "css"
+      ? "text/css"
+      : "application/octet-stream";
+    return new Response(file, {
+      headers: { "Content-Type": contentType },
+    });
+  } catch {
+    return c.json({ error: "Not found" }, 404);
+  }
+});
+
+// Serve frontend - try built version first, fall back to legacy HTML
+app.get("/", async (c) => {
+  const distDir = new URL("./public/dist", import.meta.url).pathname;
+  try {
+    // Try built frontend first
+    const html = await Deno.readTextFile(`${distDir}/index.html`);
     return c.html(html);
   } catch {
-    return c.json({ message: "Email Unsubscribe API", version: "0.1.0" });
+    // Fall back to legacy single-file HTML
+    try {
+      const html = await Deno.readTextFile(
+        new URL("./public/index.html", import.meta.url).pathname,
+      );
+      return c.html(html);
+    } catch {
+      return c.json({ message: "Email Unsubscribe API", version: "0.1.0" });
+    }
   }
 });

@@ -10,7 +10,7 @@ Deno.test("encryption - encrypts and decrypts data correctly", async () => {
   Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
   // Dynamic import to use the env var
-  const { encrypt, decrypt } = await import("../../src/gmail/encryption.ts");
+  const { encrypt, decrypt } = await import("../../api/gmail/encryption.ts");
 
   const originalData = "test-oauth-token-12345";
   const encrypted = await encrypt(originalData);
@@ -22,7 +22,7 @@ Deno.test("encryption - encrypts and decrypts data correctly", async () => {
 Deno.test("encryption - produces different ciphertext for same input (random IV)", async () => {
   Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
-  const { encrypt } = await import("../../src/gmail/encryption.ts");
+  const { encrypt } = await import("../../api/gmail/encryption.ts");
 
   const originalData = "test-oauth-token-12345";
   const encrypted1 = await encrypt(originalData);
@@ -38,7 +38,7 @@ Deno.test("encryption - produces different ciphertext for same input (random IV)
 Deno.test("encryption - handles empty string", async () => {
   Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
-  const { encrypt, decrypt } = await import("../../src/gmail/encryption.ts");
+  const { encrypt, decrypt } = await import("../../api/gmail/encryption.ts");
 
   const encrypted = await encrypt("");
   const decrypted = await decrypt(encrypted);
@@ -49,7 +49,7 @@ Deno.test("encryption - handles empty string", async () => {
 Deno.test("encryption - handles unicode characters", async () => {
   Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
-  const { encrypt, decrypt } = await import("../../src/gmail/encryption.ts");
+  const { encrypt, decrypt } = await import("../../api/gmail/encryption.ts");
 
   const originalData = "test-token-日本語-émoji-🔐";
   const encrypted = await encrypt(originalData);
@@ -61,7 +61,7 @@ Deno.test("encryption - handles unicode characters", async () => {
 Deno.test("encryption - handles long strings", async () => {
   Deno.env.set("ENCRYPTION_KEY_BASE64", TEST_KEY);
 
-  const { encrypt, decrypt } = await import("../../src/gmail/encryption.ts");
+  const { encrypt, decrypt } = await import("../../api/gmail/encryption.ts");
 
   const originalData = "a".repeat(10000);
   const encrypted = await encrypt(originalData);

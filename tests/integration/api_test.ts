@@ -7,7 +7,7 @@ import { assertEquals } from "@std/assert";
 Deno.env.set("SKIP_AUTH", "true");
 Deno.env.set("SKIP_CSRF", "true");
 
-import { app } from "../../src/app.ts";
+import { app } from "../../api/app.ts";
 
 // Helper to make requests to the app
 async function request(path: string, options: RequestInit = {}) {

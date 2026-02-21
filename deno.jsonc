@@ -1,6 +1,6 @@
 {
   "name": "@email-unsubscribe/app",
-  "exports": "./src/main.ts",
+  "exports": "./api/main.ts",
 
   // Import map for npm packages and external dependencies
   "imports": {
@@ -13,8 +13,12 @@
 
   // Available tasks: deno task <name>
   "tasks": {
+    // Development with hot reload
+    "api:dev": "deno run --permission-set --watch api/main.ts",
+    // Production start
+    "api:start": "deno run --permission-set api/main.ts",
     // Type-check without running
-    "check": "deno check src/**/*.ts",
+    "check": "deno check api/**/*.ts",
     // Build CSS with Tailwind (production, minified)
     "css:build": "deno run --permission-set scripts/build-css.ts",
     // Apply schema changes to database (fetches DATABASE_URL_SESSION from Secret Manager)
@@ -23,8 +27,6 @@
     "db:diff": "deno run --allow-run --allow-env scripts/db.ts diff",
     // Truncate all tables (use before destructive migrations)
     "db:truncate": "deno run --allow-run --allow-env scripts/db.ts truncate",
-    // Development with hot reload
-    "dev": "deno run --permission-set --watch src/main.ts",
     // Format all files
     "fmt": "deno fmt",
     // Lint TypeScript files
@@ -33,8 +35,10 @@
     "secrets:decrypt": "for f in secrets/*.sops.json; do sops -d \"$f\" > \"${f%.sops.json}.json\"; done",
     // Encrypt all .json secret files to .sops.json
     "secrets:encrypt": "for f in secrets/*.json; do sops -e \"$f\" > \"${f%.json}.sops.json\"; done",
-    // Production start
-    "start": "deno run --permission-set src/main.ts",
+    // Build frontend for production
+    "src:build": "cd src && deno task build",
+    // Run frontend dev server with hot reload (use with api:dev)
+    "src:dev": "cd src && deno task dev",
     // Run unit tests only (default, no external deps required)
     "test": "deno test --permission-set tests/unit/",
     // Run all tests (unit + integration, requires PostgreSQL)
