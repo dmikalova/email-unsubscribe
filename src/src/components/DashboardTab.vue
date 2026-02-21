@@ -1,38 +1,18 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStats, useGmail } from "../composables";
+import { useStats } from "../composables";
 import { statusClass, formatTime } from "../utils";
 
-const { stats, recentActivity, scanInProgress, fetchStats, fetchRecent, fetchScanStatus, triggerScan } =
+const { stats, recentActivity, fetchStats, fetchRecent } =
   useStats();
-const { gmailStatus } = useGmail();
 
 onMounted(() => {
   fetchStats();
   fetchRecent();
-  fetchScanStatus();
 });
 </script>
 
 <template>
-  <!-- Scan Button -->
-  <div class="mb-6 flex justify-end">
-    <button
-      @click="triggerScan"
-      :disabled="scanInProgress || !gmailStatus.authorized"
-      :class="[
-        'px-4 py-2 rounded-md text-sm font-medium transition-colors',
-        scanInProgress || !gmailStatus.authorized
-          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          : 'bg-primary-600 text-white hover:bg-primary-700',
-      ]"
-      :title="!gmailStatus.authorized ? 'Connect Gmail first' : ''"
-    >
-      <span v-if="scanInProgress">Scanning...</span>
-      <span v-else>Scan Now</span>
-    </button>
-  </div>
-
   <!-- Stats Cards -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow-material p-6">

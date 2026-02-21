@@ -1,6 +1,7 @@
 // OAuth routes for Gmail authorization
 
 import { Hono } from "hono";
+import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { deleteAllUserData, exportAllUserData } from "../db/user-data.ts";
 import { exchangeCodeForTokens, getAuthorizationUrl } from "../gmail/oauth.ts";
 import {
@@ -13,6 +14,10 @@ import {
 import { logOAuthAuthorized, logOAuthRevoked } from "../tracker/audit.ts";
 import type { AppEnv } from "../types.ts";
 
+// Cookie name for Gmail connection state
+const GMAIL_COOKIE = "gmail_connected";
+const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
+
 export const oauth = new Hono<AppEnv>();
 
 // Check authorization status
@@ -22,8 +27,35 @@ oauth.get("/status", async (c) => {
     return c.json({ authorized: false, error: "Not authenticated" });
   }
 
+  // Fast path: check cookie first
+  const cookieEmail = getCookie(c, GMAIL_COOKIE);
+  if (cookieEmail) {
+    // Verify tokens still exist in DB (cookie could be stale)
+    const authorized = await hasValidTokens(user.userId);
+    if (authorized) {
+      return c.json({
+        authorized: true,
+        connectedEmail: cookieEmail,
+      });
+    }
+    // Cookie is stale, clear it
+    deleteCookie(c, GMAIL_COOKIE);
+  }
+
+  // Slow path: check database
   const authorized = await hasValidTokens(user.userId);
   const tokens = authorized ? await getTokens(user.userId) : null;
+
+  // Set cookie if authorized
+  if (authorized && tokens?.connectedEmail) {
+    setCookie(c, GMAIL_COOKIE, tokens.connectedEmail, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Lax",
+      maxAge: COOKIE_MAX_AGE,
+      path: "/",
+    });
+  }
 
   return c.json({
     authorized,
@@ -126,6 +158,17 @@ oauth.get("/callback", async (c) => {
     await storeTokens(tokens, userId, connectedEmail);
     await logOAuthAuthorized(userId, connectedEmail);
 
+    // Set gmail_connected cookie for persistence across server restarts
+    if (connectedEmail) {
+      setCookie(c, GMAIL_COOKIE, connectedEmail, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Lax",
+        maxAge: COOKIE_MAX_AGE,
+        path: "/",
+      });
+    }
+
     // Redirect immediately to dashboard
     return c.redirect("/");
   } catch (error) {
@@ -153,6 +196,10 @@ oauth.post("/revoke", async (c) => {
 
   await deleteTokens(user.userId);
   await logOAuthRevoked(user.userId);
+
+  // Clear gmail_connected cookie
+  deleteCookie(c, GMAIL_COOKIE);
+
   return c.json({ success: true });
 });
 

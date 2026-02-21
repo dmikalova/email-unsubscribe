@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
-import { useGmail } from "./composables";
+import { ref, watch, onMounted, computed } from "vue";
+import { useGmail, useStats } from "./composables";
 import DashboardTab from "./components/DashboardTab.vue";
 import FailedTab from "./components/FailedTab.vue";
 import AllowListTab from "./components/AllowListTab.vue";
@@ -25,6 +25,16 @@ const getTabFromHash = (): TabId => {
 };
 
 const currentTab = ref<TabId>(getTabFromHash());
+const mobileMenuOpen = ref(false);
+
+const currentTabLabel = computed(() => {
+  return tabs.find((t) => t.id === currentTab.value)?.label || "Dashboard";
+});
+
+const selectTab = (tabId: TabId) => {
+  currentTab.value = tabId;
+  mobileMenuOpen.value = false;
+};
 
 watch(currentTab, (newTab) => {
   window.location.hash = newTab;
@@ -34,8 +44,9 @@ window.addEventListener("hashchange", () => {
   currentTab.value = getTabFromHash();
 });
 
-const { gmailStatus, fetchGmailStatus, connectGmail, disconnectGmail } =
+const { gmailStatus, gmailLoading, fetchGmailStatus, connectGmail, disconnectGmail } =
   useGmail();
+const { scanInProgress, triggerScan } = useStats();
 
 onMounted(() => {
   fetchGmailStatus();
@@ -44,14 +55,51 @@ onMounted(() => {
 
 <template>
   <!-- Navigation -->
-  <nav class="bg-primary-600 text-white shadow-material overflow-x-auto">
+  <nav class="bg-primary-600 text-white shadow-material">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16 min-w-max">
-        <div class="flex items-center flex-shrink-0">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-4 flex-shrink-0">
           <span class="text-xl font-semibold">Email Unsubscribe</span>
+          <!-- Mobile Tab Dropdown -->
+          <div class="relative md:hidden">
+            <button
+              @click="mobileMenuOpen = !mobileMenuOpen"
+              class="px-3 py-2 rounded-md text-sm font-medium bg-primary-700 flex items-center gap-2"
+            >
+              {{ currentTabLabel }}
+              <svg
+                class="w-4 h-4 transition-transform"
+                :class="{ 'rotate-180': mobileMenuOpen }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div
+              v-if="mobileMenuOpen"
+              class="absolute left-0 mt-1 w-40 rounded-md shadow-lg bg-primary-700 z-50"
+            >
+              <button
+                v-for="tab in tabs"
+                :key="tab.id"
+                @click="selectTab(tab.id)"
+                :class="[
+                  'block w-full text-left px-4 py-2 text-sm font-medium transition-colors',
+                  currentTab === tab.id
+                    ? 'bg-primary-800'
+                    : 'hover:bg-primary-600',
+                ]"
+              >
+                {{ tab.label }}
+              </button>
+            </div>
+          </div>
         </div>
         <div class="flex items-center space-x-4 flex-shrink-0">
-          <div class="flex space-x-4">
+          <!-- Desktop Tabs -->
+          <div class="hidden md:flex space-x-4">
             <button
               v-for="tab in tabs"
               :key="tab.id"
@@ -66,12 +114,29 @@ onMounted(() => {
               {{ tab.label }}
             </button>
           </div>
+          <!-- Scan Now Button -->
+          <button
+            @click="triggerScan"
+            :disabled="gmailLoading || scanInProgress || !gmailStatus.authorized"
+            :class="[
+              'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+              gmailLoading || scanInProgress || !gmailStatus.authorized
+                ? 'bg-primary-400 text-primary-200 cursor-not-allowed'
+                : 'bg-white text-primary-600 hover:bg-gray-100',
+            ]"
+            :title="!gmailStatus.authorized ? 'Connect Gmail first' : ''"
+          >
+            {{ scanInProgress ? 'Scanning...' : 'Scan Now' }}
+          </button>
           <!-- Gmail Connection Status -->
           <div
             class="border-l border-primary-400 pl-4 flex items-center space-x-2"
           >
-            <template v-if="gmailStatus.authorized">
-              <span class="text-sm">{{
+            <template v-if="gmailLoading">
+              <span class="text-sm text-primary-200">Loading...</span>
+            </template>
+            <template v-else-if="gmailStatus.authorized">
+              <span class="text-sm hidden sm:inline">{{
                 gmailStatus.connectedEmail || "Gmail Connected"
               }}</span>
               <button
@@ -94,42 +159,6 @@ onMounted(() => {
       </div>
     </div>
   </nav>
-
-  <!-- Gmail Not Connected Banner -->
-  <div
-    v-if="!gmailStatus.authorized"
-    class="bg-yellow-50 border-l-4 border-yellow-400 p-4"
-  >
-    <div class="max-w-7xl mx-auto flex items-center">
-      <div class="flex-shrink-0">
-        <svg
-          class="h-5 w-5 text-yellow-400"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-            clip-rule="evenodd"
-          />
-        </svg>
-      </div>
-      <div class="ml-3 flex-1">
-        <p class="text-sm text-yellow-700">
-          Connect your Gmail account to start scanning for unsubscribe
-          opportunities.
-        </p>
-      </div>
-      <div class="ml-4">
-        <button
-          @click="connectGmail"
-          class="px-4 py-2 bg-yellow-400 text-yellow-900 rounded hover:bg-yellow-500 transition-colors font-medium text-sm"
-        >
-          Connect Gmail
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Main Content -->
   <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
