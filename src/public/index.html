@@ -11,13 +11,13 @@
   <body class="bg-gray-100 min-h-screen">
     <div id="app" v-cloak>
       <!-- Navigation -->
-      <nav class="bg-primary-600 text-white shadow-material">
+      <nav class="bg-primary-600 text-white shadow-material overflow-x-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex items-center justify-between h-16">
-            <div class="flex items-center">
+          <div class="flex items-center justify-between h-16 min-w-max">
+            <div class="flex items-center flex-shrink-0">
               <span class="text-xl font-semibold">Email Unsubscribe</span>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-4 flex-shrink-0">
               <div class="flex space-x-4">
                 <button
                   v-for="tab in tabs"
@@ -286,24 +286,26 @@
                       {{ item.retryCount }}
                     </td>
                     <td class="px-4 py-3 text-sm">
-                      <button
-                        @click="viewDetails(item)"
-                        class="text-primary-600 hover:text-primary-800 mr-2"
-                      >
-                        View
-                      </button>
-                      <button
-                        @click="retryUnsubscribe(item.id)"
-                        class="text-yellow-600 hover:text-yellow-800 mr-2"
-                      >
-                        Retry
-                      </button>
-                      <button
-                        @click="markResolved(item.id)"
-                        class="text-green-600 hover:text-green-800"
-                      >
-                        Resolve
-                      </button>
+                      <div class="flex space-x-2">
+                        <button
+                          @click="viewDetails(item)"
+                          class="bg-primary-100 text-primary-700 px-3 py-1 rounded text-xs font-medium hover:bg-primary-200"
+                        >
+                          View
+                        </button>
+                        <button
+                          @click="retryUnsubscribe(item.id)"
+                          class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded text-xs font-medium hover:bg-yellow-200"
+                        >
+                          Retry
+                        </button>
+                        <button
+                          @click="markResolved(item.id)"
+                          class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-medium hover:bg-green-200"
+                        >
+                          Resolve
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -516,12 +518,12 @@
               <div class="space-x-2">
                 <button
                   @click="exportPatterns"
-                  class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
+                  class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 inline-flex items-center h-10"
                 >
                   Export
                 </button>
                 <label
-                  class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 cursor-pointer"
+                  class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 cursor-pointer inline-flex items-center h-10"
                 >
                   Import
                   <input
@@ -609,9 +611,9 @@
       <!-- Add Allow List Modal -->
       <div
         v-if="showAddModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
       >
-        <div class="bg-white rounded-lg shadow-material-xl p-6 w-96">
+        <div class="bg-white rounded-lg shadow-material-xl p-6 w-full max-w-md">
           <h3 class="text-lg font-semibold mb-4">Add to Allow List</h3>
           <div class="space-y-4">
             <div>
@@ -665,13 +667,13 @@
       <!-- Detail Modal -->
       <div
         v-if="selectedItem"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
       >
         <div
-          class="bg-white rounded-lg shadow-material-xl p-6 w-2/3 max-h-[80vh] overflow-y-auto"
+          class="bg-white rounded-lg shadow-material-xl p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto"
         >
           <h3 class="text-lg font-semibold mb-4">Unsubscribe Details</h3>
-          <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <span class="font-medium">Sender:</span> {{ selectedItem.sender }}
             </div>
@@ -699,9 +701,8 @@
           <div v-if="selectedItem.failureDetails" class="mb-4">
             <span class="font-medium">Details:</span>
             <pre
-              class="bg-gray-100 p-2 rounded mt-1 text-sm"
-            >
-{{ selectedItem.failureDetails }}</pre>
+              class="bg-gray-100 p-2 rounded mt-1 text-sm whitespace-pre-wrap break-words overflow-x-auto max-w-full"
+            >{{ selectedItem.failureDetails }}</pre>
           </div>
           <div v-if="selectedItem.screenshotPath" class="mb-4">
             <span class="font-medium">Screenshot:</span>
@@ -760,11 +761,10 @@
         return fetch(url, { ...options, headers });
       }
 
-      const { createApp, ref, onMounted, computed } = Vue;
+      const { createApp, ref, onMounted, computed, watch } = Vue;
 
       createApp({
         setup() {
-          const currentTab = ref("dashboard");
           const tabs = [
             { id: "dashboard", label: "Dashboard" },
             { id: "failed", label: "Failed" },
@@ -772,6 +772,25 @@
             { id: "domains", label: "Domains" },
             { id: "patterns", label: "Patterns" },
           ];
+          const validTabs = tabs.map(t => t.id);
+          
+          // Initialize from URL hash
+          const getTabFromHash = () => {
+            const hash = window.location.hash.slice(1);
+            return validTabs.includes(hash) ? hash : "dashboard";
+          };
+          
+          const currentTab = ref(getTabFromHash());
+          
+          // Update URL when tab changes
+          watch(currentTab, (newTab) => {
+            window.location.hash = newTab;
+          });
+          
+          // Handle browser back/forward
+          window.addEventListener('hashchange', () => {
+            currentTab.value = getTabFromHash();
+          });
 
           const stats = ref({
             total: 0,
