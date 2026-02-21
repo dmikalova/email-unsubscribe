@@ -209,7 +209,7 @@ export async function authMiddleware(c: Context, next: Next) {
 
 // Rate limiting middleware
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 200; // requests per window
+const RATE_LIMIT = 100; // requests per window
 const RATE_WINDOW = 60 * 1000; // 1 minute
 
 export async function rateLimitMiddleware(c: Context, next: Next) {
