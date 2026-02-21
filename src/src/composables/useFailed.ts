@@ -28,11 +28,20 @@ export function useFailed() {
 
   const retryUnsubscribe = async (id: string) => {
     try {
-      await fetchWithCsrf(`/api/failed/${id}/retry`, { method: "POST" });
-      showToast("Retry scheduled");
+      const res = await fetchWithCsrf(`/api/failed/${id}/retry`, {
+        method: "POST",
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast("Unsubscribe succeeded!", "success");
+      } else if (result.status === "uncertain") {
+        showToast("Unsubscribe uncertain - check trace", "warning");
+      } else {
+        showToast("Unsubscribe failed", "error");
+      }
       await fetchFailed();
     } catch {
-      showToast("Failed to schedule retry", "error");
+      showToast("Failed to retry", "error");
     }
   };
 

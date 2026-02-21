@@ -150,15 +150,25 @@ export function getFailedAttempts(
   offset = 0,
 ): Promise<UnsubscribeAttempt[]> {
   return withDb((sql) => {
+    // Only show the most recent attempt per sender that is failed/uncertain
     return sql<UnsubscribeAttempt[]>`
+      WITH latest_per_sender AS (
+        SELECT DISTINCT ON (sender) 
+               id, email_id, sender, sender_domain, unsubscribe_url, method, status,
+               failure_reason, failure_details, screenshot_path, trace_path,
+               attempted_at, completed_at, retry_count
+        FROM unsubscribe_history
+        WHERE user_id = ${userId}
+        ORDER BY sender, attempted_at DESC
+      )
       SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
              unsubscribe_url as "unsubscribeUrl", method, status,
              failure_reason as "failureReason", failure_details as "failureDetails",
              screenshot_path as "screenshotPath", trace_path as "tracePath",
              attempted_at as "attemptedAt", completed_at as "completedAt",
              retry_count as "retryCount"
-      FROM unsubscribe_history
-      WHERE user_id = ${userId} AND (status = 'failed' OR status = 'uncertain')
+      FROM latest_per_sender
+      WHERE status = 'failed' OR status = 'uncertain'
       ORDER BY attempted_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
@@ -170,15 +180,24 @@ export function getRecentAttempts(
   limit = 20,
 ): Promise<UnsubscribeAttempt[]> {
   return withDb((sql) => {
+    // Only show the most recent attempt per sender
     return sql<UnsubscribeAttempt[]>`
+      WITH latest_per_sender AS (
+        SELECT DISTINCT ON (sender) 
+               id, email_id, sender, sender_domain, unsubscribe_url, method, status,
+               failure_reason, failure_details, screenshot_path, trace_path,
+               attempted_at, completed_at, retry_count
+        FROM unsubscribe_history
+        WHERE user_id = ${userId}
+        ORDER BY sender, attempted_at DESC
+      )
       SELECT id, email_id as "emailId", sender, sender_domain as "senderDomain",
              unsubscribe_url as "unsubscribeUrl", method, status,
              failure_reason as "failureReason", failure_details as "failureDetails",
              screenshot_path as "screenshotPath", trace_path as "tracePath",
              attempted_at as "attemptedAt", completed_at as "completedAt",
              retry_count as "retryCount"
-      FROM unsubscribe_history
-      WHERE user_id = ${userId}
+      FROM latest_per_sender
       ORDER BY attempted_at DESC
       LIMIT ${limit}
     `;
@@ -257,10 +276,16 @@ export interface UnsubscribeStats {
 
 export function getStats(userId: string): Promise<UnsubscribeStats> {
   return withDb(async (sql) => {
+    // Count unique senders based on their most recent attempt status
     const rows = await sql<{ status: string; count: string }[]>`
+      WITH latest_per_sender AS (
+        SELECT DISTINCT ON (sender) status
+        FROM unsubscribe_history
+        WHERE user_id = ${userId}
+        ORDER BY sender, attempted_at DESC
+      )
       SELECT status, COUNT(*)::text as count
-      FROM unsubscribe_history
-      WHERE user_id = ${userId}
+      FROM latest_per_sender
       GROUP BY status
     `;
 
