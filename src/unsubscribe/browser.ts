@@ -7,6 +7,7 @@ import {
   type Pattern,
 } from "./patterns.ts";
 import { validateUnsubscribeUrl } from "./validation.ts";
+import { isStorageConfigured, uploadAndCleanup } from "../storage.ts";
 
 export interface BrowserResult {
   success: boolean;
@@ -254,12 +255,32 @@ export async function performBrowserUnsubscribe(
       screenshotPath,
     };
   } finally {
-    // Save trace on failure
+    // Save trace for debugging
     if (page) {
       try {
-        tracePath = `${tracesDir}/${emailId}-trace.zip`;
+        const localTracePath = `${tracesDir}/${emailId}-trace.zip`;
         await Deno.mkdir(tracesDir, { recursive: true });
-        await context.tracing.stop({ path: tracePath });
+        await context.tracing.stop({ path: localTracePath });
+
+        // Upload to GCS if configured, otherwise keep local path
+        if (isStorageConfigured()) {
+          try {
+            tracePath = await uploadAndCleanup(
+              localTracePath,
+              `traces/${emailId}-trace.zip`,
+              { contentType: "application/zip" },
+            );
+          } catch (uploadError) {
+            console.error("Failed to upload trace to GCS:", uploadError);
+            tracePath = localTracePath;
+          }
+        } else {
+          tracePath = localTracePath;
+        }
+
+        if (tracePath) {
+          console.log(`Trace saved to: ${tracePath}`);
+        }
       } catch {
         // Ignore trace save errors
       }
