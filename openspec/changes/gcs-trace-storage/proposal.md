@@ -11,8 +11,8 @@ Additionally, browser-based unsubscribe automation fails in production because
 Playwright browsers aren't installed in the distroless container. Need a sidecar
 container running Playwright server that the app connects to via WebSocket.
 
-Currently, scans are triggered manually. Need weekly scheduled scans with
-Cloud Scheduler.
+Currently, scans are triggered manually. Need weekly scheduled scans with Cloud
+Scheduler.
 
 ## What Changes
 

@@ -4,8 +4,10 @@
 
 ### 1. GCS Bucket in cloud-run-app Module
 
-**Decision**: Create bucket within cloud-run-app module when `storage_bucket =
-true`. Accept `storage_lifecycle_rules` for prefix-specific retention:
+**Decision**: Create bucket within cloud-run-app module when
+`storage_bucket =
+true`. Accept `storage_lifecycle_rules` for prefix-specific
+retention:
 
 ```hcl
 variable "storage_lifecycle_rules" {
@@ -99,17 +101,17 @@ flexible than single `scheduled_scan` variable.
 
 ## Resolved Questions
 
-**Q: Should sidecar containers share the main container's port?**
-A: No. Cloud Run routes external traffic to the container with the `ports`
-block. Sidecars communicate via localhost on their own ports.
+**Q: Should sidecar containers share the main container's port?** A: No. Cloud
+Run routes external traffic to the container with the `ports` block. Sidecars
+communicate via localhost on their own ports.
 
-**Q: How does Cloud Scheduler authenticate to Cloud Run?**
-A: OIDC token with dedicated service account. Cloud Scheduler generates token,
-Cloud Run validates it.
+**Q: How does Cloud Scheduler authenticate to Cloud Run?** A: OIDC token with
+dedicated service account. Cloud Scheduler generates token, Cloud Run validates
+it.
 
-**Q: What happens if GCS upload fails?**
-A: Log error, continue processing. Trace storage is best-effort - don't fail the
-unsubscribe operation for storage issues.
+**Q: What happens if GCS upload fails?** A: Log error, continue processing.
+Trace storage is best-effort - don't fail the unsubscribe operation for storage
+issues.
 
 ## Future Considerations
 
