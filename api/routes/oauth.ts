@@ -1,7 +1,7 @@
 // OAuth routes for Gmail authorization
 
 import { Hono } from "hono";
-import { getCookie, setCookie, deleteCookie } from "hono/cookie";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { deleteAllUserData, exportAllUserData } from "../db/user-data.ts";
 import { exchangeCodeForTokens, getAuthorizationUrl } from "../gmail/oauth.ts";
 import {
