@@ -243,6 +243,51 @@ export async function archiveMessage(
   await modifyMessageLabels(userId, messageId, [], ["INBOX"]);
 }
 
+export async function deleteLabel(
+  userId: string,
+  labelId: string,
+): Promise<void> {
+  const response = await gmailFetch(userId, `/labels/${labelId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete label: ${await response.text()}`);
+  }
+}
+
+export async function listMessagesWithLabel(
+  userId: string,
+  labelId: string,
+): Promise<{ id: string; threadId: string }[]> {
+  const messages: { id: string; threadId: string }[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const params = new URLSearchParams({
+      labelIds: labelId,
+      maxResults: "500",
+    });
+    if (pageToken) params.set("pageToken", pageToken);
+
+    const response = await gmailFetch(userId, `/messages?${params}`);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to list messages with label: ${await response.text()}`,
+      );
+    }
+
+    const data = await response.json();
+    if (data.messages) {
+      messages.push(...data.messages);
+    }
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+
+  return messages;
+}
+
 // Send API (for mailto unsubscribe)
 
 export async function sendEmail(
