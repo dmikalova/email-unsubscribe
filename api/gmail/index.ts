@@ -26,7 +26,6 @@ export {
   initializeLabels,
   LABEL_NAMES,
   labelMessageAsFailed,
-  labelMessageAsPending,
   labelMessageAsSuccess,
 } from "./labels.ts";
 export {

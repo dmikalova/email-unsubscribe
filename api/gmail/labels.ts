@@ -12,7 +12,6 @@ const PARENT_LABEL = "Unsubscribed";
 export const LABEL_NAMES = {
   SUCCESS: `${PARENT_LABEL}/Success`,
   FAILED: `${PARENT_LABEL}/Failed`,
-  PENDING: `${PARENT_LABEL}/Pending`,
 } as const;
 
 // Per-user label cache: userId -> (labelName -> labelId)
@@ -58,12 +57,8 @@ export async function labelMessageAsSuccess(
 ): Promise<void> {
   const labelId = await getLabelId(userId, LABEL_NAMES.SUCCESS);
   const failedLabelId = await getLabelId(userId, LABEL_NAMES.FAILED);
-  const pendingLabelId = await getLabelId(userId, LABEL_NAMES.PENDING);
 
-  await modifyMessageLabels(userId, messageId, [labelId], [
-    failedLabelId,
-    pendingLabelId,
-  ]);
+  await modifyMessageLabels(userId, messageId, [labelId], [failedLabelId]);
 }
 
 export async function labelMessageAsFailed(
@@ -72,20 +67,8 @@ export async function labelMessageAsFailed(
 ): Promise<void> {
   const labelId = await getLabelId(userId, LABEL_NAMES.FAILED);
   const successLabelId = await getLabelId(userId, LABEL_NAMES.SUCCESS);
-  const pendingLabelId = await getLabelId(userId, LABEL_NAMES.PENDING);
 
-  await modifyMessageLabels(userId, messageId, [labelId], [
-    successLabelId,
-    pendingLabelId,
-  ]);
-}
-
-export async function labelMessageAsPending(
-  userId: string,
-  messageId: string,
-): Promise<void> {
-  const labelId = await getLabelId(userId, LABEL_NAMES.PENDING);
-  await modifyMessageLabels(userId, messageId, [labelId], []);
+  await modifyMessageLabels(userId, messageId, [labelId], [successLabelId]);
 }
 
 export async function archiveAndLabelSuccess(
