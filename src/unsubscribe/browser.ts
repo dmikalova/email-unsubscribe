@@ -97,6 +97,7 @@ export async function performBrowserUnsubscribe(
   let page: Page | null = null;
   let screenshotPath: string | undefined;
   let tracePath: string | undefined;
+  let result: BrowserResult | null = null;
 
   try {
     page = await context.newPage();
@@ -131,34 +132,37 @@ export async function performBrowserUnsubscribe(
     // Check for CAPTCHA or login wall
     const pageContent = await page.content();
     if (detectCaptcha(pageContent)) {
-      return {
+      result = {
         success: false,
         uncertain: false,
         error: "CAPTCHA detected",
         errorCategory: "captcha_detected",
         screenshotPath,
       };
+      return result;
     }
 
     if (detectLoginRequired(pageContent)) {
-      return {
+      result = {
         success: false,
         uncertain: false,
         error: "Login required",
         errorCategory: "login_required",
         screenshotPath,
       };
+      return result;
     }
 
     // Check if already showing success message
     const preExistingSuccess = await checkForSuccessText(page, successPatterns);
     if (preExistingSuccess) {
-      return {
+      result = {
         success: true,
         uncertain: false,
         matchedPattern: preExistingSuccess,
         screenshotPath,
       };
+      return result;
     }
 
     // Try to find and click unsubscribe button
@@ -188,13 +192,14 @@ export async function performBrowserUnsubscribe(
     }
 
     if (!buttonClicked) {
-      return {
+      result = {
         success: false,
         uncertain: false,
         error: "No unsubscribe button found",
         errorCategory: "no_button_found",
         screenshotPath,
       };
+      return result;
     }
 
     // Wait for navigation or content change
@@ -208,34 +213,37 @@ export async function performBrowserUnsubscribe(
     // Check for success indicators
     const successPattern = await checkForSuccessText(page, successPatterns);
     if (successPattern) {
-      return {
+      result = {
         success: true,
         uncertain: false,
         matchedPattern: successPattern,
         screenshotPath,
       };
+      return result;
     }
 
     // Check for error indicators
     const errorPattern = await checkForErrorText(page, errorPatterns);
     if (errorPattern) {
-      return {
+      result = {
         success: false,
         uncertain: false,
         error: `Error text detected: ${errorPattern}`,
         errorCategory: "form_error",
         screenshotPath,
       };
+      return result;
     }
 
     // No clear indicator - mark as uncertain
-    return {
+    result = {
       success: false,
       uncertain: true,
       error: "No clear success or error indicator",
       matchedPattern,
       screenshotPath,
     };
+    return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
 
@@ -247,15 +255,16 @@ export async function performBrowserUnsubscribe(
       errorCategory = "network_error";
     }
 
-    return {
+    result = {
       success: false,
       uncertain: false,
       error: message,
       errorCategory,
       screenshotPath,
     };
+    return result;
   } finally {
-    // Save trace for debugging
+    // Save trace for debugging - organize by outcome
     if (page) {
       try {
         const localTracePath = `${tracesDir}/${emailId}-trace.zip`;
@@ -265,9 +274,11 @@ export async function performBrowserUnsubscribe(
         // Upload to GCS if configured, otherwise keep local path
         if (isStorageConfigured()) {
           try {
+            // Organize traces by success/failed status
+            const traceSubdir = result?.success ? "success" : "failed";
             tracePath = await uploadAndCleanup(
               localTracePath,
-              `traces/${emailId}-trace.zip`,
+              `traces/${traceSubdir}/${emailId}-trace.zip`,
               { contentType: "application/zip" },
             );
           } catch (uploadError) {
@@ -291,6 +302,9 @@ export async function performBrowserUnsubscribe(
 }
 
 async function tryGenericButtonDetection(page: Page): Promise<boolean> {
+  // First, handle multi-step forms by selecting any required reason/option
+  await handleReasonSelection(page);
+
   // Try common button patterns
   const genericSelectors = [
     'button:has-text("unsubscribe")',
@@ -300,6 +314,10 @@ async function tryGenericButtonDetection(page: Page): Promise<boolean> {
     'a:has-text("opt out")',
     'button:has-text("remove")',
     '[role="button"]:has-text("unsubscribe")',
+    // Submit buttons (after selecting a reason)
+    'button:has-text("submit")',
+    'input[type="submit"]',
+    'button:has-text("confirm")',
   ];
 
   for (const selector of genericSelectors) {
@@ -308,6 +326,73 @@ async function tryGenericButtonDetection(page: Page): Promise<boolean> {
       if (element) {
         await element.click();
         console.log(`Clicked element matching: ${selector}`);
+        return true;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return false;
+}
+
+// Handle multi-step unsubscribe forms that require selecting a reason
+async function handleReasonSelection(page: Page): Promise<boolean> {
+  // Look for radio buttons related to unsubscribe reasons
+  const reasonSelectors = [
+    // Radio buttons with common reason-related names/labels
+    'input[type="radio"][name*="reason" i]',
+    'input[type="radio"][name*="why" i]',
+    'input[type="radio"][name*="feedback" i]',
+    // Generic radio in unsubscribe context
+    'label:has-text("too many emails") input[type="radio"]',
+    'label:has-text("not interested") input[type="radio"]',
+    'label:has-text("no longer") input[type="radio"]',
+    'label:has-text("other") input[type="radio"]',
+    // Reverse selector (input before label)
+    'input[type="radio"] ~ label:has-text("too many")',
+    // USPS specific patterns
+    'input[type="radio"][id*="reason"]',
+    // Checkboxes for preferences
+    'input[type="checkbox"][name*="unsubscribe" i]',
+  ];
+
+  for (const selector of reasonSelectors) {
+    try {
+      // Try to find and click the first matching element
+      const elements = await page.$$(selector);
+      if (elements.length > 0) {
+        // Click the first available option
+        await elements[0].click();
+        console.log(`Selected reason option: ${selector}`);
+        // Wait for any form updates
+        await page.waitForTimeout(500);
+        return true;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  // Also try clicking on labels directly (for custom styled radio buttons)
+  const labelSelectors = [
+    'label:has-text("too many emails")',
+    'label:has-text("not relevant")',
+    'label:has-text("no longer interested")',
+    'label:has-text("other")',
+    // USPS might use these
+    'label:has-text("I receive too many")',
+    'label:has-text("content is not relevant")',
+    '[data-testid*="reason"]',
+  ];
+
+  for (const selector of labelSelectors) {
+    try {
+      const label = await page.$(selector);
+      if (label) {
+        await label.click();
+        console.log(`Clicked reason label: ${selector}`);
+        await page.waitForTimeout(500);
         return true;
       }
     } catch {
