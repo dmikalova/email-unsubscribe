@@ -31,12 +31,17 @@ import {
   getUnsubscribeLogs,
   incrementRetryCount,
   markAsResolved,
+  recordUnsubscribeAttempt,
+  type FailureReason,
 } from "../tracker/index.ts";
 import type { AppEnv } from "../types.ts";
 import {
   exportPatterns,
   getPatterns,
   importPatterns,
+  performBrowserUnsubscribe,
+  performMailtoUnsubscribe,
+  performOneClickUnsubscribe,
   type PatternExport,
   type PatternType,
 } from "../unsubscribe/index.ts";
@@ -140,11 +145,68 @@ api.post("/failed/:id/retry", async (c) => {
     return c.json({ error: "Not found" }, 404);
   }
 
-  const retryCount = await incrementRetryCount(userId, id);
+  if (!attempt.unsubscribeUrl) {
+    return c.json({ error: "No unsubscribe URL available" }, 400);
+  }
 
-  // TODO: Queue the retry job
+  await incrementRetryCount(userId, id);
 
-  return c.json({ success: true, retryCount });
+  // Perform the unsubscribe based on method
+  let result: { success: boolean; error?: string; uncertain?: boolean };
+
+  switch (attempt.method) {
+    case "one_click":
+      result = await performOneClickUnsubscribe(attempt.unsubscribeUrl);
+      break;
+    case "mailto":
+      result = await performMailtoUnsubscribe(userId, attempt.unsubscribeUrl);
+      break;
+    case "browser":
+    default:
+      result = await performBrowserUnsubscribe(
+        attempt.unsubscribeUrl,
+        attempt.emailId,
+      );
+      break;
+  }
+
+  // Record the new attempt
+  const status = result.success
+    ? "success"
+    : result.uncertain
+      ? "uncertain"
+      : "failed";
+
+  // Map error string to FailureReason
+  let failureReason: FailureReason | undefined;
+  if (result.error) {
+    const err = result.error.toLowerCase();
+    if (err.includes("timeout")) failureReason = "timeout";
+    else if (err.includes("captcha")) failureReason = "captcha_detected";
+    else if (err.includes("login")) failureReason = "login_required";
+    else if (err.includes("navigation") || err.includes("navigate"))
+      failureReason = "navigation_error";
+    else if (err.includes("button") || err.includes("form"))
+      failureReason = "form_error";
+    else if (err.includes("network") || err.includes("http"))
+      failureReason = "network_error";
+    else if (err.includes("invalid") || err.includes("url"))
+      failureReason = "invalid_url";
+    else failureReason = "unknown";
+  }
+
+  await recordUnsubscribeAttempt(userId, {
+    emailId: attempt.emailId,
+    sender: attempt.sender,
+    senderDomain: attempt.senderDomain,
+    unsubscribeUrl: attempt.unsubscribeUrl,
+    method: attempt.method,
+    status,
+    failureReason,
+    failureDetails: result.error,
+  });
+
+  return c.json({ success: result.success, status });
 });
 
 // Mark as resolved

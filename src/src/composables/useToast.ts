@@ -6,7 +6,7 @@ const toasts = ref<Toast[]>([]);
 export function useToast() {
   const showToast = (
     message: string,
-    type: "success" | "error" = "success",
+    type: "success" | "error" | "warning" = "success",
   ) => {
     const id = Date.now();
     toasts.value.push({ id, message, type });
