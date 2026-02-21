@@ -22,6 +22,7 @@ import {
   logPatternImported,
 } from "../tracker/audit.ts";
 import {
+  type FailureReason,
   getDomainStats,
   getFailedAttempts,
   getHistoryByDomain,
@@ -32,18 +33,17 @@ import {
   incrementRetryCount,
   markAsResolved,
   recordUnsubscribeAttempt,
-  type FailureReason,
 } from "../tracker/index.ts";
 import type { AppEnv } from "../types.ts";
 import {
   exportPatterns,
   getPatterns,
   importPatterns,
+  type PatternExport,
+  type PatternType,
   performBrowserUnsubscribe,
   performMailtoUnsubscribe,
   performOneClickUnsubscribe,
-  type PatternExport,
-  type PatternType,
 } from "../unsubscribe/index.ts";
 
 export const api = new Hono<AppEnv>();
@@ -174,8 +174,8 @@ api.post("/failed/:id/retry", async (c) => {
   const status = result.success
     ? "success"
     : result.uncertain
-      ? "uncertain"
-      : "failed";
+    ? "uncertain"
+    : "failed";
 
   // Map error string to FailureReason
   let failureReason: FailureReason | undefined;
@@ -184,15 +184,15 @@ api.post("/failed/:id/retry", async (c) => {
     if (err.includes("timeout")) failureReason = "timeout";
     else if (err.includes("captcha")) failureReason = "captcha_detected";
     else if (err.includes("login")) failureReason = "login_required";
-    else if (err.includes("navigation") || err.includes("navigate"))
+    else if (err.includes("navigation") || err.includes("navigate")) {
       failureReason = "navigation_error";
-    else if (err.includes("button") || err.includes("form"))
+    } else if (err.includes("button") || err.includes("form")) {
       failureReason = "form_error";
-    else if (err.includes("network") || err.includes("http"))
+    } else if (err.includes("network") || err.includes("http")) {
       failureReason = "network_error";
-    else if (err.includes("invalid") || err.includes("url"))
+    } else if (err.includes("invalid") || err.includes("url")) {
       failureReason = "invalid_url";
-    else failureReason = "unknown";
+    } else failureReason = "unknown";
   }
 
   await recordUnsubscribeAttempt(userId, {
