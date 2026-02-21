@@ -1,9 +1,9 @@
 // OAuth routes for Gmail authorization
 
-import { Hono } from "hono";
-import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { deleteAllUserData, exportAllUserData } from "../db/user-data.ts";
-import { exchangeCodeForTokens, getAuthorizationUrl } from "../gmail/oauth.ts";
+import { Hono } from 'hono';
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
+import { deleteAllUserData, exportAllUserData } from '../db/user-data.ts';
+import { exchangeCodeForTokens, getAuthorizationUrl } from '../gmail/oauth.ts';
 import {
   checkTokenHealth,
   deleteTokens,
@@ -12,28 +12,34 @@ import {
   hasValidTokens,
   storeTokens,
   updateConnectedEmail,
-} from "../gmail/tokens.ts";
-import { logOAuthAuthorized, logOAuthRevoked } from "../tracker/audit.ts";
-import type { AppEnv } from "../types.ts";
+} from '../gmail/tokens.ts';
+import { logOAuthAuthorized, logOAuthRevoked } from '../tracker/audit.ts';
+import type { AppEnv } from '../types.ts';
 
 // Cookie name for Gmail connection state
-const GMAIL_COOKIE = "gmail_connected";
+const GMAIL_COOKIE = 'gmail_connected';
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
 export const oauth = new Hono<AppEnv>();
 
 // Check authorization status
-oauth.get("/status", async (c) => {
-  const user = c.get("user");
+oauth.get('/status', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ authorized: false, error: "Not authenticated" });
+    console.log('[OAuth Status] No user - not authenticated');
+    return c.json({ authorized: false, error: 'Not authenticated' });
   }
+
+  console.log(`[OAuth Status] Checking for userId=${user.userId}`);
 
   // Fast path: check cookie first
   const cookieEmail = getCookie(c, GMAIL_COOKIE);
+  console.log(`[OAuth Status] Cookie email=${cookieEmail || 'none'}`);
+
   if (cookieEmail) {
     // Verify tokens still exist in DB (cookie could be stale)
     const authorized = await hasValidTokens(user.userId);
+    console.log(`[OAuth Status] Cookie found, tokens valid=${authorized}`);
     if (authorized) {
       return c.json({
         authorized: true,
@@ -41,46 +47,60 @@ oauth.get("/status", async (c) => {
       });
     }
     // Cookie is stale, clear it
+    console.log('[OAuth Status] Cookie stale, clearing');
     deleteCookie(c, GMAIL_COOKIE);
   }
 
   // Slow path: check database
   const authorized = await hasValidTokens(user.userId);
+  console.log(`[OAuth Status] DB check: authorized=${authorized}`);
+
   let tokens = authorized ? await getTokens(user.userId) : null;
+  console.log(`[OAuth Status] Tokens from DB: connectedEmail=${tokens?.connectedEmail || 'null'}`);
 
   // Backfill connected email if missing (for tokens stored before we tracked email)
   if (authorized && tokens && !tokens.connectedEmail) {
+    console.log('[OAuth Status] Attempting to backfill email from Google API');
     try {
       const accessToken = await getValidAccessToken(user.userId);
-      const userInfoResponse = await fetch(
-        "https://www.googleapis.com/oauth2/v2/userinfo",
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        },
-      );
+      console.log(`[OAuth Status] Got access token: ${accessToken.slice(0, 10)}...`);
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      console.log(`[OAuth Status] Google userinfo response: ${userInfoResponse.status}`);
       if (userInfoResponse.ok) {
         const userInfo = await userInfoResponse.json();
+        console.log(`[OAuth Status] Google userinfo email: ${userInfo.email || 'none'}`);
         if (userInfo.email) {
           await updateConnectedEmail(user.userId, userInfo.email);
           tokens = { ...tokens, connectedEmail: userInfo.email };
+          console.log(`[OAuth Status] Updated DB with email: ${userInfo.email}`);
         }
+      } else {
+        const errorText = await userInfoResponse.text();
+        console.log(`[OAuth Status] Google API error: ${errorText}`);
       }
-    } catch {
+    } catch (err) {
+      console.log(`[OAuth Status] Backfill error: ${err}`);
       // Non-fatal: proceed without email
     }
   }
 
   // Set cookie if authorized
   if (authorized && tokens?.connectedEmail) {
+    console.log(`[OAuth Status] Setting cookie with email: ${tokens.connectedEmail}`);
     setCookie(c, GMAIL_COOKIE, tokens.connectedEmail, {
       httpOnly: true,
       secure: true,
-      sameSite: "Lax",
+      sameSite: 'Lax',
       maxAge: COOKIE_MAX_AGE,
-      path: "/",
+      path: '/',
     });
   }
 
+  console.log(
+    `[OAuth Status] Returning: authorized=${authorized}, connectedEmail=${tokens?.connectedEmail || 'null'}`,
+  );
   return c.json({
     authorized,
     connectedEmail: tokens?.connectedEmail || null,
@@ -88,10 +108,10 @@ oauth.get("/status", async (c) => {
 });
 
 // Start OAuth flow
-oauth.get("/authorize", (c) => {
-  const user = c.get("user");
+oauth.get('/authorize', (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   // Store userId in state for callback verification
@@ -104,10 +124,10 @@ oauth.get("/authorize", (c) => {
 });
 
 // OAuth callback
-oauth.get("/callback", async (c) => {
-  const code = c.req.query("code");
-  const error = c.req.query("error");
-  const stateParam = c.req.query("state");
+oauth.get('/callback', async (c) => {
+  const code = c.req.query('code');
+  const error = c.req.query('error');
+  const stateParam = c.req.query('state');
 
   if (error) {
     return c.html(`
@@ -143,7 +163,7 @@ oauth.get("/callback", async (c) => {
     const state = JSON.parse(atob(stateParam));
     userId = state.userId;
     if (!userId) {
-      throw new Error("Missing userId in state");
+      throw new Error('Missing userId in state');
     }
   } catch {
     return c.html(`
@@ -161,24 +181,29 @@ oauth.get("/callback", async (c) => {
 
   try {
     const tokens = await exchangeCodeForTokens(code);
+    console.log(`[OAuth Callback] Got tokens for userId=${userId}`);
 
     // Fetch connected email from Google userinfo
     let connectedEmail: string | undefined;
     try {
-      const userInfoResponse = await fetch(
-        "https://www.googleapis.com/oauth2/v2/userinfo",
-        {
-          headers: { Authorization: `Bearer ${tokens.access_token}` },
-        },
-      );
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      });
+      console.log(`[OAuth Callback] Google userinfo response: ${userInfoResponse.status}`);
       if (userInfoResponse.ok) {
         const userInfo = await userInfoResponse.json();
         connectedEmail = userInfo.email;
+        console.log(`[OAuth Callback] Got email from Google: ${connectedEmail}`);
+      } else {
+        const errorText = await userInfoResponse.text();
+        console.log(`[OAuth Callback] Google API error: ${errorText}`);
       }
-    } catch {
+    } catch (err) {
+      console.log(`[OAuth Callback] Error fetching email: ${err}`);
       // Non-fatal: proceed without connected email
     }
 
+    console.log(`[OAuth Callback] Storing tokens with email: ${connectedEmail || 'none'}`);
     await storeTokens(tokens, userId, connectedEmail);
     await logOAuthAuthorized(userId, connectedEmail);
 
@@ -187,16 +212,16 @@ oauth.get("/callback", async (c) => {
       setCookie(c, GMAIL_COOKIE, connectedEmail, {
         httpOnly: true,
         secure: true,
-        sameSite: "Lax",
+        sameSite: 'Lax',
         maxAge: COOKIE_MAX_AGE,
-        path: "/",
+        path: '/',
       });
     }
 
     // Redirect immediately to dashboard
-    return c.redirect("/");
+    return c.redirect('/');
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return c.html(`
       <!DOCTYPE html>
       <html>
@@ -212,10 +237,10 @@ oauth.get("/callback", async (c) => {
 });
 
 // Revoke authorization (delete tokens)
-oauth.post("/revoke", async (c) => {
-  const user = c.get("user");
+oauth.post('/revoke', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   await deleteTokens(user.userId);
@@ -228,10 +253,10 @@ oauth.post("/revoke", async (c) => {
 });
 
 // Token health check endpoint
-oauth.get("/health", async (c) => {
-  const user = c.get("user");
+oauth.get('/health', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   const health = await checkTokenHealth(user.userId);
@@ -239,34 +264,34 @@ oauth.get("/health", async (c) => {
 });
 
 // Export all user data (GDPR data portability)
-oauth.get("/data/export", async (c) => {
-  const user = c.get("user");
+oauth.get('/data/export', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   const data = await exportAllUserData(user.userId);
   return new Response(JSON.stringify(data, null, 2), {
     headers: {
-      "Content-Type": "application/json",
-      "Content-Disposition": `attachment; filename="user-data-${
-        new Date().toISOString().split("T")[0]
+      'Content-Type': 'application/json',
+      'Content-Disposition': `attachment; filename="user-data-${
+        new Date().toISOString().split('T')[0]
       }.json"`,
     },
   });
 });
 
 // Delete all user data (GDPR right to erasure)
-oauth.delete("/data", async (c) => {
-  const user = c.get("user");
+oauth.delete('/data', async (c) => {
+  const user = c.get('user');
   if (!user?.userId) {
-    return c.json({ error: "Not authenticated" }, 401);
+    return c.json({ error: 'Not authenticated' }, 401);
   }
 
   const result = await deleteAllUserData(user.userId);
   return c.json({
     success: true,
-    message: "All user data has been deleted",
+    message: 'All user data has been deleted',
     ...result,
   });
 });
