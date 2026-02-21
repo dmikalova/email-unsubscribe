@@ -70,6 +70,14 @@ export function getConnection(): postgres.Sql {
   return sql;
 }
 
+// Reset connection pool - call after fatal connection errors
+export function resetConnection(): void {
+  if (sql) {
+    sql.end().catch(() => {}); // Fire and forget cleanup
+    sql = null;
+  }
+}
+
 export async function closeConnection(): Promise<void> {
   if (sql) {
     await sql.end();
@@ -84,11 +92,11 @@ export async function withTransaction<T>(
   fn: (sql: postgres.TransactionSql) => Promise<T>,
   retries = 3,
 ): Promise<T> {
-  const connection = getConnection();
   const schema = getSchema();
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retries; attempt++) {
+    const connection = getConnection(); // Get fresh connection each attempt
     try {
       const result = (await connection.begin(async (tx) => {
         await tx.unsafe(`SET LOCAL search_path TO ${schema}, public`);
@@ -101,13 +109,23 @@ export async function withTransaction<T>(
       // Check if it's a transient error worth retrying
       // Includes pool exhaustion scenarios from Supavisor
       const errorMessage = lastError.message.toLowerCase();
-      const isTransient = errorMessage.includes("deadlock") ||
+      const isConnectionDead = errorMessage.includes("connection_ended") ||
+        errorMessage.includes("connection terminated") ||
+        errorMessage.includes("connection refused");
+      const isTransient = isConnectionDead ||
+        errorMessage.includes("deadlock") ||
         errorMessage.includes("serialization") ||
         errorMessage.includes("connection") ||
         errorMessage.includes("timeout") ||
         errorMessage.includes("pool") ||
         errorMessage.includes("too many connections") ||
         errorMessage.includes("remaining connection slots");
+
+      // Reset connection pool on dead connection errors
+      if (isConnectionDead) {
+        console.log(`[DB] Connection dead, resetting pool: ${errorMessage}`);
+        resetConnection();
+      }
 
       if (!isTransient || attempt === retries - 1) {
         throw error;
@@ -130,27 +148,37 @@ export async function query<T>(
   queryFn: (sql: postgres.Sql) => Promise<T>,
   retries = 3,
 ): Promise<T> {
-  const connection = getConnection();
   const schema = getSchema();
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retries; attempt++) {
+    const connection = getConnection(); // Get fresh connection each attempt
     try {
       // Use begin to ensure search_path is set for the query
-      return await connection.begin(async (tx) => {
+      return (await connection.begin(async (tx) => {
         await tx.unsafe(`SET LOCAL search_path TO ${schema}, public`);
         return await queryFn(tx as unknown as postgres.Sql);
-      }) as T;
+      })) as T;
     } catch (error) {
       lastError = error as Error;
 
       // Check for transient errors including pool exhaustion
       const errorMessage = lastError.message.toLowerCase();
-      const isTransient = errorMessage.includes("connection") ||
+      const isConnectionDead = errorMessage.includes("connection_ended") ||
+        errorMessage.includes("connection terminated") ||
+        errorMessage.includes("connection refused");
+      const isTransient = isConnectionDead ||
+        errorMessage.includes("connection") ||
         errorMessage.includes("timeout") ||
         errorMessage.includes("pool") ||
         errorMessage.includes("too many connections") ||
         errorMessage.includes("remaining connection slots");
+
+      // Reset connection pool on dead connection errors
+      if (isConnectionDead) {
+        console.log(`[DB] Connection dead, resetting pool: ${errorMessage}`);
+        resetConnection();
+      }
 
       if (!isTransient || attempt === retries - 1) {
         throw error;
@@ -170,15 +198,10 @@ export async function query<T>(
  * Execute a database function with search_path set.
  * Required for Supavisor transaction pooling where session settings don't persist.
  * Wraps the function in a transaction to ensure search_path is set.
+ * Uses query() internally for automatic retry on connection errors.
  */
-export async function withDb<T>(
+export function withDb<T>(
   fn: (sql: postgres.Sql) => Promise<T>,
 ): Promise<T> {
-  const connection = getConnection();
-  const schema = getSchema();
-
-  return (await connection.begin(async (tx) => {
-    await tx.unsafe(`SET LOCAL search_path TO ${schema}, public`);
-    return await fn(tx as unknown as postgres.Sql);
-  })) as T;
+  return query(fn);
 }
