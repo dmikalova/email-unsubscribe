@@ -19,11 +19,6 @@ export async function storeTokens(
   userId: string,
   connectedEmail?: string,
 ): Promise<void> {
-  console.log(
-    `[Tokens] storeTokens called: userId=${userId}, connectedEmail=${
-      connectedEmail || "undefined"
-    }`,
-  );
   const accessTokenEncrypted = await encrypt(tokens.access_token);
   const refreshTokenEncrypted = await encrypt(tokens.refresh_token || "");
   const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
@@ -56,7 +51,6 @@ export async function storeTokens(
 
 export function getTokens(userId: string): Promise<StoredTokens | null> {
   return withDb(async (sql) => {
-    console.log(`[Tokens] getTokens called: userId=${userId}`);
     const rows = await sql<
       {
         user_id: string;
@@ -75,14 +69,10 @@ export function getTokens(userId: string): Promise<StoredTokens | null> {
     `;
 
     if (rows.length === 0) {
-      console.log(`[Tokens] No tokens found for userId=${userId}`);
       return null;
     }
 
     const row = rows[0];
-    console.log(
-      `[Tokens] Found tokens: connected_email=${row.connected_email || "null"}`,
-    );
 
     return {
       userId: row.user_id,
