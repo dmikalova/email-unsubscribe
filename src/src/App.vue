@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue";
-import { useGmail, useStats } from "./composables";
-import DashboardTab from "./components/DashboardTab.vue";
-import FailedTab from "./components/FailedTab.vue";
+import { computed, onMounted, ref, watch } from "vue";
 import AllowListTab from "./components/AllowListTab.vue";
+import DashboardTab from "./components/DashboardTab.vue";
 import DomainsTab from "./components/DomainsTab.vue";
+import FailedTab from "./components/FailedTab.vue";
 import PatternsTab from "./components/PatternsTab.vue";
 import ToastNotifications from "./components/ToastNotifications.vue";
+import { useGmail, useStats } from "./composables";
 
 const tabs = [
   { id: "dashboard", label: "Dashboard" },
@@ -139,7 +139,10 @@ onMounted(() => {
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
             <span class="text-sm text-gray-700">
-              Connected: <span class="font-medium">{{ gmailStatus.connectedEmail }}</span>
+              <template v-if="gmailStatus.connectedEmail">
+                Connected: <span class="font-medium">{{ gmailStatus.connectedEmail }}</span>
+              </template>
+              <template v-else>Gmail Connected</template>
             </span>
             <button
               @click="disconnectGmail"
