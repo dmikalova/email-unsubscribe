@@ -15,8 +15,9 @@ The repository SHALL include a GitHub Actions workflow at
 #### Scenario: Workflow calls github-meta repo
 
 - **WHEN** CI runs
-- **THEN** it uses `uses: dmikalova/github-meta/.github/workflows/deno-cloudrun.yaml@main`
-  to invoke the reusable workflow
+- **THEN** it uses
+  `uses: dmikalova/github-meta/.github/workflows/deno-cloudrun.yaml@main` to
+  invoke the reusable workflow
 
 ### Requirement: Workflow passes required inputs
 
