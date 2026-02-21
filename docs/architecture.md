@@ -42,21 +42,21 @@ flowchart LR
 
 ## Core Components
 
-### 1. Gmail Integration (`src/gmail/`)
+### 1. Gmail Integration (`api/gmail/`)
 
 - **OAuth Flow**: Handles Google OAuth 2.0 authentication
 - **Token Management**: Encrypts and stores refresh tokens
 - **API Client**: Interfaces with Gmail API for reading emails
 - **Labels**: Manages Gmail labels for tracking processed emails
 
-### 2. Email Scanner (`src/scanner/`)
+### 2. Email Scanner (`api/scanner/`)
 
 - **Header Parser**: Extracts `List-Unsubscribe` headers (RFC 8058)
 - **HTML Parser**: Finds unsubscribe links in email body
 - **Allow List**: Manages senders to preserve
 - **Sender Tracking**: Tracks effectiveness of unsubscribes
 
-### 3. Unsubscribe Processor (`src/unsubscribe/`)
+### 3. Unsubscribe Processor (`api/unsubscribe/`)
 
 - **URL Validator**: Validates URLs, prevents SSRF attacks
 - **One-Click Handler**: Processes RFC 8058 POST requests
@@ -64,13 +64,13 @@ flowchart LR
 - **Browser Automation**: Uses Playwright for complex flows
 - **Pattern Manager**: Stores reusable automation patterns
 
-### 4. Tracking System (`src/tracker/`)
+### 4. Tracking System (`api/tracker/`)
 
 - **Attempt Tracker**: Records all unsubscribe attempts
 - **Audit Logger**: Logs all actions for debugging
 - **Statistics**: Aggregates success/failure metrics
 
-### 5. Web Dashboard (`src/api/`, `src/public/`)
+### 5. Web Dashboard (`api/routes/`, `src/`)
 
 - **REST API**: JSON endpoints for dashboard operations
 - **Vue.js SPA**: Single-page application dashboard
@@ -205,7 +205,7 @@ All URLs are validated before processing:
 
 ### Authentication
 
-- Auth delegated to main domain (cddc39.tech)
+- Auth delegated to main domain (mklv.tech)
 - Session cookies shared across subdomain
 - CSRF protection on state-changing endpoints
 

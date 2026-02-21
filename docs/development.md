@@ -6,13 +6,22 @@ locally.
 ## Prerequisites
 
 - [Deno](https://deno.land/) v2.0 or later
-- [Docker](https://www.docker.com/) and Docker Compose
+- PostgreSQL database (local Docker or Supabase)
 - [Google Cloud Project](./setup-google.md) with Gmail API enabled
-- [direnv](https://direnv.net/) for automatic environment loading
-- [SOPS](https://github.com/mozilla/sops) and
-  [age](https://github.com/FiloSottile/age) for secrets
 
-## Quick Start
+## Required Environment Variables
+
+| Variable                | Description                             |
+| ----------------------- | --------------------------------------- |
+| `DATABASE_URL`          | PostgreSQL connection string            |
+| `GOOGLE_CLIENT_ID`      | OAuth 2.0 client ID for Gmail API       |
+| `GOOGLE_CLIENT_SECRET`  | OAuth 2.0 client secret                 |
+| `GOOGLE_REDIRECT_URI`   | OAuth callback URL                      |
+| `ENCRYPTION_KEY_BASE64` | 32-byte base64 key for token encryption |
+| `SUPABASE_URL`          | Supabase project URL                    |
+| `SUPABASE_JWT_KEY`      | Supabase JWT signing key                |
+
+## Setup
 
 ### 1. Clone the Repository
 
@@ -21,64 +30,23 @@ git clone https://github.com/dmikalova/email-unsubscribe.git
 cd email-unsubscribe
 ```
 
-### 2. Set Up SOPS and age
+### 2. Set Environment Variables
 
-Install the tools:
-
-```bash
-brew install sops age direnv
-```
-
-Generate an age key (if you don't have one):
+Export the required variables or add them to your shell profile:
 
 ```bash
-mkdir -p ~/.age
-age-keygen -o ~/.age/key.txt
+export DATABASE_URL="postgres://postgres:postgres@localhost:5432/email_unsubscribe"
+export GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
+export GOOGLE_CLIENT_SECRET="your-client-secret"
+export GOOGLE_REDIRECT_URI="http://localhost:8000/oauth/callback"
+export ENCRYPTION_KEY_BASE64="$(openssl rand -base64 32)"
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_JWT_KEY="your-jwt-key"
 ```
 
-Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
+### 3. Start PostgreSQL
 
-```bash
-export SOPS_AGE_KEY_FILE=~/.age/key.txt
-eval "$(direnv hook zsh)"  # or bash
-```
-
-### 3. Configure SOPS
-
-Get your age public key and update `.sops.yaml`:
-
-```bash
-age-keygen -y ~/.age/key.txt
-# Copy the output (age1...) and replace the placeholder in .sops.yaml
-```
-
-### 4. Create Secrets File
-
-```bash
-sops secrets/google.sops.json
-```
-
-Add your secrets (see `secrets/google.sops.json.example` for format):
-
-```json
-{
-  "GOOGLE_CLIENT_ID": "your-client-id.apps.googleusercontent.com",
-  "GOOGLE_CLIENT_SECRET": "your-client-secret",
-  "EMAIL_UNSUBSCRIBE_ENCRYPTION_KEY_BASE64": "your-32-byte-base64-encryption-key"
-}
-```
-
-### 5. Allow direnv
-
-```bash
-direnv allow
-```
-
-This automatically loads secrets from SOPS when you `cd` into the project.
-
-### 6. Start PostgreSQL
-
-For local development, you can use Docker to run PostgreSQL:
+For local development, use Docker:
 
 ```bash
 docker run --name postgres-dev \
@@ -89,34 +57,49 @@ docker run --name postgres-dev \
   -d postgres:16-alpine
 ```
 
-Or use an existing PostgreSQL instance, or connect to your Supabase preview
-database.
+Or connect to your Supabase preview database.
 
-### 4. Run Database Migrations
+### 4. Install Atlas
+
+The database schema is managed by [Atlas](https://atlasgo.io/):
 
 ```bash
-deno task migrate
+brew install ariga/tap/atlas
 ```
 
-### 5. Start the Development Server
+### 5. Apply Database Schema
 
 ```bash
-deno task dev
+deno task db:apply
+```
+
+### 6. Start Development Servers
+
+```bash
+# Terminal 1: API server with hot reload
+deno task api:dev
+
+# Terminal 2: Frontend dev server
+deno task src:dev
 ```
 
 The application will be available at <http://localhost:8000>
 
 ## Development Commands
 
-| Command             | Description                              |
-| ------------------- | ---------------------------------------- |
-| `deno task dev`     | Start development server with hot reload |
-| `deno task start`   | Start production server                  |
-| `deno task test`    | Run all tests                            |
-| `deno task check`   | Type check TypeScript                    |
-| `deno task lint`    | Run linter                               |
-| `deno task fmt`     | Format code                              |
-| `deno task migrate` | Run database migrations                  |
+| Command               | Description                        |
+| --------------------- | ---------------------------------- |
+| `deno task api:dev`   | Start API server with hot reload   |
+| `deno task api:start` | Start production API server        |
+| `deno task src:dev`   | Start frontend dev server          |
+| `deno task src:build` | Build frontend for production      |
+| `deno task test`      | Run unit tests                     |
+| `deno task test:all`  | Run all tests (unit + integration) |
+| `deno task check`     | Type check TypeScript              |
+| `deno task lint`      | Run linter                         |
+| `deno task fmt`       | Format code                        |
+| `deno task db:diff`   | Show planned schema changes        |
+| `deno task db:apply`  | Apply schema changes               |
 
 ## PR Preview Environments
 
@@ -133,23 +116,26 @@ This lets you test changes in a production-like environment before merging.
 
 ```
 email-unsubscribe/
-├── src/
+├── api/
 │   ├── main.ts          # Application entry point
 │   ├── app.ts           # Hono application setup
-│   ├── api/             # REST API endpoints
-│   ├── db/              # Database connection and migrations
+│   ├── routes/          # REST API endpoints
+│   ├── db/              # Database queries
 │   ├── gmail/           # Gmail OAuth and API client
 │   ├── scanner/         # Email scanning and parsing
 │   ├── unsubscribe/     # Unsubscribe processing
 │   ├── tracker/         # Attempt tracking and audit
 │   └── public/          # Static files (dashboard)
+├── src/                 # Vue.js frontend
+├── db/
+│   └── schema.hcl       # Atlas database schema
 ├── tests/
 │   ├── unit/            # Unit tests
 │   └── integration/     # Integration tests
 ├── docs/                # Documentation
 ├── openspec/            # Project specifications
-├── deploy.config.ts     # Deployment contract
-├── deno.json            # Deno configuration
+├── mklv.config.json     # Deployment contract
+├── deno.jsonc           # Deno configuration
 └── .github/workflows/   # CI/CD workflows
 ```
 
@@ -157,7 +143,7 @@ email-unsubscribe/
 
 ### Adding a New API Endpoint
 
-1. Add the route in `src/api/routes.ts`:
+1. Add the route in `api/routes/`:
 
 ```typescript
 api.get("/my-endpoint", async (c) => {
@@ -165,29 +151,39 @@ api.get("/my-endpoint", async (c) => {
 });
 ```
 
-- Add types if needed in the relevant module
+1. Add types if needed in the relevant module
 
-### Adding a Database Migration
+### Updating the Database Schema
 
-```bash
-# Migrations are in src/db/migrations/
-# Create a new file with the next number:
-# 009_my_migration.ts
+The schema is defined declaratively in `db/schema.hcl` using
+[Atlas](https://atlasgo.io/):
+
+```hcl
+schema "email_unsubscribe" {}
+
+table "my_table" {
+  schema = schema.email_unsubscribe
+  column "id" {
+    type = serial
+  }
+  column "name" {
+    type = text
+    null = false
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
 ```
 
-Migration format:
+Apply changes:
 
-```typescript
-export const up = `
-  CREATE TABLE my_table (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL
-  );
-`;
+```bash
+# Preview changes
+deno task db:diff
 
-export const down = `
-  DROP TABLE my_table;
-`;
+# Apply changes
+deno task db:apply
 ```
 
 ### Running Tests
@@ -221,90 +217,15 @@ DEBUG=true deno task dev
 Set `headless: false` in browser config to see the browser:
 
 ```typescript
-// In src/unsubscribe/browser.ts
+// In api/unsubscribe/browser.ts
 const browser = await chromium.launch({ headless: false });
 ```
 
 #### Inspecting Playwright Traces
 
-1. Find the trace file in `data/traces/`
+1. Find the trace file in the traces directory
 2. Open with Playwright:
 
 ```bash
-npx playwright show-trace data/traces/trace-123.zip
+npx playwright show-trace trace-123.zip
 ```
-
-## Common Issues
-
-### Port Already in Use
-
-```bash
-# Find and kill the process
-lsof -i :8000
-kill -9 <PID>
-```
-
-### Database Connection Failed
-
-1. Ensure PostgreSQL is running: `docker compose ps`
-2. Check `DATABASE_URL` in `.env`
-3. Verify network connectivity
-
-### OAuth Redirect Mismatch
-
-Ensure `GOOGLE_REDIRECT_URI` exactly matches the URI configured in Google Cloud
-Console, including:
-
-- Protocol (http vs https)
-- Port number
-- Path
-- No trailing slash
-
-### Deno Cache Issues
-
-Clear the Deno cache:
-
-```bash
-deno cache --reload deno.json
-```
-
-### Chromium/Playwright Issues
-
-Ensure Chromium dependencies are installed:
-
-```bash
-# On macOS
-brew install chromium
-
-# On Ubuntu/Debian
-apt-get install chromium
-```
-
-Set the executable path:
-
-```bash
-export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
-```
-
-## IDE Setup
-
-### VS Code
-
-Recommended extensions:
-
-- [Deno](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno)
-- [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
-
-Add to `.vscode/settings.json`:
-
-```json
-{
-  "deno.enable": true,
-  "deno.lint": true,
-  "editor.defaultFormatter": "denoland.vscode-deno"
-}
-```
-
-### JetBrains IDEs
-
-Install the Deno plugin from the marketplace.

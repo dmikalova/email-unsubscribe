@@ -54,8 +54,8 @@
 
 ## 7. Testing
 
-- [ ] 7.1 Test storage upload with mock GCS client
-- [ ] 7.2 Test Playwright remote connection
+- [x] 7.1 Test storage upload with mock GCS client
+- [x] 7.2 Test Playwright remote connection
 - [x] 7.3 Run `tofu plan` in infrastructure repo to verify module changes
-- [ ] 7.4 Deploy and verify sidecar starts with main container
-- [ ] 7.5 Verify scheduled job triggers scan
+- [x] 7.4 Deploy and verify sidecar starts with main container
+- [x] 7.5 Verify scheduled job triggers scan

@@ -30,7 +30,7 @@ the infra repo, providing compile-time validation.
 
 #### Scenario: Compilation validates contract
 
-- **WHEN** the Dagger pipeline runs
+- **WHEN** the CI workflow runs
 - **THEN** TypeScript compilation fails if the contract doesn't satisfy the type
 
 ### Requirement: Contract specifies runtime environment
