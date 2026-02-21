@@ -136,31 +136,35 @@ onMounted(() => {
 
       <!-- Header -->
       <div class="px-6 py-4 border-b border-gray-200">
-        <div class="flex items-center justify-between pr-8">
+        <div class="pr-8">
           <h3 class="text-lg font-semibold text-gray-900">Unsubscribe Details</h3>
-          <span :class="statusClass(selectedItem.status)">{{ selectedItem.status }}</span>
         </div>
       </div>
 
       <!-- Content -->
       <div class="px-6 py-4 space-y-4">
+        <!-- Status -->
+        <div>
+          <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Status</div>
+          <span :class="statusClass(selectedItem.status)">{{ selectedItem.status }}</span>
+        </div>
+
         <!-- Sender Info -->
         <div>
           <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Sender</div>
           <div class="text-sm text-gray-900">{{ selectedItem.sender }}</div>
-          <div class="text-xs text-gray-500">{{ selectedItem.senderDomain }}</div>
         </div>
 
-        <!-- Method & Retries -->
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Method</div>
-            <div class="text-sm text-gray-900">{{ selectedItem.method || 'N/A' }}</div>
-          </div>
-          <div>
-            <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Retries</div>
-            <div class="text-sm text-gray-900">{{ selectedItem.retryCount }}</div>
-          </div>
+        <!-- Method -->
+        <div>
+          <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Method</div>
+          <div class="text-sm text-gray-900">{{ selectedItem.method || 'N/A' }}</div>
+        </div>
+
+        <!-- Retries -->
+        <div>
+          <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Retries</div>
+          <div class="text-sm text-gray-900">{{ selectedItem.retryCount }}</div>
         </div>
 
         <!-- Failure Reason -->

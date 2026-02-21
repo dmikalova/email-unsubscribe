@@ -7,6 +7,7 @@ const gmailStatus = ref<GmailStatus>({
   authorized: false,
   connectedEmail: null,
 });
+const gmailLoading = ref(true);
 
 export function useGmail() {
   const { showToast } = useToast();
@@ -17,6 +18,8 @@ export function useGmail() {
       gmailStatus.value = await res.json();
     } catch (e) {
       console.error("Failed to fetch Gmail status:", e);
+    } finally {
+      gmailLoading.value = false;
     }
   };
 
@@ -36,6 +39,7 @@ export function useGmail() {
 
   return {
     gmailStatus,
+    gmailLoading,
     fetchGmailStatus,
     connectGmail,
     disconnectGmail,
