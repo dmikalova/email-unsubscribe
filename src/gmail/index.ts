@@ -37,6 +37,7 @@ export {
 export {
   checkTokenHealth,
   deleteTokens,
+  getAllUserIds,
   getTokens,
   getValidAccessToken,
   hasValidTokens,

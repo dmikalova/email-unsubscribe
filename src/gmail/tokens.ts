@@ -192,3 +192,16 @@ export function updateConnectedEmail(
     `;
   });
 }
+
+/**
+ * Returns all user IDs that have OAuth tokens stored.
+ * Used for scheduled scan-all jobs.
+ */
+export function getAllUserIds(): Promise<string[]> {
+  return withDb(async (sql) => {
+    const rows = await sql<{ user_id: string }[]>`
+      SELECT user_id FROM oauth_tokens
+    `;
+    return rows.map((row) => row.user_id);
+  });
+}

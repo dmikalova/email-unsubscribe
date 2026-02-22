@@ -7,6 +7,7 @@ import {
   getAllowList,
   removeFromAllowList,
 } from "../scanner/index.ts";
+import { getAllUserIds } from "../gmail/index.ts";
 import {
   getScanProgress,
   isScanInProgress,
@@ -453,4 +454,44 @@ api.post("/scan", (c) => {
     });
 
   return c.json({ success: true, message: "Scan started" });
+});
+
+// Scheduled scan-all endpoint - scans all users with OAuth tokens
+// Called by Cloud Scheduler, does not require user authentication
+api.post("/scan-all", async (c) => {
+  const userIds = await getAllUserIds();
+  console.log(`[Scan-All] Starting scan for ${userIds.length} users`);
+
+  const results: { userId: string; status: string; error?: string }[] = [];
+
+  for (const userId of userIds) {
+    if (isScanInProgress(userId)) {
+      results.push({
+        userId,
+        status: "skipped",
+        error: "Scan already in progress",
+      });
+      continue;
+    }
+
+    try {
+      const result = await scanEmails(userId);
+      console.log(
+        `[Scan-All] Completed for user ${userId}: ${result.scanned} scanned, ${result.processed} processed`,
+      );
+      results.push({ userId, status: "completed" });
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      console.error(`[Scan-All] Failed for user ${userId}:`, error);
+      results.push({ userId, status: "failed", error });
+    }
+  }
+
+  return c.json({
+    total: userIds.length,
+    completed: results.filter((r) => r.status === "completed").length,
+    failed: results.filter((r) => r.status === "failed").length,
+    skipped: results.filter((r) => r.status === "skipped").length,
+    results,
+  });
 });
