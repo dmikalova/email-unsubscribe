@@ -4,7 +4,7 @@ import { assertEquals } from "@std/assert";
 import {
   type ExtractedLink,
   extractUnsubscribeLinksFromHtml,
-} from "../../src/scanner/html.ts";
+} from "../../api/scanner/html.ts";
 
 Deno.test("extractUnsubscribeLinksFromHtml - finds unsubscribe link by text", () => {
   const html = `

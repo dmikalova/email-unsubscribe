@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { app } from "../../src/app.ts";
+import { app } from "../../api/app.ts";
 
 Deno.test("health check returns 200 OK with status and timestamp", async () => {
   const req = new Request("http://localhost/health");
