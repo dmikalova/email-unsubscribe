@@ -5,8 +5,8 @@
 import { assertEquals, assertThrows } from "@std/assert";
 
 // Test the extractDomain function from headers.ts which is used by allow list
-import type { GmailHeader } from "../../api/gmail/client.ts";
-import { extractDomain, getSender } from "../../api/scanner/headers.ts";
+import type { GmailHeader } from "../../src/gmail/client.ts";
+import { extractDomain, getSender } from "../../src/scanner/headers.ts";
 
 function makeHeaders(headers: Record<string, string>): GmailHeader[] {
   return Object.entries(headers).map(([name, value]) => ({ name, value }));

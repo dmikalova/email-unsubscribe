@@ -1,6 +1,6 @@
 {
   "name": "@email-unsubscribe/app",
-  "exports": "./api/main.ts",
+  "exports": "./src/main.ts",
 
   // Import map for npm packages and external dependencies
   "imports": {
@@ -8,17 +8,18 @@
     "djwt": "jsr:@zaubrik/djwt@^3",
     "hono": "npm:hono@^4",
     "playwright": "npm:playwright@^1",
-    "postgres": "npm:postgres@^3"
+    "postgres": "npm:postgres@^3",
+    "tailwindcss": "npm:tailwindcss@^3"
   },
 
   // Available tasks: deno task <name>
   "tasks": {
     // Development with hot reload
-    "api:dev": "deno run --permission-set --watch api/main.ts",
+    "dev": "deno run --permission-set --watch src/main.ts",
     // Production start
-    "api:start": "deno run --permission-set api/main.ts",
+    "start": "deno run --permission-set src/main.ts",
     // Type-check without running
-    "check": "deno check api/**/*.ts",
+    "check": "deno check src/**/*.ts",
     // Build CSS with Tailwind (production, minified)
     "css:build": "deno run --permission-set scripts/build-css.ts",
     // Apply schema changes to database (fetches DATABASE_URL_SESSION from Secret Manager)
@@ -35,10 +36,6 @@
     "secrets:decrypt": "for f in secrets/*.sops.json; do sops -d \"$f\" > \"${f%.sops.json}.json\"; done",
     // Encrypt all .json secret files to .sops.json
     "secrets:encrypt": "for f in secrets/*.json; do sops -e \"$f\" > \"${f%.json}.sops.json\"; done",
-    // Build frontend for production
-    "src:build": "cd src && deno task build",
-    // Run frontend dev server with hot reload (use with api:dev)
-    "src:dev": "cd src && deno task dev",
     // Run unit tests only (default, no external deps required)
     "test": "deno test --permission-set tests/unit/",
     // Run all tests (unit + integration, requires PostgreSQL)
@@ -48,7 +45,7 @@
     // Run integration tests (requires running PostgreSQL)
     "test:integration": "deno test --permission-set tests/integration/",
     // Run unit tests only (explicit alias)
-    "test:unit": "deno test --permission-set tests/unit/"
+    "test:unit": "deno test --permission-set tests/unit/",
   },
 
   // Default permissions for tasks
@@ -59,13 +56,13 @@
       "read": true,
       "run": true,
       "sys": true,
-      "write": true
-    }
+      "write": true,
+    },
   },
 
   // Test configuration
   "test": {
-    "include": ["tests/"]
+    "include": ["tests/"],
   },
 
   // Strict TypeScript settings
@@ -74,13 +71,13 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
   },
 
   // Linter rules
   "lint": {
     "rules": {
-      "tags": ["recommended"]
-    }
-  }
+      "tags": ["recommended"],
+    },
+  },
 }
