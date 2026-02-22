@@ -3,15 +3,14 @@
  * Build Tailwind CSS using Deno's npm compatibility
  */
 
-import autoprefixer from "npm:autoprefixer@10";
-import cssnano from "npm:cssnano@7";
-import postcss from "npm:postcss@8";
-import tailwindcss from "npm:tailwindcss@3";
+import autoprefixer from 'npm:autoprefixer@10';
+import cssnano from 'npm:cssnano@7';
+import postcss from 'npm:postcss@8';
+import tailwindcss from 'npm:tailwindcss@3';
 
-const inputPath = new URL("../api/public/input.css", import.meta.url).pathname;
-const outputPath =
-  new URL("../api/public/output.css", import.meta.url).pathname;
-const configPath = new URL("../tailwind.config.js", import.meta.url).pathname;
+const inputPath = new URL('../src/public/input.css', import.meta.url).pathname;
+const outputPath = new URL('../src/public/output.css', import.meta.url).pathname;
+const configPath = new URL('../tailwind.config.js', import.meta.url).pathname;
 
 // Read input CSS
 const css = await Deno.readTextFile(inputPath);
@@ -23,7 +22,7 @@ const config = (await import(`file://${configPath}`)).default;
 const result = await postcss([
   tailwindcss(config),
   autoprefixer(),
-  cssnano({ preset: "default" }),
+  cssnano({ preset: 'default' }),
 ]).process(css, {
   from: inputPath,
   to: outputPath,
