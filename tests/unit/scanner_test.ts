@@ -1,7 +1,7 @@
 // Unit tests for scanner auto-unsubscribe functionality
 
 import { assertEquals } from "@std/assert";
-import type { ScannedEmail } from "../../src/scanner/scanner.ts";
+import type { ScannedEmail } from "../../api/scanner/scanner.ts";
 
 // Mock email data
 function makeScannedEmail(overrides: Partial<ScannedEmail> = {}): ScannedEmail {

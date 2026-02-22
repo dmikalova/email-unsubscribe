@@ -1,8 +1,8 @@
 // Unit tests for email header parsing
 
 import { assertEquals } from "@std/assert";
-import type { GmailHeader } from "../../src/gmail/client.ts";
-import { parseListUnsubscribeHeader } from "../../src/scanner/headers.ts";
+import type { GmailHeader } from "../../api/gmail/client.ts";
+import { parseListUnsubscribeHeader } from "../../api/scanner/headers.ts";
 
 function makeHeaders(headers: Record<string, string>): GmailHeader[] {
   return Object.entries(headers).map(([name, value]) => ({ name, value }));
