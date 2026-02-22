@@ -45,7 +45,7 @@
     // Run integration tests (requires running PostgreSQL)
     "test:integration": "deno test --permission-set tests/integration/",
     // Run unit tests only (explicit alias)
-    "test:unit": "deno test --permission-set tests/unit/",
+    "test:unit": "deno test --permission-set tests/unit/"
   },
 
   // Default permissions for tasks
@@ -56,13 +56,13 @@
       "read": true,
       "run": true,
       "sys": true,
-      "write": true,
-    },
+      "write": true
+    }
   },
 
   // Test configuration
   "test": {
-    "include": ["tests/"],
+    "include": ["tests/"]
   },
 
   // Strict TypeScript settings
@@ -71,13 +71,13 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": true
   },
 
   // Linter rules
   "lint": {
     "rules": {
-      "tags": ["recommended"],
-    },
-  },
+      "tags": ["recommended"]
+    }
+  }
 }

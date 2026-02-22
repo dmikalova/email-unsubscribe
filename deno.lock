@@ -896,7 +896,8 @@
       "jsr:@zaubrik/djwt@3",
       "npm:hono@4",
       "npm:playwright@1",
-      "npm:postgres@3"
+      "npm:postgres@3",
+      "npm:tailwindcss@3"
     ]
   }
 }
