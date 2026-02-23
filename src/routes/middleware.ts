@@ -163,9 +163,9 @@ async function validateSession(token: string): Promise<SessionData | null> {
  * On invalid/missing session: redirects to login portal with returnUrl.
  */
 export async function authMiddleware(c: Context, next: Next) {
-  // Skip auth for health check and OAuth callback (uses state param for user ID)
+  // Skip auth for health check, OAuth callback, and scheduled scan-all job
   const path = c.req.path;
-  if (path === "/health" || path === "/oauth/callback") {
+  if (path === "/health" || path === "/oauth/callback" || path === "/api/scan-all") {
     return next();
   }
 
