@@ -165,7 +165,9 @@ async function validateSession(token: string): Promise<SessionData | null> {
 export async function authMiddleware(c: Context, next: Next) {
   // Skip auth for health check, OAuth callback, and scheduled scan-all job
   const path = c.req.path;
-  if (path === "/health" || path === "/oauth/callback" || path === "/api/scan-all") {
+  if (
+    path === "/health" || path === "/oauth/callback" || path === "/api/scan-all"
+  ) {
     return next();
   }
 
