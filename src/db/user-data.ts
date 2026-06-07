@@ -24,6 +24,16 @@ export function deleteAllUserData(userId: string): Promise<{
     const deletedTables: string[] = [];
 
     // Delete in order respecting foreign key constraints
+    const deletes = [
+      sql`DELETE FROM oauth_tokens WHERE user_id = ${userId}::uuid`,
+      sql`DELETE FROM scan_state WHERE user_id = ${userId}::uuid`,
+      sql`DELETE FROM processed_emails WHERE user_id = ${userId}::uuid`,
+      sql`DELETE FROM sender_tracking WHERE user_id = ${userId}::uuid`,
+      sql`DELETE FROM allow_list WHERE user_id = ${userId}::uuid`,
+      sql`DELETE FROM unsubscribe_history WHERE user_id = ${userId}::uuid`,
+      sql`DELETE FROM audit_log WHERE user_id = ${userId}::uuid`,
+    ];
+
     const tables = [
       "oauth_tokens",
       "scan_state",
@@ -34,15 +44,12 @@ export function deleteAllUserData(userId: string): Promise<{
       "audit_log",
     ];
 
-    for (const table of tables) {
-      const result = await sql.unsafe(
-        `DELETE FROM ${table} WHERE user_id = $1`,
-        [userId],
-      );
+    for (let i = 0; i < deletes.length; i++) {
+      const result = await deletes[i];
       const count = result.count;
       if (count > 0) {
-        rowsDeleted[table] = count;
-        deletedTables.push(table);
+        rowsDeleted[tables[i]] = count;
+        deletedTables.push(tables[i]);
       }
     }
 
