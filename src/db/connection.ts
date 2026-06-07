@@ -99,7 +99,9 @@ export async function withTransaction<T>(
     const connection = getConnection(); // Get fresh connection each attempt
     try {
       const result = (await connection.begin(async (tx) => {
-        await tx.unsafe(`SET LOCAL search_path TO ${schema}, public`);
+        await (tx as any)`SELECT set_config('search_path', ${
+          schema + ", public"
+        }, true)`;
         return await fn(tx);
       })) as T;
       return result;
@@ -156,7 +158,9 @@ export async function query<T>(
     try {
       // Use begin to ensure search_path is set for the query
       return (await connection.begin(async (tx) => {
-        await tx.unsafe(`SET LOCAL search_path TO ${schema}, public`);
+        await (tx as any)`SELECT set_config('search_path', ${
+          schema + ", public"
+        }, true)`;
         return await queryFn(tx as unknown as postgres.Sql);
       })) as T;
     } catch (error) {
