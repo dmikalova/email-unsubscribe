@@ -85,6 +85,15 @@ export async function closeConnection(): Promise<void> {
   }
 }
 
+// Set search_path for the rest of the transaction (Supavisor transaction
+// pooling does not keep session settings). postgres.js types TransactionSql
+// with Omit<Sql, ...>, which drops Sql's call signature, so the tagged
+// template needs the Sql type; at runtime tx is callable.
+function setSearchPath(tx: postgres.TransactionSql, schema: string) {
+  const sql = tx as unknown as postgres.Sql;
+  return sql`SELECT set_config('search_path', ${schema + ", public"}, true)`;
+}
+
 // Transaction wrapper with automatic retry on transient errors
 // Handles pool exhaustion gracefully with exponential backoff
 // Sets search_path for Supavisor transaction pooling compatibility
@@ -99,9 +108,7 @@ export async function withTransaction<T>(
     const connection = getConnection(); // Get fresh connection each attempt
     try {
       const result = (await connection.begin(async (tx) => {
-        await (tx as any)`SELECT set_config('search_path', ${
-          schema + ", public"
-        }, true)`;
+        await setSearchPath(tx, schema);
         return await fn(tx);
       })) as T;
       return result;
@@ -158,9 +165,7 @@ export async function query<T>(
     try {
       // Use begin to ensure search_path is set for the query
       return (await connection.begin(async (tx) => {
-        await (tx as any)`SELECT set_config('search_path', ${
-          schema + ", public"
-        }, true)`;
+        await setSearchPath(tx, schema);
         return await queryFn(tx as unknown as postgres.Sql);
       })) as T;
     } catch (error) {
